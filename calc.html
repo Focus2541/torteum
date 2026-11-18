@@ -93,6 +93,7 @@ details summary{cursor:pointer;font-weight:600}
 <div><label>บุแผ่นกี่ด้าน</label><select id="sides"><option value="1">1 ด้าน (นอก)</option><option value="2" selected>2 ด้าน (นอก+ใน)</option></select></div>
 <div><label>แผ่น 1 แผ่น กว้าง (ม.)</label><input type="number" step="0.01" id="bw" value="1.2"></div>
 <div><label>แผ่น 1 แผ่น ยาว (ม.)</label><input type="number" step="0.01" id="bh" value="2.4"></div>
+<div><label>วางแผ่น</label><select id="orient"><option value="auto">อัตโนมัติ (ใช้แผ่นน้อยกว่า)</option><option value="v">แนวตั้ง</option><option value="h">แนวนอน</option></select></div>
 <div><label>เผื่อเสีย/ตัดทิ้ง (%)</label><input type="number" step="1" id="waste" value="10"></div>
 </div>
 </section>
@@ -157,7 +158,7 @@ const KEY='roomcalc_v1';
 let doors=[{w:0.8,h:2,q:1,p:0,f:0,hw:0}];
 let wins=[{w:1.2,h:1.1,q:1,p:0,hw:0}];
 let exts=[{n:'หลังคา',q:1,p:0},{n:'พื้น',q:1,p:0},{n:'งานไฟฟ้า',q:1,p:0}];
-const ids=['W','L','H','sp','nog','cLen','sides','bw','bh','waste','pC','pU','pB','scrQ','pScr','scrBox','pAnc','ancSp','pGlue','glueCov','pPrim','primCov','pPaint','paintCov','pLab'];
+const ids=['W','L','H','sp','nog','cLen','sides','bw','bh','orient','waste','pC','pU','pB','scrQ','pScr','scrBox','pAnc','ancSp','pGlue','glueCov','pPrim','primCov','pPaint','paintCov','pLab'];
 const chks=['wF','wB','wLft','wR'];
 const num=v=>{const x=parseFloat(v);return isFinite(x)?x:0};
 const fmt=n=>n.toLocaleString('th-TH',{maximumFractionDigits:0});
@@ -204,7 +205,14 @@ function calc(){
  const uM=Math.max(0,wallLen*2-doorW);
  const uPcs=walls.length?Math.ceil(uM/cLen*waste):0;
  const bdArea=net*sides;
- const boards=Math.ceil(bdArea/bArea*waste);
+ // นับแผ่นตามการวาง: แผ่นที่ตัดเป็นแถบแคบ ใช้ 1 แผ่นได้หลายแถว
+ const bS=Math.min(num($('bw').value),num($('bh').value))||1.2,bL=Math.max(num($('bw').value),num($('bh').value))||2.4;
+ const lay=o=>{const cw=o==='h'?bL:bS,rh=o==='h'?bS:bL;let b=0;for(let y=0;y<H-0.05;y+=rh){const hr=Math.min(rh,H-y);b+=walls.reduce((a,l)=>a+l/cw,0)/Math.max(1,Math.floor(rh/hr+0.001))}return b};
+ const om=$('orient').value,bv=lay('v'),bh=lay('h');
+ const useH=om==='h'||(om==='auto'&&bh<bv-0.01);
+ const frac=gross>0?net/gross:0;
+ const boards=Math.ceil((useH?bh:bv)*frac*sides*waste);
+ const boardsAlt=Math.ceil((useH?bv:bh)*frac*sides*waste);
  const scr=Math.ceil(bdArea*num($('scrQ').value));
  const scrBoxes=Math.ceil(scr/(num($('scrBox').value)||100));
  const anc=Math.ceil(uM/(num($('ancSp').value)||0.6));
@@ -217,7 +225,7 @@ function calc(){
  add('โครงซีลาย',`ตัว C (เสา ${studs} ต้น + คานเสริม) ≈ ${fmt2(cM)} ม.`,cPcs,'เส้น',num($('pC').value));
  add('โครงซีลาย',`ตัว U (รางบน-ล่าง) ≈ ${fmt2(uM)} ม.`,uPcs,'เส้น',num($('pU').value));
  add('โครงซีลาย','พุก+สกรูยึดราง',anc,'ชุด',num($('pAnc').value));
- add('แผ่นผนัง',`แผ่นผนัง ${sides} ด้าน (${fmt2(bdArea)} ตร.ม.)`,boards,'แผ่น',num($('pB').value));
+ add('แผ่นผนัง',`แผ่นผนัง ${sides} ด้าน วาง${useH?'แนวนอน':'แนวตั้ง'} (${fmt2(bdArea)} ตร.ม.)${boards!==boardsAlt?` · ถ้าวาง${useH?'แนวตั้ง':'แนวนอน'} ใช้ ${boardsAlt} แผ่น`:''}`,boards,'แผ่น',num($('pB').value));
  add('แผ่นผนัง',`สกรูยึดแผ่น ≈ ${fmt(scr)} ตัว`,scrBoxes,'กล่อง',num($('pScr').value));
  add('แผ่นผนัง','กาว/ซีลแลนท์',glue,'หลอด',num($('pGlue').value));
  add('ทาสี','สีรองพื้น',prim,'แกลลอน',num($('pPrim').value));

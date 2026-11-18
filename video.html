@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#c2410c">
+<title>คลิปสอนทำผนังเบา</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f6f4ef;--card:#fff;--ink:#1f2328;--mute:#6b6f76;--line:#e3e0d8;--acc:#c2410c;--acc2:#fff3ea;--steel:#475569;--steelF:#cbd5e1;--teal:#0f766e;--blue:#2563eb;--board:#f2dcae;--ex:#d6d3cc;--stage:#fbfaf7}
+@media (prefers-color-scheme:dark){:root{--bg:#16181b;--card:#202327;--ink:#eceae5;--mute:#9a9ea5;--line:#33373d;--acc:#fb923c;--acc2:#2c2219;--steel:#94a3b8;--steelF:#334155;--teal:#2dd4bf;--blue:#60a5fa;--board:#5a4a2e;--ex:#3a3d42;--stage:#1b1d20}}
+*{box-sizing:border-box}
+body{margin:0;font-family:Sarabun,system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.5}
+.top{max-width:760px;margin:auto;padding:10px 16px 0;font-size:14px}.top a{color:var(--acc);text-decoration:none}
+header{max-width:760px;margin:auto;padding:4px 16px}
+h1{font-size:22px;margin:0}header p{margin:2px 0 0;color:var(--mute);font-size:14px}
+main{max-width:760px;margin:auto;padding:4px 12px 50px}
+.player{background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden;margin:10px 0;position:sticky;top:0;z-index:5}
+.ttl{display:flex;justify-content:space-between;align-items:center;padding:10px 14px 4px;gap:8px}
+.ttl b{font-size:16px}.ttl small{color:var(--mute);font-size:13px;white-space:nowrap}
+.stage{background:var(--stage);margin:0 10px;border-radius:12px;aspect-ratio:4/3;display:grid;place-items:center;overflow:hidden}
+.stage svg{width:100%;height:100%}
+.cap{min-height:58px;padding:8px 14px;font-size:16.5px;font-weight:600}
+.track{height:5px;background:var(--line);margin:0 14px;border-radius:3px;overflow:hidden}.track i{display:block;height:100%;background:var(--acc);width:0;transition:width .4s}
+.ctrls{display:grid;grid-template-columns:auto 1fr 2fr 1fr;gap:8px;padding:10px 12px 12px}
+.ctrls button{font:inherit;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:10px;padding:9px 6px;cursor:pointer;font-size:15px}
+.ctrls button.pri{background:var(--acc);color:#fff;border-color:var(--acc);font-weight:600}
+.ctrls button:disabled{opacity:.4}
+.list{display:grid;gap:10px;margin-top:12px}
+.item{display:flex;gap:12px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;cursor:pointer;text-align:left;font:inherit;color:var(--ink);width:100%}
+.item.on{border-color:var(--acc);background:var(--acc2)}
+.item .no{flex:none;width:36px;height:36px;border-radius:50%;background:var(--acc);color:#fff;display:grid;place-items:center;font-weight:700}
+.item b{display:block;font-size:15.5px}.item span{font-size:13px;color:var(--mute)}
+.item .done{margin-left:auto;color:var(--teal);font-weight:700}
+/* svg */
+svg text{font-family:Sarabun,sans-serif;fill:var(--ink)}
+.st{fill:var(--steelF);stroke:var(--steel);stroke-width:1.2}
+.jb{fill:var(--acc);stroke:var(--acc)}
+.tr{fill:var(--teal)}
+.ng{fill:#94a3b8}
+.ex{fill:var(--ex)}
+.bd{fill:var(--board);stroke:var(--mute);stroke-width:.8}
+.an{fill:var(--blue)}
+.dm{stroke:var(--acc);stroke-width:1.3;fill:none}
+.dt{fill:var(--acc)!important;font-size:11px;font-weight:700}
+.lb{font-size:10.5px}
+.big{font-size:14px;font-weight:700}
+.ro{fill:var(--acc2);stroke:var(--acc);stroke-dasharray:5 3;stroke-width:1.2}
+.pf{fill:none;stroke:var(--steel);stroke-width:5;stroke-linejoin:round;stroke-linecap:round}
+.el{opacity:0;transition:opacity .45s,transform .7s cubic-bezier(.2,.8,.2,1);transform-box:fill-box;transform-origin:50% 50%}
+.el.on{opacity:1;transform:none!important}
+.el[data-a=drop]{transform:translateY(-60px)}
+.el[data-a=rise]{transform:translateY(60px)}
+.el[data-a=grow]{transform:scaleY(0);transform-origin:50% 100%}
+.el[data-a=growx]{transform:scaleX(0);transform-origin:0 50%}
+.el[data-a=slide]{transform:translateX(-80px)}
+.el[data-a=slider]{transform:translateX(80px)}
+.el[data-a=pop]{transform:scale(0)}
+.el[data-a=tilt]{transform:rotate(-14deg);transform-origin:50% 100%}
+.el[data-a=fold]{transform:rotate(-90deg);transform-origin:50% 0}
+.el[data-a=fade]{transform:none}
+.hl{animation:hl 1s ease-in-out infinite}
+@keyframes hl{50%{filter:drop-shadow(0 0 4px var(--acc)) brightness(1.25)}}
+@media (prefers-reduced-motion:reduce){.el{transition:opacity .2s}.el[data-a]{transform:none}.hl{animation:none;filter:drop-shadow(0 0 3px var(--acc))}}
+.vc{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--mute)}
+</style>
+</head>
+<body>
+<div class="top"><a href="./">← หน้าหลัก</a></div>
+<header><h1>คลิปสอนทำผนังเบา</h1><p>ภาพเคลื่อนไหวทีละขั้น มีเสียงพูดภาษาไทย กดเล่นแล้ววางมือถือดูได้เลย</p></header>
+<main>
+<div class="player">
+ <div class="ttl"><b id="title">เลือกคลิปด้านล่าง</b><small id="cnt"></small></div>
+ <div class="stage" id="stage"></div>
+ <div class="cap" id="cap">กด ▶ เล่น เพื่อเริ่มคลิปที่ 1</div>
+ <div class="track"><i id="fill"></i></div>
+ <div class="ctrls">
+  <button id="voice" title="เปิด/ปิดเสียง">🔊</button>
+  <button id="prev">◀ ก่อน</button>
+  <button id="play" class="pri">▶ เล่น</button>
+  <button id="next">ถัดไป ▶</button>
+ </div>
+</div>
+<div class="list" id="list"></div>
+<p style="font-size:13px;color:var(--mute);margin-top:16px">อ่านรายละเอียดเพิ่มใน <a href="guide.html" style="color:var(--acc)">คู่มือ</a> · ออกแบบผนังจริงใน <a href="design.html" style="color:var(--acc)">หน้าออกแบบโครง</a></p>
+</main>
+<script>
+/* ---------- helpers วาด svg (หน่วย = ซม. ผนังกว้าง 300 สูง 240) ---------- */
+const X=x=>50+x, Y=h=>270-h;
+const E=(id,a,inner)=>`<g class="el" id="${id}" data-a="${a}">${inner}</g>`;
+const R=(x,y,w,h,c)=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" class="${c}"/>`;
+const stud=(x,h0=0,h1=240,c='st')=>R(X(x)-2,Y(h1),4,h1-h0,c);
+const T=(x,y,t,c='lb',anc='middle')=>`<text x="${x}" y="${y}" class="${c}" text-anchor="${anc}">${t}</text>`;
+const dimH=(x0,x1,y,t)=>`<line class="dm" x1="${x0}" y1="${y}" x2="${x1}" y2="${y}"/><line class="dm" x1="${x0}" y1="${y-4}" x2="${x0}" y2="${y+4}"/><line class="dm" x1="${x1}" y1="${y-4}" x2="${x1}" y2="${y+4}"/>`+T((x0+x1)/2,y-5,t,'dt');
+const dimV=(x,y0,y1,t)=>`<line class="dm" x1="${x}" y1="${y0}" x2="${x}" y2="${y1}"/><line class="dm" x1="${x-4}" y1="${y0}" x2="${x+4}" y2="${y0}"/><line class="dm" x1="${x-4}" y1="${y1}" x2="${x+4}" y2="${y1}"/>`+`<text x="${x+5}" y="${(y0+y1)/2+4}" class="dt">${t}</text>`;
+const dot=(x,y,r=3.2,c='an')=>`<circle cx="${x}" cy="${y}" r="${r}" class="${c}"/>`;
+const room=()=>R(40,Y(244),320,8,'ex')+R(40,Y(0),320,8,'ex')+T(200,Y(244)-4,'เพดาน / คาน')+T(200,Y(0)+20,'พื้น');
+const tracks=(door)=>door?E('tt','drop',R(X(0),Y(240),300,4,'tr'))+E('tbL','rise',R(X(0),Y(4),39,4,'tr'))+E('tbR','rise',R(X(121),Y(4),179,4,'tr')):E('tt','drop',R(X(0),Y(240),300,4,'tr'))+E('tb','rise',R(X(0),Y(4),300,4,'tr'));
+const SV=(inner,vb='0 0 400 300')=>`<svg viewBox="${vb}" xmlns="http://www.w3.org/2000/svg">${inner}</svg>`;
+
+/* ---------- คลิป ---------- */
+const CLIPS=[
+{t:'รู้จักโครงตัว C และตัว U',d:'สองชิ้นหลักของผนังเบา และวิธีสวมเข้ากัน',
+ stage:()=>SV(
+  E('u','fade',`<path class="pf" d="M60 90 L60 190 L150 190 L150 90" style="stroke:var(--teal)"/>`+T(105,215,'ตัว U (ราง)','big'))+
+  E('uN','pop',T(105,235,'ปีกตรง ไม่มีขอบพับ'))+
+  E('c','fade',`<path class="pf" d="M275 100 L255 100 L255 190 L345 190 L345 100 L325 100"/>`+T(300,215,'ตัว C (เสา)','big'))+
+  E('cN','pop',T(300,235,'ปีกมีขอบพับเข้า แข็งกว่า'))+
+  E('lip','pop',`<circle cx="265" cy="100" r="14" fill="none" stroke="var(--acc)" stroke-width="2"/><circle cx="335" cy="100" r="14" fill="none" stroke="var(--acc)" stroke-width="2"/>`)+
+  E('cin','drop',`<path d="M82 100 L66 100 L66 184 L144 184 L144 100 L128 100" fill="none" stroke="var(--acc)" stroke-width="4"/>`)+
+  E('ok','pop',T(105,70,'✓ สวมพอดี','dt'))+
+  E('buy','fade',R(20,250,360,40,'ex')+T(200,275,'ซื้อ C กับ U ยี่ห้อ/รุ่นเดียวกัน · เลือกเส้นตรง ไม่บุบ ไม่เป็นสนิม'))),
+ sc:[
+  {cap:'โครงผนังเบามีเหล็กชุบสังกะสี 2 แบบที่ใช้คู่กันเสมอ',show:['u','c']},
+  {cap:'ตัว U ปีกตรง ไม่มีขอบพับ ใช้เป็นรางยึดกับพื้นและเพดาน',show:['uN'],hl:['u']},
+  {cap:'ตัว C ปีกมีขอบพับเข้า ทำให้แข็งกว่า ใช้ตั้งเป็นเสา',show:['cN','lip'],hl:['c']},
+  {cap:'ตัว C จะสวมลงไปในราง U พอดี',show:['cin'],hide:['lip']},
+  {cap:'ถ้าคนละยี่ห้อ อาจหลวมหรือคับ จึงควรซื้อยี่ห้อและรุ่นเดียวกัน',show:['ok','buy'],hl:['cin']},
+  {cap:'ผนังภายนอก หรือผนังสูงเกิน 2.7 เมตร ให้เลือกรุ่นหนา หรือ C-Stud หน้า 75 มิลลิเมตร',hl:['c']}
+ ]},
+{t:'วางแนวและติดราง U',d:'ตีเส้น ยกดิ่ง และยึดพุกทุก 60 ซม.',
+ stage:()=>SV(room()+
+  E('lnB','growx',`<line x1="${X(0)}" y1="${Y(0)}" x2="${X(300)}" y2="${Y(0)}" stroke="var(--acc)" stroke-width="2.5" stroke-dasharray="6 3"/>`)+
+  E('plumb','grow',`<line x1="${X(0)}" y1="${Y(240)}" x2="${X(0)}" y2="${Y(0)}" stroke="var(--blue)" stroke-width="1.5" stroke-dasharray="4 4"/><line x1="${X(300)}" y1="${Y(240)}" x2="${X(300)}" y2="${Y(0)}" stroke="var(--blue)" stroke-width="1.5" stroke-dasharray="4 4"/>`+T(X(150),Y(130),'ลูกดิ่ง / เลเซอร์ ยกแนวขึ้นเพดาน'))+
+  E('lnT','growx',`<line x1="${X(0)}" y1="${Y(240)}" x2="${X(300)}" y2="${Y(240)}" stroke="var(--acc)" stroke-width="2.5" stroke-dasharray="6 3"/>`)+
+  tracks(false)+
+  E('ab','fade',[10,70,130,190,250,290].map(x=>dot(X(x),Y(2))).join(''))+
+  E('at','fade',[10,70,130,190,250,290].map(x=>dot(X(x),Y(238))).join(''))+
+  E('d1','pop',dimH(X(0),X(10),Y(0)+34,'10'))+E('d2','pop',dimH(X(70),X(130),Y(0)+34,'≤ 60 ซม.'))+
+  E('door','fade',`<rect x="${X(40)}" y="${Y(4)}" width="80" height="4" fill="var(--stage)" stroke="var(--acc)" stroke-dasharray="3 2"/>`+T(X(80),Y(14),'ช่วงประตู ไม่ต้องติดราง','dt'))),
+ sc:[
+  {cap:'เริ่มจากตีเส้นแนวผนังบนพื้นด้วยบักเต้า ใช้ฉากเช็กมุมให้ได้ 90 องศา',show:['lnB']},
+  {cap:'ใช้ลูกดิ่งหรือเลเซอร์ ยกแนวจากพื้นขึ้นไปบนเพดาน',show:['plumb']},
+  {cap:'ตีเส้นบนเพดานให้ตรงกับเส้นบนพื้นพอดี ผนังจะได้ไม่เอียง',show:['lnT']},
+  {cap:'วางราง U ล่างทาบเส้น',show:['tb'],hide:['lnB']},
+  {cap:'เจาะพุกยึดราง จุดแรกห่างปลาย 10 ซม. แล้วทุก ๆ ไม่เกิน 60 ซม.',show:['ab','d1','d2'],hl:['ab']},
+  {cap:'ติดราง U บนเพดานแบบเดียวกัน ตรงแนวกับรางล่าง',show:['tt','at'],hide:['lnT','d1','d2']},
+  {cap:'ตรงช่วงที่จะเป็นประตู ไม่ต้องติดรางล่าง เพราะต้องเดินผ่าน',show:['door'],hl:['door']}
+ ]},
+{t:'ตั้งเสาตัว C',d:'ตัดเสา สอดเข้าราง เช็กดิ่ง ย้ำยึด',
+ stage:()=>SV(room()+tracks(false)+
+  E('s0','grow',stud(2))+E('tilt','tilt',stud(60))+
+  [120,180,240].map((x,i)=>E('s'+(i+2),'grow',stud(x))).join('')+E('s5','grow',stud(298))+
+  E('cut','pop',dimV(X(75),Y(239),Y(1),'สูงห้อง − 1 ซม.'))+
+  E('lvl','pop',`<rect x="${X(60)-10}" y="${Y(150)}" width="20" height="60" rx="3" fill="#facc15" stroke="#a16207"/><rect x="${X(60)-4}" y="${Y(125)}" width="8" height="10" rx="4" fill="#22c55e"/>`+T(X(60)+40,Y(120),'เช็กดิ่ง','dt'))+
+  E('cr','pop',[2,60,120,180,240,298].map(x=>`<text x="${X(x)}" y="${Y(236)+2}" class="dt" text-anchor="middle">✕</text><text x="${X(x)}" y="${Y(4)+2}" class="dt" text-anchor="middle">✕</text>`).join(''))+
+  E('d60','pop',dimH(X(0),X(60),Y(0)+34,'60')+dimH(X(60),X(120),Y(0)+34,'60')+dimH(X(120),X(180),Y(0)+34,'60'))+
+  E('b120','pop',dimH(X(0),X(120),Y(240)-16,'120 = แผ่น 1 แผ่น')+`<rect x="${X(0)}" y="${Y(240)}" width="120" height="240" fill="var(--board)" opacity=".35"/>`)),
+ sc:[
+  {cap:'วัดความสูงจากรางล่างถึงรางบน แล้วตัดเสาให้สั้นกว่าประมาณ 1 ซม. จะสอดง่าย',show:['s0','cut']},
+  {cap:'เอียงเสาสอดเข้ารางบนก่อน แล้วดันลงรางล่าง',show:['tilt'],hide:['cut'],wait:600},
+  {cap:'บิดเสาให้ตั้งตรง แล้วเช็กดิ่งด้วยระดับน้ำ',show:['lvl'],hl:['tilt']},
+  {cap:'ตั้งเสาที่เหลือ ห่างกันทุก 60 ซม. วัดจากกึ่งกลางเสา',show:['s2','s3','s4','s5','d60'],hide:['lvl']},
+  {cap:'เพราะแผ่นกว้าง 120 ซม. ขอบแผ่นจะตกกลางเสาพอดีทุกแผ่น',show:['b120'],hl:['s0','s3']},
+  {cap:'ย้ำด้วยคีมย้ำ ทั้งสองข้าง ทั้งบนและล่าง ทุกเสา',show:['cr'],hide:['b120','d60'],hl:['cr']}
+ ]},
+{t:'ทำช่องประตู',d:'เสาคู่ ทับหลังพับปลาย เสาสั้นด้านบน',
+ stage:()=>SV(room()+tracks(true)+E('s0','fade',stud(2))+E('s5','fade',stud(298))+E('s3','fade',stud(180))+E('s4','fade',stud(240))+
+  E('ro','pop',`<rect x="${X(39)}" y="${Y(201)}" width="82" height="201" class="ro"/>`+T(X(80),Y(110),'วงกบ 80×200','dt')+T(X(80),Y(96),'ช่อง 82×201','lb'))+
+  E('j1','grow',stud(37,0,240,'jb'))+E('j2','grow',stud(33,0,240,'jb'))+E('j3','grow',stud(123,0,240,'jb'))+E('j4','grow',stud(127,0,240,'jb'))+
+  E('dRo','pop',dimH(X(39),X(121),Y(0)+34,'82 ซม. (วงกบ + เผื่อข้างละ 1)'))+
+  E('hdr','drop',R(X(31),Y(205),98,4,'tr'))+
+  E('tabs','fold',R(X(35),Y(201),4,10,'tr')+R(X(121),Y(201),4,10,'tr'))+
+  E('dH','pop',dimV(X(135),Y(201),Y(0),'201'))+
+  E('cp','grow',stud(80,205,240))+
+  E('frame','fade',`<rect x="${X(40)}" y="${Y(200)}" width="80" height="200" fill="none" stroke="var(--ink)" stroke-width="3"/>`+[40,80,120,160].map(h=>dot(X(41),Y(h),2.4,'an')+dot(X(119),Y(h),2.4,'an')).join(''))),
+ sc:[
+  {cap:'ตัวอย่างผนังยาว 3 เมตร มีประตูกว้าง 80 สูง 200 ซม.',show:['tt','tbL','tbR','s0','s5','s3','s4']},
+  {cap:'ช่องเปิดต้องใหญ่กว่าวงกบข้างละประมาณ 1 ซม. ไว้ปรับระดับ',show:['ro','dRo'],hl:['ro']},
+  {cap:'ข้างช่องใช้เสาคู่ ประกบกันสองต้น เพราะต้องรับแรงเปิดปิดประตู',show:['j1','j2','j3','j4'],hide:['dRo'],hl:['j1','j2','j3','j4']},
+  {cap:'ทับหลังทำจากราง U ยาวกว่าช่อง 20 ซม. วางบนช่องพอดี',show:['hdr','dH']},
+  {cap:'บากปีกปลายข้างละ 10 ซม. แล้วพับลง ย้ำยึดกับเสาคู่',show:['tabs'],hl:['tabs']},
+  {cap:'ใส่เสาสั้นเหนือทับหลัง ตามระยะ 60 ซม. เดิม',show:['cp'],hide:['dH'],hl:['cp']},
+  {cap:'ใส่วงกบ แล้วยิงสกรูยึดกับเสาคู่ทุก 40 ถึง 50 ซม.',show:['frame'],hl:['frame']}
+ ]},
+{t:'ทำช่องหน้าต่าง',d:'เหมือนประตู แต่เพิ่มคานล่าง',
+ stage:()=>SV(room()+tracks(false)+E('s0','fade',stud(2))+E('s1','fade',stud(60))+E('s2','fade',stud(120))+E('s5','fade',stud(298))+
+  E('ro','pop',`<rect x="${X(164)}" y="${Y(211)}" width="92" height="112" class="ro"/>`+T(X(210),Y(160),'หน้าต่าง 90×110','dt'))+
+  E('j','grow',stud(162,0,240,'jb')+stud(158,0,240,'jb')+stud(258,0,240,'jb')+stud(262,0,240,'jb'))+
+  E('hdr','drop',R(X(156),Y(215),108,4,'tr'))+
+  E('sill','rise',R(X(156),Y(99),108,4,'tr'))+
+  E('dS','pop',dimV(X(140),Y(99),Y(0),'99'))+E('dT','pop',dimV(X(275),Y(211),Y(0),'211'))+
+  E('cpU','grow',stud(180,215,240)+stud(240,215,240))+
+  E('cpD','grow',stud(180,0,95)+stud(240,0,95))+
+  E('seal','fade',`<rect x="${X(165)}" y="${Y(210)}" width="90" height="110" fill="none" stroke="var(--ink)" stroke-width="3"/><rect x="${X(163)}" y="${Y(212)}" width="94" height="114" fill="none" stroke="var(--blue)" stroke-width="1.5" stroke-dasharray="2 2"/>`+T(X(210),Y(0)+34,'ยาแนวซิลิโคนรอบนอกวงกบ','lb'))),
+ sc:[
+  {cap:'หน้าต่างกว้าง 90 สูง 110 ขอบล่างสูงจากพื้น 100 ซม.',show:['tt','tb','s0','s1','s2','s5','ro']},
+  {cap:'ตั้งเสาคู่สองข้างช่องเหมือนประตู',show:['j'],hl:['j']},
+  {cap:'ใส่ทับหลังด้านบน วางให้ใต้ทับหลังสูง 211 ซม.',show:['hdr','dT'],hl:['hdr']},
+  {cap:'หน้าต่างต้องมีคานล่างเพิ่ม วางให้บนคานสูง 99 ซม.',show:['sill','dS'],hl:['sill']},
+  {cap:'ใส่เสาสั้นทั้งเหนือทับหลัง และใต้คานล่าง',show:['cpU','cpD'],hide:['dS','dT'],hl:['cpU','cpD']},
+  {cap:'ใส่วงกบหน้าต่าง ยิงสกรูรอบวงกบ แล้วยาแนวซิลิโคนกันน้ำรอบนอก',show:['seal']}
+ ]},
+{t:'การเข้ามุม',d:'มุม L มุม T และชนผนังบ้านเดิม (มองจากด้านบน)',
+ stage:()=>SV(
+  T(200,22,'มองจากด้านบน (แปลน)','big')+
+  E('L1','slide',R(30,60,150,10,'bd')+R(30,96,150,10,'bd'))+
+  E('L2','rise',R(30,70,10,140,'bd')+R(66,106,10,104,'bd'))+
+  E('Lc','pop',R(42,72,20,20,'jb')+R(42,92,10,4,'jb'))+
+  E('Lc2','pop',R(42,96,20,10,'st'))+
+  E('Lt','fade',T(105,240,'ก. มุม L','big')+T(105,258,'ขอบแผ่นทุกด้านต้องมีเสารับ'))+
+  E('T1','slider',R(220,60,160,10,'bd')+R(220,96,160,10,'bd'))+
+  E('T2','rise',R(282,106,10,104,'bd')+R(318,106,10,104,'bd'))+
+  E('Tc','pop',R(290,72,30,24,'jb'))+
+  E('Tt','fade',T(300,240,'ข. ผนังชนกลาง (T)','big')+T(300,258,'เพิ่มเสาในผนังหลักตรงจุดที่ชน'))+
+  E('W0','fade',R(140,60,60,190,'ex')+T(170,50,'ผนังเดิม','lb'))+
+  E('W1','slide',R(200,110,180,10,'bd')+R(200,150,180,10,'bd'))+
+  E('Wc','pop',R(200,120,20,30,'jb')+dot(203,128)+dot(203,142))+
+  E('Wt','fade',T(290,200,'ค. ชนผนังบ้านเดิม','big')+T(290,220,'เสาแรกยึดพุกติดผนัง ทุก 60 ซม.')+T(290,238,'แล้วยาแนวรอยต่อ'))),
+ sc:[
+  {cap:'มุมผนังคือจุดที่ต้องมีเสาสำหรับยึดขอบแผ่นทั้งสองด้าน',show:['L1','L2']},
+  {cap:'มุม L ใช้เสาตัว C สองถึงสามต้นประกบกันที่มุม',show:['Lc','Lc2','Lt'],hl:['Lc','Lc2']},
+  {cap:'ผนังที่มาชนตรงกลางเป็นรูปตัว T ต้องเพิ่มเสาในผนังหลักตรงจุดนั้น',show:['T1','T2','Tc','Tt'],hl:['Tc']},
+  {cap:'ถ้าผนังใหม่ชนกับผนังบ้านเดิม',show:['W0','W1'],hide:['L1','L2','Lc','Lc2','Lt','T1','T2','Tc','Tt']},
+  {cap:'ให้เสาตัวแรกยึดติดผนังเดิมด้วยพุก ทุก ๆ 60 ซม. ตามความสูง แล้วยาแนวรอยต่อ',show:['Wc','Wt'],hl:['Wc']}
+ ]},
+{t:'คานนอนและการต่อเสา',d:'เสริมความแข็งแรง และต่อเหล็กให้ยาวขึ้น',
+ stage:()=>SV(room()+tracks(false)+[2,60,120,180,240,298].map((x,i)=>E('s'+i,'fade',stud(x))).join('')+
+  E('n','growx',[[4,58],[62,118],[122,178],[182,238],[242,296]].map(([a,b])=>R(X(a),Y(121),b-a,3,'ng')).join(''))+
+  E('dn','pop',dimV(X(30),Y(120),Y(0),'120'))+
+  E('heavy','pop',`<rect x="${X(182)}" y="${Y(160)}" width="56" height="30" fill="#a16207" opacity=".55"/>`+T(X(210),Y(165),'ไม้เสริม แขวนทีวี/ตู้','lb'))+
+  E('sp','fade',R(40,40,320,90,'ex')+T(200,58,'การต่อเสา (มองด้านข้าง)','big'))+
+  E('sp1','slide',R(60,78,170,26,'st'))+E('sp2','slider',R(170,82,170,18,'jb'))+
+  E('spd','pop',dimH(170,230,122,'ซ้อน ≥ 30 ซม.')+dot(185,91,3.5)+dot(215,91,3.5))),
+ sc:[
+  {cap:'ใส่คานนอนขวางระหว่างเสา ทุก ๆ 120 ซม. ตามความสูง ช่วยไม่ให้ผนังโยก',show:['tt','tb','s0','s1','s2','s3','s4','s5','n','dn'],hl:['n']},
+  {cap:'จุดที่จะแขวนของหนัก เช่นทีวี ตู้ ชั้นวาง ให้ใส่ไม้เสริมด้านในไว้ก่อนปิดแผ่น',show:['heavy'],hide:['dn'],hl:['heavy']},
+  {cap:'ถ้าเสาสั้นกว่าความสูงห้อง ต้องต่อด้วยการสวมซ้อนกัน ห้ามต่อชนปลาย',show:['sp','sp1','sp2'],hide:['heavy']},
+  {cap:'ระยะซ้อนอย่างน้อย 30 ซม. แล้วย้ำหรือยิงสกรูอย่างน้อย 2 จุด',show:['spd'],hl:['spd']},
+  {cap:'จุดต่อของเสาข้างกัน ให้สลับระดับสูงต่ำ อย่าให้อยู่แนวเดียวกัน',hl:['sp2']}
+ ]},
+{t:'ติดแผ่นผนังและยิงสกรู',d:'รอยต่อตกกลางเสา ระยะสกรู และร่องเว้น',
+ stage:()=>SV(room()+tracks(false)+[2,60,120,180,240,298].map((x,i)=>E('s'+i,'fade',stud(x))).join('')+
+  E('b1','slide',`<rect x="${X(0)}" y="${Y(239.5)}" width="119" height="238.5" class="bd"/>`)+
+  E('b2','slide',`<rect x="${X(121)}" y="${Y(239.5)}" width="118" height="238.5" class="bd"/>`)+
+  E('b3','slider',`<rect x="${X(241)}" y="${Y(239.5)}" width="59" height="238.5" class="bd"/>`)+
+  E('gapF','pop',`<circle cx="${X(10)}" cy="${Y(1)}" r="12" fill="none" stroke="var(--acc)" stroke-width="2"/>`+T(X(40),Y(0)+22,'ยกแผ่นห่างพื้น 0.5–1 ซม.','dt','start'))+
+  E('gapJ','pop',`<circle cx="${X(120)}" cy="${Y(120)}" r="12" fill="none" stroke="var(--acc)" stroke-width="2"/>`+T(X(120),Y(120)-16,'ร่อง 3–5 มม. กลางเสา','dt'))+
+  E('se','pop',[0,120,240].flatMap(x=>Array.from({length:12},(_,k)=>dot(X(x===0?2:x),Y(10+k*20),2,'an'))).join(''))+
+  E('sf','pop',[60,180].flatMap(x=>Array.from({length:8},(_,k)=>dot(X(x),Y(15+k*30),2,'an'))).join(''))+
+  E('dse','pop',dimV(X(128),Y(110),Y(90),'20'))+E('dsf','pop',dimV(X(68),Y(135),Y(105),'30'))),
+ sc:[
+  {cap:'ก่อนปิดแผ่น เดินท่อสายไฟและใส่ฉนวนให้เรียบร้อยก่อน',show:['tt','tb','s0','s1','s2','s3','s4','s5']},
+  {cap:'ติดแผ่นแรกจากปลายซ้าย ยกแผ่นห่างพื้นครึ่งถึงหนึ่งเซนติเมตร กันน้ำซึม',show:['b1','gapF'],hl:['gapF']},
+  {cap:'แผ่นถัดไป ขอบต้องตกกลางเสา และเว้นร่อง 3 ถึง 5 มิลลิเมตร',show:['b2','b3','gapJ'],hide:['gapF'],hl:['gapJ']},
+  {cap:'ตรงรอยต่อและขอบแผ่น ยิงสกรูทุก 20 ซม. ห่างขอบแผ่นอย่างน้อย 1.2 ซม.',show:['se','dse'],hide:['gapJ'],hl:['se']},
+  {cap:'กลางแผ่น ยิงสกรูทุก 30 ซม. หัวสกรูจมเสมอผิวพอดี อย่าลึกจนแผ่นแตก',show:['sf','dsf'],hl:['sf']},
+  {cap:'ถ้าบุสองด้าน ให้สลับรอยต่อด้านในกับด้านนอก ไม่ให้ตรงเสาเดียวกัน',hide:['dse','dsf']}
+ ]},
+{t:'เก็บรอยต่อและทาสี',d:'ยาแนว เทปตาข่าย ฉาบ รองพื้น สีจริง',
+ stage:()=>SV(T(200,26,'ภาพตัดรอยต่อแผ่น (ขยาย)','big')+
+  R(40,190,150,30,'bd')+R(210,190,150,30,'bd')+R(170,220,60,40,'st')+T(200,276,'เสา C')+
+  E('l1','grow',`<rect x="190" y="190" width="20" height="30" fill="var(--acc)"/>`)+E('l1t','pop',T(200,128,'① ยาแนวอะคริลิกอัดร่อง + หัวสกรู','lb'))+
+  E('l2','growx',`<rect x="140" y="182" width="120" height="8" fill="var(--blue)" opacity=".7"/>`)+E('l2t','pop',T(200,110,'② เทปตาข่ายทับรอยต่อ','lb'))+
+  E('l3','growx',`<rect x="100" y="173" width="200" height="9" fill="var(--mute)" opacity=".55"/>`)+E('l3t','pop',T(200,92,'③ ฉาบบาง ๆ แห้งแล้วขัดเรียบ','lb'))+
+  E('l4','growx',`<rect x="40" y="165" width="320" height="8" fill="#e5e7eb" stroke="var(--mute)" stroke-width=".5"/>`)+E('l4t','pop',T(200,74,'④ สีรองพื้น 1 รอบ','lb'))+
+  E('l5','growx',`<rect x="40" y="157" width="320" height="8" fill="var(--acc)" opacity=".55"/>`)+E('l5t','pop',T(200,56,'⑤ สีจริง 2 รอบ','lb'))+
+  E('fin','pop',T(200,294,'เสร็จแล้ว! ✓','big'))),
+ sc:[
+  {cap:'ขั้นสุดท้าย เก็บรอยต่อให้เรียบก่อนทาสี'},
+  {cap:'อัดยาแนวอะคริลิกลงร่องรอยต่อ และโป๊หัวสกรู',show:['l1','l1t'],hl:['l1']},
+  {cap:'ปิดเทปตาข่ายทับรอยต่อ ช่วยกันรอยแตกร้าว',show:['l2','l2t'],hl:['l2']},
+  {cap:'ฉาบเก็บบาง ๆ ทิ้งให้แห้ง แล้วขัดกระดาษทรายให้เรียบ',show:['l3','l3t'],hl:['l3']},
+  {cap:'ทาสีรองพื้นหนึ่งรอบ ตามที่ผู้ผลิตแผ่นแนะนำ',show:['l4','l4t'],hl:['l4']},
+  {cap:'แล้วทาสีจริงสองรอบ ผนังภายนอกยาแนวซิลิโคนกันน้ำที่ขอบล่างด้วย',show:['l5','l5t'],hl:['l5']},
+  {cap:'เสร็จแล้ว ลองไปออกแบบโครงผนังจริงของคุณในหน้าออกแบบโครงได้เลย',show:['fin']}
+ ]}
+];
+
+/* ---------- player ---------- */
+const $=id=>document.getElementById(id);
+let ci=-1,si=0,playing=false,gen=0,voiceOn=true,thVoice=null;
+const HAS_TTS='speechSynthesis' in window;
+let seen={};try{seen=JSON.parse(localStorage.getItem('torteum_seen')||'{}')}catch(e){}
+function pickVoice(){if(!HAS_TTS)return;const v=speechSynthesis.getVoices();thVoice=v.find(x=>/^th/i.test(x.lang))||null}
+if(HAS_TTS){pickVoice();speechSynthesis.onvoiceschanged=pickVoice}
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function speak(text,g){
+ if(!(voiceOn&&HAS_TTS))return sleep(Math.max(2600,text.length*85));
+ return new Promise(res=>{let done=false;const fin=()=>{if(!done){done=true;res()}};
+  try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);if(thVoice){u.voice=thVoice;u.lang=thVoice.lang}else u.lang='th-TH';u.rate=1;u.onend=fin;u.onerror=fin;speechSynthesis.speak(u)}catch(e){fin()}
+  setTimeout(fin,Math.max(4500,text.length*170))});
+}
+function renderList(){
+ $('list').innerHTML=CLIPS.map((c,i)=>`<button class="item ${i===ci?'on':''}" data-i="${i}"><span class="no">${i+1}</span><span><b>${c.t}</b><span>${c.d} · ${c.sc.length} ฉาก</span></span>${seen[i]?'<span class="done">✓</span>':''}</button>`).join('');
+}
+function load(i){ci=i;si=0;const c=CLIPS[i];$('stage').innerHTML=c.stage();$('title').textContent=`${i+1}. ${c.t}`;applyUpTo(0,false);renderList();ui()}
+function applyScene(sc,anim){
+ const st=$('stage');
+ st.querySelectorAll('.hl').forEach(e=>e.classList.remove('hl'));
+ (sc.hide||[]).forEach(id=>{const e=st.querySelector('#'+id);if(e)e.classList.remove('on')});
+ (sc.show||[]).forEach(id=>{const e=st.querySelector('#'+id);if(!e)return;if(!anim){e.style.transition='none';e.classList.add('on');e.getBoundingClientRect();e.style.transition=''}else e.classList.add('on')});
+ (sc.hl||[]).forEach(id=>{const e=st.querySelector('#'+id);if(e)e.classList.add('hl')});
+ $('cap').textContent=sc.cap;
+}
+function applyUpTo(k,anim){const st=$('stage');st.querySelectorAll('.el').forEach(e=>{e.style.transition='none';e.classList.remove('on','hl');e.getBoundingClientRect();e.style.transition=''});
+ const c=CLIPS[ci];for(let j=0;j<k;j++)applyScene(c.sc[j],false);applyScene(c.sc[k],anim)}
+function ui(){const c=CLIPS[ci],n=c?c.sc.length:0;
+ $('cnt').textContent=c?`ฉาก ${si+1}/${n}`:'';$('fill').style.width=c?((si+(playing?1:0))/n*100)+'%':'0';
+ $('play').textContent=playing?'⏸ หยุด':(c&&si>=n-1&&seen[ci]?'↻ ดูอีกครั้ง':'▶ เล่น');
+ $('prev').disabled=!c||si===0;$('next').textContent=c&&si>=n-1?(ci<CLIPS.length-1?'คลิปถัดไป ▶':'จบแล้ว'):'ถัดไป ▶';$('next').disabled=c&&si>=n-1&&ci>=CLIPS.length-1;
+ $('voice').textContent=voiceOn?'🔊':'🔇'}
+async function run(){const g=++gen;playing=true;ui();const c=CLIPS[ci];
+ while(playing&&g===gen&&si<c.sc.length){applyScene(c.sc[si],true);ui();await Promise.all([speak(c.sc[si].cap,g),sleep(Math.max(2500,c.sc[si].cap.length*60))]);if(g!==gen||!playing)return;await sleep(c.sc[si].wait||700);if(g!==gen||!playing)return;
+  if(si<c.sc.length-1)si++;else break}
+ if(g===gen){playing=false;seen[ci]=1;try{localStorage.setItem('torteum_seen',JSON.stringify(seen))}catch(e){};renderList();ui();$('fill').style.width='100%'}}
+function stop(){playing=false;gen++;if(HAS_TTS)try{speechSynthesis.cancel()}catch(e){};ui()}
+function go(k){stop();si=k;applyUpTo(si,true);ui()}
+$('play').onclick=()=>{if(ci<0)load(0);if(playing){stop();return}
+ const n=CLIPS[ci].sc.length;if(si>=n-1&&seen[ci]){si=0;applyUpTo(0,false)}else if(si>0){applyUpTo(si,false)}run()};
+$('prev').onclick=()=>{if(si>0)go(si-1)};
+$('next').onclick=()=>{const n=CLIPS[ci].sc.length;if(si<n-1){const was=playing;go(si+1);if(was)run()}else if(ci<CLIPS.length-1){stop();load(ci+1);run()}};
+$('voice').onclick=()=>{voiceOn=!voiceOn;if(!voiceOn&&HAS_TTS)speechSynthesis.cancel();ui()};
+$('list').onclick=e=>{const b=e.target.closest('[data-i]');if(!b)return;stop();load(+b.dataset.i);window.scrollTo({top:0,behavior:'smooth'});run()};
+const h=parseInt((location.hash||'').replace('#clip-',''));load(isFinite(h)&&h>0&&h<=CLIPS.length?h-1:0);
+</script>
+</body>
+</html>

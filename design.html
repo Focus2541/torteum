@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ออกแบบโครงผนังเบา</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f6f4ef;--card:#fff;--ink:#1f2328;--mute:#6b6f76;--line:#e3e0d8;--acc:#c2410c;--acc2:#fff3ea;--steel:#475569;--steelF:#cbd5e1;--blue:#2563eb;--hdr:#0f766e;--warn:#fef3c7;--warnI:#92400e;--err:#fee2e2;--errI:#991b1b;--board:#f59e0b}
+@media (prefers-color-scheme:dark){:root{--bg:#16181b;--card:#202327;--ink:#eceae5;--mute:#9a9ea5;--line:#33373d;--acc:#fb923c;--acc2:#2c2219;--steel:#94a3b8;--steelF:#334155;--blue:#60a5fa;--hdr:#2dd4bf;--warn:#3a2f12;--warnI:#fcd34d;--err:#3b1a1a;--errI:#fca5a5}}
+*{box-sizing:border-box}
+body{margin:0;font-family:Sarabun,system-ui,sans-serif;background:var(--bg);color:var(--ink);font-size:16px;line-height:1.5}
+.top{max-width:820px;margin:auto;padding:10px 16px 0;font-size:14px}.top a{color:var(--acc);text-decoration:none}
+header{max-width:820px;margin:auto;padding:6px 16px 4px}
+h1{font-size:22px;margin:0}
+header p{margin:4px 0 0;color:var(--mute);font-size:14px}
+main{max-width:820px;margin:auto;padding:4px 12px 60px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin:12px 0}
+.card h2{font-size:17px;margin:0 0 10px;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+label{display:block;font-size:13px;color:var(--mute)}
+input,select{width:100%;font:inherit;font-size:16px;padding:8px 9px;border:1px solid var(--line);border-radius:9px;background:var(--bg);color:var(--ink);margin-top:3px}
+input:focus,select:focus{outline:2px solid var(--acc);border-color:transparent}
+button{font:inherit;cursor:pointer}
+.add{border:1px solid var(--acc);color:var(--acc);background:var(--acc2);border-radius:9px;padding:6px 12px;font-size:14px}
+.btn{background:var(--acc);color:#fff;border:none;border-radius:10px;padding:9px 14px}
+.tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px}
+.tab{flex:none;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:99px;padding:6px 14px;font-size:14px}
+.tab.on{background:var(--acc);border-color:var(--acc);color:#fff}
+.op{border:1px dashed var(--line);border-radius:10px;padding:10px;margin:10px 0;position:relative}
+.op .ttl{font-weight:600;margin-bottom:6px;font-size:15px}
+.del{position:absolute;top:4px;right:8px;border:none;background:none;color:var(--mute);font-size:22px}
+.preset{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.preset button{border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:8px;padding:4px 10px;font-size:13px}
+.draw{background:var(--bg);border-radius:12px;padding:6px;overflow-x:auto;cursor:zoom-in}
+.draw svg{width:100%;height:auto;display:block}
+.draw.zoom{cursor:zoom-out}.draw.zoom svg{width:1300px;max-width:none}
+.legend{display:flex;flex-wrap:wrap;gap:10px;font-size:13px;color:var(--mute);margin:8px 2px}
+.legend i{display:inline-block;width:14px;height:10px;border-radius:2px;margin-right:4px;vertical-align:middle}
+.sw{display:flex;align-items:center;gap:8px;font-size:14px;margin:6px 0}
+.sw input{width:20px;height:20px;margin:0}
+.msg{padding:8px 12px;border-radius:8px;margin:6px 0;font-size:14.5px}
+.msg.w{background:var(--warn);color:var(--warnI)}.msg.e{background:var(--err);color:var(--errI)}.msg.ok{background:var(--acc2);color:var(--ink)}
+table{width:100%;border-collapse:collapse;font-size:14.5px}
+th,td{border-bottom:1px solid var(--line);padding:6px 4px;text-align:left;vertical-align:top}
+th{color:var(--mute);font-weight:600}
+td.n{text-align:right;white-space:nowrap}
+ol.steps{padding-left:22px;margin:4px 0}ol.steps li{margin:6px 0}
+.pos{font-family:ui-monospace,monospace;font-size:13.5px;background:var(--bg);padding:1px 5px;border-radius:5px}
+.bar{display:flex;height:22px;border-radius:5px;overflow:hidden;border:1px solid var(--line);margin:3px 0 8px;font-size:11px}
+.bar span{display:flex;align-items:center;justify-content:center;border-right:1px solid var(--card);color:#fff;white-space:nowrap;overflow:hidden}
+.bar .c{background:var(--steel)}.bar .u{background:var(--hdr)}.bar .x{background:var(--line);color:var(--mute)}
+details summary{cursor:pointer;font-weight:600;margin:4px 0}
+svg text{font-family:Sarabun,sans-serif}
+.note{font-size:13px;color:var(--mute)}
+</style>
+</head>
+<body>
+<div class="top"><a href="./">← หน้าหลัก</a></div>
+<header>
+<h1>ออกแบบโครงผนังเบา</h1>
+<p>ใส่ขนาดผนังกับประตูหน้าต่าง ระบบจะวางเสา ทับหลัง คานนอน จุดยึดพุก ให้พร้อมระยะ และบอกว่าต้องตัดเหล็กกี่ท่อน ยาวเท่าไหร่ (หน่วยเป็น ซม.)</p>
+</header>
+<main>
+
+<section class="card">
+<h2>ผนัง <button class="add" id="addWall">+ เพิ่มผนัง</button></h2>
+<div class="tabs" id="tabs"></div>
+<div id="wallForm"></div>
+</section>
+
+<section class="card">
+<h2>แบบโครง <span class="note" id="wName"></span></h2>
+<label class="sw"><input type="checkbox" id="showBoard">แสดงแผ่นผนังและจุดยิงสกรู</label>
+<div class="draw" id="draw"></div>
+<div class="legend">
+<span><i style="background:var(--steel)"></i>เสา C</span>
+<span><i style="background:var(--acc)"></i>เสาคู่ข้างช่อง</span>
+<span><i style="background:var(--hdr)"></i>ราง U / ทับหลัง / คานล่าง</span>
+<span><i style="background:#94a3b8"></i>คานนอน</span>
+<span><i style="background:var(--blue);border-radius:50%;width:10px"></i>พุกยึด</span>
+</div>
+<p class="note">แตะแบบเพื่อขยาย แล้วเลื่อนซ้ายขวาได้ · ตัวเลขด้านล่างคือระยะจากปลายผนังด้านซ้ายถึง <b>กึ่งกลางเสา</b></p>
+<div id="checks"></div>
+</section>
+
+<section class="card">
+<h2>ขั้นตอนทำผนังนี้</h2>
+<ol class="steps" id="steps"></ol>
+</section>
+
+<section class="card">
+<h2>รายการตัดเหล็ก (ผนังนี้)</h2>
+<div id="cut"></div>
+</section>
+
+<section class="card">
+<h2>รวมทุกผนัง <button class="btn" id="copy">คัดลอกสรุป</button></h2>
+<div id="total"></div>
+</section>
+
+<section class="card">
+<details><summary>ตั้งค่า (ไม่ต้องแก้ก็ได้)</summary>
+<div class="grid" style="margin-top:10px">
+<div><label>ระยะเสา (ซม.)</label><input type="number" id="sp" value="60"></div>
+<div><label>คานนอนทุก ๆ (ซม.)</label><input type="number" id="nog" value="120"></div>
+<div><label>เหล็ก 1 เส้นยาว (ซม.)</label><input type="number" id="bar" value="400"></div>
+<div><label>ช่องเปิดเผื่อจากวงกบ ข้างละ (ซม.)</label><input type="number" step="0.5" id="gap" value="1"></div>
+<div><label>ปลายทับหลังพับลง ข้างละ (ซม.)</label><input type="number" id="tab" value="10"></div>
+<div><label>พุกยึดราง ห่างไม่เกิน (ซม.)</label><input type="number" id="anc" value="60"></div>
+<div><label>พุกตัวแรกห่างปลายราง (ซม.)</label><input type="number" id="ancEnd" value="10"></div>
+<div><label>ตัดเสาสั้นกว่าห้อง (ซม.)</label><input type="number" step="0.5" id="short" value="1"></div>
+<div><label>แผ่นผนัง กว้าง (ซม.)</label><input type="number" id="bw" value="120"></div>
+<div><label>แผ่นผนัง สูง (ซม.)</label><input type="number" id="bh" value="240"></div>
+<div><label>สกรูแผ่น ตรงรอยต่อ ทุก (ซม.)</label><input type="number" id="scrE" value="20"></div>
+<div><label>สกรูแผ่น กลางแผ่น ทุก (ซม.)</label><input type="number" id="scrF" value="30"></div>
+</div>
+<p class="note">ค่ามาตรฐานทั่วไป: เสาทุก 60 ซม. (ภายนอก/ลมแรง ใช้ 40) · พุกทุก 60 ซม. · ต่อเสาซ้อนกัน 30 ซม.</p>
+</details>
+</section>
+
+</main>
+<script>
+const $=id=>document.getElementById(id);
+const KEY='torteum_design_v1';
+const T=4; // ความกว้างหน้าเสาในแบบ (ซม.)
+const OV=30; // ต่อเสาซ้อน
+const setIds=['sp','nog','bar','gap','tab','anc','ancEnd','short','bw','bh','scrE','scrF'];
+let walls=[{name:'ผนังหน้า',L:300,H:240,endL:'corner',endR:'corner',ops:[{type:'door',x:40,w:80,h:200,sill:0},{type:'win',x:165,w:90,h:110,sill:100}]}];
+let cur=0;
+const n=v=>{const x=parseFloat(v);return isFinite(x)?x:0};
+const r1=v=>Math.round(v*10)/10;
+const S=()=>{const o={};setIds.forEach(i=>o[i]=n($(i).value));if(o.sp<20)o.sp=60;if(o.bar<100)o.bar=400;return o};
+function save(){try{const o={walls,cur};setIds.forEach(i=>o[i]=$(i).value);localStorage.setItem(KEY,JSON.stringify(o))}catch(e){}}
+function load(){try{const o=JSON.parse(localStorage.getItem(KEY));if(!o)return;if(o.walls&&o.walls.length)walls=o.walls;cur=Math.min(o.cur||0,walls.length-1);setIds.forEach(i=>{if(o[i]!=null)$(i).value=o[i]})}catch(e){}}
+
+/* ---------- ฟอร์ม ---------- */
+function renderTabs(){
+ $('tabs').innerHTML=walls.map((w,i)=>`<button class="tab ${i===cur?'on':''}" data-tab="${i}">${esc(w.name||('ผนัง '+(i+1)))}</button>`).join('');
+}
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+function inp(lbl,k,v,extra=''){return `<div><label>${lbl}</label><input ${extra} data-k="${k}" value="${esc(v)}"></div>`}
+function sel(lbl,k,v,opts){return `<div><label>${lbl}</label><select data-k="${k}">${opts.map(o=>`<option value="${o[0]}" ${o[0]===v?'selected':''}>${o[1]}</option>`).join('')}</select></div>`}
+const endOpts=[['corner','มุมผนัง / ปลายลอย (เสาคู่)'],['existing','ชนผนังบ้านเดิม (ยึดพุก)']];
+function renderForm(){
+ const w=walls[cur];
+ let h=`<div class="grid" style="margin-top:8px">
+ ${inp('ชื่อผนัง','name',w.name,'type="text"')}
+ ${inp('ยาว (ซม.)','L',w.L,'type="number"')}
+ ${inp('สูง (ซม.)','H',w.H,'type="number"')}
+ ${sel('ปลายซ้าย','endL',w.endL,endOpts)}
+ ${sel('ปลายขวา','endR',w.endR,endOpts)}
+ </div>`;
+ h+=w.ops.map((o,i)=>`<div class="op" data-op="${i}"><button class="del" data-delop="${i}" title="ลบ">×</button>
+ <div class="ttl">${o.type==='door'?'🚪 ประตู':'🪟 หน้าต่าง'} ${i+1}</div>
+ <div class="grid">
+ ${inp('ห่างจากปลายซ้าย ถึงขอบวงกบ (ซม.)','x',o.x,'type="number"')}
+ ${inp('วงกบ กว้าง (ซม.)','w',o.w,'type="number"')}
+ ${inp('วงกบ สูง (ซม.)','h',o.h,'type="number"')}
+ ${o.type==='win'?inp('ขอบล่างสูงจากพื้น (ซม.)','sill',o.sill,'type="number"'):''}
+ </div></div>`).join('');
+ h+=`<div class="preset">
+ <button data-preset="door">+ ประตู 80×200</button>
+ <button data-preset="door70">+ ประตูห้องน้ำ 70×200</button>
+ <button data-preset="win">+ หน้าต่าง 120×110</button>
+ <button data-preset="win60">+ หน้าต่างเล็ก 60×60</button>
+ </div>`;
+ if(walls.length>1)h+=`<p style="margin:12px 0 0"><button class="add" id="delWall" style="border-color:var(--errI);color:var(--errI);background:var(--err)">ลบผนังนี้</button></p>`;
+ $('wallForm').innerHTML=h;
+}
+
+/* ---------- คำนวณโครง ---------- */
+function design(w,s){
+ const L=n(w.L),H=n(w.H),msgs=[];
+ const R={L,H,vert:[],horiz:[],nogs:[],topTr:[],botTr:[],anchors:[],wallAnchors:[],ros:[],msgs,cr:[]};
+ if(L<30||H<50){msgs.push(['e','ใส่ความยาวและความสูงผนังก่อน']);return R}
+ const studLen=H-s.short;
+ // ช่องเปิด (rough opening)
+ const ros=w.ops.map((o,i)=>{const isD=o.type==='door';const x0=n(o.x)-s.gap,x1=n(o.x)+n(o.w)+s.gap;
+  const bot=isD?0:n(o.sill)-s.gap, top=isD?n(o.h)+s.gap:n(o.sill)+n(o.h)+s.gap;
+  return{i,isD,x0,x1,bot,top,o,label:(isD?'ประตู ':'หน้าต่าง ')+(i+1)}}).sort((a,b)=>a.x0-b.x0);
+ R.ros=ros;
+ // ตรวจ
+ ros.forEach(r=>{
+  if(n(r.o.w)<=0||n(r.o.h)<=0)msgs.push(['e',`${r.label}: ใส่ขนาดวงกบ`]);
+  if(r.x0<0||r.x1>L)msgs.push(['e',`${r.label}: เกินความยาวผนัง`]);
+  else{const dl=r.x0-2*T-2,dr=L-(r.x1+2*T+2);const m=Math.min(dl,dr);
+   if(m<0)msgs.push(['e',`${r.label}: ชิดปลายผนังเกินไป ไม่มีที่ใส่เสาคู่ ขยับเข้ามาอย่างน้อย ${Math.ceil(2*T+4)} ซม.`]);
+   else if(m<25)msgs.push(['w',`${r.label}: ห่างปลายผนังแค่ ${r1(m)} ซม. ทำได้ แต่ผนังจะแข็งแรงกว่าถ้าเว้น 30 ซม. ขึ้นไป`]);}
+  if(r.top+T>H-T)msgs.push(['e',`${r.label}: สูงเกินผนัง ไม่มีที่ใส่ทับหลัง (สูงสุดได้ ${r1(H-2*T-s.gap)} ซม.)`]);
+  else if(H-r.top-T<15)msgs.push(['w',`${r.label}: เหนือทับหลังเหลือแค่ ${r1(H-r.top-T)} ซม. ไม่ต้องใส่เสาสั้นด้านบน ให้ยึดทับหลังกับรางบนตรง ๆ`]);
+  if(!r.isD&&r.bot<15)msgs.push(['w',`${r.label}: ขอบล่างต่ำมาก (${r1(r.bot)} ซม.) ตรวจความสูงจากพื้นอีกครั้ง`]);
+ });
+ for(let i=1;i<ros.length;i++){const gapB=ros[i].x0-ros[i-1].x1;
+  if(gapB<4*T+2)msgs.push(['e',`${ros[i-1].label} กับ ${ros[i].label} ชิดกันเกินไป (ห่าง ${r1(gapB)} ซม.) ต้องห่างอย่างน้อย ${4*T+2} ซม. หรือรวมเป็นช่องเดียว`]);}
+ const add=(x,y0,y1,kind,note)=>R.vert.push({x,y0,y1,kind,note,len:r1(y1-y0-(kind==='cripple'?s.short:0))});
+ // เสาปลาย
+ add(T/2,0,H,'end');add(L-T/2,0,H,'end');
+ R.vert[0].len=R.vert[1].len=r1(studLen);
+ if(w.endL==='corner'){add(T*1.5,0,H,'end');R.vert[2].len=r1(studLen)}
+ if(w.endR==='corner'){add(L-T*1.5,0,H,'end');R.vert[R.vert.length-1].len=r1(studLen)}
+ // เสาคู่ข้างช่อง
+ ros.forEach(r=>{[r.x0-T/2,r.x0-T*1.5,r.x1+T/2,r.x1+T*1.5].forEach(x=>{add(x,0,H,'jamb',r.label);R.vert[R.vert.length-1].len=r1(studLen)})});
+ // เสาตามระยะ
+ const zone=ros.map(r=>[r.x0-2*T-5,r.x1+2*T+5]);
+ const endZoneL=w.endL==='corner'?2*T+8:T+8, endZoneR=w.endR==='corner'?2*T+8:T+8;
+ for(let k=1;k*s.sp<L;k++){const x=k*s.sp;
+  if(x<endZoneL||x>L-endZoneR)continue;
+  const ro=ros.find(r=>x>r.x0+T&&x<r.x1-T);
+  if(ro){ // เสาสั้น
+   if(H-(ro.top+T)>=15)R.vert.push({x,y0:ro.top+T,y1:H,kind:'cripple',note:ro.label,len:r1(H-ro.top-T-s.short)});
+   if(!ro.isD&&ro.bot-T>=15)R.vert.push({x,y0:0,y1:ro.bot-T,kind:'cripple',note:ro.label,len:r1(ro.bot-T-s.short)});
+   continue}
+  if(zone.some(z=>x>z[0]&&x<z[1]))continue; // ใกล้เสาคู่ ใช้เสาคู่แทน
+  add(x,0,H,'stud');R.vert[R.vert.length-1].len=r1(studLen);
+ }
+ // ช่องแคบที่ไม่มีเสาสั้นตกในกริด แต่กว้างเกิน 2 ระยะเสา ไม่เกิดขึ้นเพราะใช้กริด
+ // ทับหลัง/คานล่าง
+ ros.forEach(r=>{const len=r1(r.x1-r.x0+2*s.tab);
+  R.horiz.push({x0:r.x0-2*T,x1:r.x1+2*T,y:r.top,h:T,kind:'header',len,note:r.label});
+  if(!r.isD)R.horiz.push({x0:r.x0-2*T,x1:r.x1+2*T,y:r.bot-T,h:T,kind:'sill',len,note:r.label});
+  // ช่องที่กว้าง แต่ไม่มีเสาสั้นตรงกลาง → ใส่เสาสั้นกลางช่อง ถ้ากว้าง > ระยะเสา
+  const inside=R.vert.filter(v=>v.kind==='cripple'&&v.note===r.label&&v.y0>=r.top);
+  if(!inside.length&&r.x1-r.x0>s.sp&&H-(r.top+T)>=15){const x=(r.x0+r.x1)/2;R.vert.push({x,y0:r.top+T,y1:H,kind:'cripple',note:r.label,len:r1(H-r.top-T-s.short)});
+   if(!r.isD&&r.bot-T>=15)R.vert.push({x,y0:0,y1:r.bot-T,kind:'cripple',note:r.label,len:r1(r.bot-T-s.short)})}
+ });
+ R.vert.sort((a,b)=>a.x-b.x);
+ // คานนอน
+ const rows=[];for(let y=s.nog;y<H-15;y+=s.nog)if(s.nog>=30)rows.push(y);
+ if(H>s.bh+5&&!rows.some(y=>Math.abs(y-s.bh)<8))rows.push(s.bh);
+ rows.sort((a,b)=>a-b);
+ rows.forEach(y=>{
+  const ms=R.vert.filter(v=>v.y0<=y&&v.y1>=y).map(v=>v.x).sort((a,b)=>a-b);
+  const g=[];ms.forEach(x=>{const l=g[g.length-1];if(l&&x-l[1]<=T+1)l[1]=x;else g.push([x,x])});
+  for(let i=0;i+1<g.length;i++){const a=g[i][1]+T/2,b=g[i+1][0]-T/2;if(b-a<5)continue;
+   const mid=(a+b)/2;if(ros.some(r=>mid>r.x0&&mid<r.x1&&y>r.bot-T&&y<r.top+T))continue;
+   R.nogs.push({x0:a,x1:b,y,len:r1(b-a)})}
+ });
+ // ราง
+ R.topTr=[[0,L]];
+ let segs=[[0,L]];ros.filter(r=>r.isD).forEach(r=>{segs=segs.flatMap(([a,b])=>{if(r.x1<=a||r.x0>=b)return[[a,b]];const o=[];if(r.x0>a)o.push([a,r.x0]);if(r.x1<b)o.push([r.x1,b]);return o})});
+ R.botTr=segs.filter(([a,b])=>b-a>1);
+ const anc=(a,b,y,where)=>{const len=b-a;if(len<=2*s.ancEnd){R.anchors.push({x:(a+b)/2,y,where});return}
+  const nn=Math.max(1,Math.ceil((len-2*s.ancEnd)/s.anc));for(let k=0;k<=nn;k++)R.anchors.push({x:r1(a+s.ancEnd+k*(len-2*s.ancEnd)/nn),y,where})};
+ R.botTr.forEach(([a,b])=>anc(a,b,0,'bot'));R.topTr.forEach(([a,b])=>anc(a,b,H,'top'));
+ // ยึดผนังเดิม
+ [['endL',T/2],['endR',L-T/2]].forEach(([k,x])=>{if(w[k]==='existing'){const nn=Math.max(1,Math.ceil((H-60)/s.anc));for(let j=0;j<=nn;j++)R.wallAnchors.push({x,y:r1(30+j*(H-60)/nn)})}});
+ // รอยต่อแผ่น
+ R.joints=[];for(let x=s.bw;x<L-5;x+=s.bw)R.joints.push(x);
+ R.joints.forEach(x=>{const has=R.vert.some(v=>Math.abs(v.x-x)<=T)||ros.some(r=>x>r.x0&&x<r.x1);
+  if(!has){const near=R.vert.filter(v=>v.y0===0&&v.y1===H).sort((a,b)=>Math.abs(a.x-x)-Math.abs(b.x-x))[0];
+   msgs.push(['w',`รอยต่อแผ่นที่ ${r1(x)} ซม. ไม่มีเสารับ → ตัดแผ่นให้รอยต่อไปตกที่เสา ${near?r1(near.x)+' ซม.':''} หรือเพิ่มเสาที่ ${r1(x)} ซม.`])}});
+ if(!msgs.some(m=>m[0]!=='ok'))msgs.push(['ok','✓ ระยะทุกจุดผ่านการตรวจ ทำตามแบบได้เลย']);
+ // ชิ้นงาน
+ R.pieces=[];
+ R.vert.forEach(v=>R.pieces.push({t:'C',len:v.len,what:v.kind==='stud'?'เสา C':v.kind==='end'?'เสาปลาย/มุม':v.kind==='jamb'?'เสาคู่ข้างช่อง':'เสาสั้น ('+v.note+')'}));
+ R.nogs.forEach(g=>R.pieces.push({t:'C',len:g.len,what:'คานนอน'}));
+ R.topTr.forEach(([a,b])=>R.pieces.push({t:'U',len:r1(b-a),what:'ราง U บน'}));
+ R.botTr.forEach(([a,b])=>R.pieces.push({t:'U',len:r1(b-a),what:'ราง U ล่าง'}));
+ R.horiz.forEach(h=>R.pieces.push({t:'U',len:h.len,what:(h.kind==='header'?'ทับหลัง ':'คานล่าง ')+h.note}));
+ return R;
+}
+
+/* ---------- ตัดเหล็กจากเส้น ---------- */
+function splitLong(p,bar){if(p.len<=bar)return[p];
+ if(p.t==='C'){const k=Math.ceil((p.len-OV)/(bar-OV));const l=r1((p.len+OV*(k-1))/k);return Array.from({length:k},()=>({...p,len:l,what:p.what+' (ต่อซ้อน 30)'}))}
+ const k=Math.ceil(p.len/bar);const l=r1(p.len/k);return Array.from({length:k},()=>({...p,len:l,what:p.what+' (ต่อชน)'}))}
+function pack(pieces,bar){const ps=pieces.flatMap(p=>splitLong(p,bar)).sort((a,b)=>b.len-a.len);const bars=[];
+ ps.forEach(p=>{let b=bars.find(b=>b.left>=p.len);if(!b){b={left:bar,items:[]};bars.push(b)}b.items.push(p);b.left=r1(b.left-p.len)});return bars}
+function group(pieces){const m={};pieces.forEach(p=>{const k=p.what+'|'+p.len;m[k]=m[k]||{what:p.what,len:p.len,q:0,t:p.t};m[k].q++});return Object.values(m).sort((a,b)=>a.t.localeCompare(b.t)||b.len-a.len)}
+
+/* ---------- วาดแบบ ---------- */
+function drawSVG(R,s,showB){
+ const {L,H}=R;if(L<30||H<50)return'<p class="note" style="padding:20px">ยังไม่มีแบบ</p>';
+ const fs=Math.max(7,Math.min(L,H*2)/34);
+ const ml=fs*4.2,mr=fs*2,mt=fs*3,mb=fs*7.5;
+ const W=L+ml+mr,Ht=H+mt+mb;
+ const X=x=>ml+x,Y=y=>mt+H-y;
+ let g=`<svg viewBox="0 0 ${r1(W)} ${r1(Ht)}" xmlns="http://www.w3.org/2000/svg" font-size="${r1(fs)}">`;
+ g+=`<rect x="${X(0)}" y="${Y(H)}" width="${L}" height="${H}" fill="var(--card)"/>`;
+ // ช่องเปิด
+ R.ros.forEach(r=>{g+=`<rect x="${X(r.x0)}" y="${Y(r.top)}" width="${r.x1-r.x0}" height="${r.top-r.bot}" fill="var(--acc2)" stroke="var(--acc)" stroke-dasharray="${fs/2} ${fs/3}" stroke-width="${fs/8}"/>`;
+  g+=`<text x="${X((r.x0+r.x1)/2)}" y="${Y((r.top+r.bot)/2)}" text-anchor="middle" fill="var(--acc)" font-weight="700">${r.label}</text>`;
+  g+=`<text x="${X((r.x0+r.x1)/2)}" y="${Y((r.top+r.bot)/2)+fs*1.2}" text-anchor="middle" fill="var(--acc)" font-size="${r1(fs*.85)}">ช่อง ${r1(r.x1-r.x0)}×${r1(r.top-r.bot)}</text>`});
+ // แผ่น
+ if(showB){R.joints.forEach(x=>g+=`<line x1="${X(x)}" y1="${Y(H)}" x2="${X(x)}" y2="${Y(0)}" stroke="var(--board)" stroke-width="${fs/5}" stroke-dasharray="${fs} ${fs/2}"/>`);
+  if(H>s.bh+5)g+=`<line x1="${X(0)}" y1="${Y(s.bh)}" x2="${X(L)}" y2="${Y(s.bh)}" stroke="var(--board)" stroke-width="${fs/5}" stroke-dasharray="${fs} ${fs/2}"/>`}
+ // คานนอน
+ R.nogs.forEach(n=>g+=`<rect x="${X(n.x0)}" y="${Y(n.y)-T/4}" width="${n.x1-n.x0}" height="${T/2}" fill="#94a3b8"/>`);
+ // เสา
+ R.vert.forEach(v=>{const c=v.kind==='jamb'?'var(--acc)':'var(--steel)';g+=`<rect x="${X(v.x-T/2)}" y="${Y(v.y1)}" width="${T}" height="${v.y1-v.y0}" fill="${c}" opacity="${v.kind==='cripple'?.8:1}"/>`});
+ // ทับหลัง
+ R.horiz.forEach(h=>g+=`<rect x="${X(h.x0)}" y="${Y(h.y+h.h)}" width="${h.x1-h.x0}" height="${h.h}" fill="var(--hdr)"/>`);
+ // ราง
+ R.topTr.forEach(([a,b])=>g+=`<rect x="${X(a)}" y="${Y(H)-T/2}" width="${b-a}" height="${T}" fill="var(--hdr)"/>`);
+ R.botTr.forEach(([a,b])=>g+=`<rect x="${X(a)}" y="${Y(0)-T/2}" width="${b-a}" height="${T}" fill="var(--hdr)"/>`);
+ // สกรูแผ่น
+ if(showB){R.vert.forEach(v=>{const edge=R.joints.some(j=>Math.abs(j-v.x)<=T)||v.kind==='end'||v.kind==='jamb';const st=edge?s.scrE:s.scrF;
+   for(let y=Math.max(v.y0,0)+5;y<=v.y1-5;y+=st){if(R.ros.some(r=>v.x>r.x0&&v.x<r.x1&&y>r.bot&&y<r.top))continue;g+=`<circle cx="${X(v.x)}" cy="${Y(y)}" r="${fs/7}" fill="var(--board)"/>`}})}
+ // พุก
+ R.anchors.forEach(a=>g+=`<circle cx="${X(a.x)}" cy="${Y(a.y)}" r="${fs/3.2}" fill="var(--blue)" stroke="var(--card)" stroke-width="${fs/12}"/>`);
+ R.wallAnchors.forEach(a=>g+=`<circle cx="${X(a.x)}" cy="${Y(a.y)}" r="${fs/3.2}" fill="var(--blue)" stroke="var(--card)" stroke-width="${fs/12}"/>`);
+ // พื้น
+ g+=`<line x1="${X(-fs)}" y1="${Y(0)+T/2}" x2="${X(L+fs)}" y2="${Y(0)+T/2}" stroke="var(--mute)" stroke-width="${fs/5}"/>`;
+ // ระยะเสา (ล่าง)
+ const xs=[...new Set(R.vert.filter(v=>v.y0===0||v.kind!=='cripple').map(v=>r1(v.x)))];
+ const xsAll=[...new Set(R.vert.map(v=>r1(v.x)))].sort((a,b)=>a-b);
+ xsAll.forEach(x=>{g+=`<line x1="${X(x)}" y1="${Y(0)+T}" x2="${X(x)}" y2="${Y(0)+fs*1.1}" stroke="var(--mute)" stroke-width="${fs/14}"/>`;
+  g+=`<text transform="translate(${X(x)+fs*.32},${Y(0)+fs*1.3}) rotate(90)" font-size="${r1(fs*.8)}" fill="var(--ink)">${x}</text>`});
+ // มิติรวม
+ const yd=Y(0)+fs*5.6;
+ g+=`<line x1="${X(0)}" y1="${yd}" x2="${X(L)}" y2="${yd}" stroke="var(--acc)" stroke-width="${fs/10}"/><line x1="${X(0)}" y1="${yd-fs/2}" x2="${X(0)}" y2="${yd+fs/2}" stroke="var(--acc)" stroke-width="${fs/10}"/><line x1="${X(L)}" y1="${yd-fs/2}" x2="${X(L)}" y2="${yd+fs/2}" stroke="var(--acc)" stroke-width="${fs/10}"/>`;
+ g+=`<text x="${X(L/2)}" y="${yd+fs*1.3}" text-anchor="middle" fill="var(--acc)" font-weight="700">ยาว ${L} ซม.</text>`;
+ const xh=X(0)-fs*2.6;
+ g+=`<line x1="${xh}" y1="${Y(0)}" x2="${xh}" y2="${Y(H)}" stroke="var(--acc)" stroke-width="${fs/10}"/>`;
+ g+=`<text transform="translate(${xh-fs*.5},${Y(H/2)}) rotate(-90)" text-anchor="middle" fill="var(--acc)" font-weight="700">สูง ${H} ซม.</text>`;
+ // ความสูงทับหลัง/คานนอน (ขวา)
+ const ys=[...new Set([...R.horiz.map(h=>r1(h.kind==='header'?h.y:h.y+h.h)),...R.nogs.map(n=>n.y)])].sort((a,b)=>a-b);
+ ys.forEach(y=>g+=`<text x="${X(0)+fs*.3}" y="${Y(y)-fs*.25}" font-size="${r1(fs*.7)}" fill="var(--mute)">↕${y}</text>`);
+ g+='</svg>';return g;
+}
+
+/* ---------- ขั้นตอน ---------- */
+const list=a=>a.map(x=>`<span class="pos">${x}</span>`).join(' ');
+function steps(R,w,s){
+ if(R.L<30)return'';
+ const st=[];
+ const ab=R.anchors.filter(a=>a.where==='bot').map(a=>a.x),at=R.anchors.filter(a=>a.where==='top').map(a=>a.x);
+ st.push(`<b>ตีเส้นแนวผนัง</b> บนพื้นยาว ${R.L} ซม. แล้วใช้ลูกดิ่ง/เลเซอร์ยกแนวขึ้นไปตีเส้นบนเพดานให้ตรงกัน`);
+ st.push(`<b>ติดราง U ล่าง</b> ${R.botTr.map(([a,b])=>`ช่วง ${r1(a)}–${r1(b)} ซม. (ยาว ${r1(b-a)})`).join(' และ ')}${R.ros.some(r=>r.isD)?' <i>เว้นช่วงประตูไว้ ไม่ต้องติดราง</i>':''}<br>เจาะพุกที่ระยะ: ${list(ab)}`);
+ st.push(`<b>ติดราง U บน</b> ยาว ${R.L} ซม. เจาะพุกที่ระยะ: ${list(at)}`);
+ const ends=[];if(w.endL==='existing')ends.push('ซ้าย');if(w.endR==='existing')ends.push('ขวา');
+ if(ends.length)st.push(`<b>ยึดเสาปลายด้าน${ends.join('และ')}กับผนังเดิม</b> ด้วยพุกที่ความสูง: ${list([...new Set(R.wallAnchors.map(a=>a.y))])} ซม.`);
+ const full=R.vert.filter(v=>v.kind==='stud'||v.kind==='end');
+ st.push(`<b>มาร์กตำแหน่งเสาบนรางล่าง</b> (วัดจากปลายซ้ายถึงกึ่งกลางเสา) แล้วตั้งเสา C ยาว ${r1(R.H-s.short)} ซม. ที่: ${list(full.map(v=>r1(v.x)))} ซม.${(w.endL==='corner'||w.endR==='corner')?'<br><i>ปลายที่เป็นมุม ใช้เสา 2 ต้นประกบกัน</i>':''}`);
+ R.ros.forEach(r=>{const j=R.vert.filter(v=>v.kind==='jamb'&&v.note===r.label).map(v=>r1(v.x));
+  let t=`<b>${r.label}</b> (วงกบ ${r.o.w}×${r.o.h} ซม. ช่องเปิดเผื่อข้างละ ${s.gap} ซม. = ช่อง ${r1(r.x1-r.x0)}×${r1(r.top-r.bot)} ซม.)<br>• ตั้ง <b>เสาคู่</b> ที่ ${list(j)} ซม. ขอบในของเสาห่างกัน ${r1(r.x1-r.x0)} ซม. พอดีช่อง`;
+  t+=`<br>• ทำ <b>ทับหลัง</b> จากราง U ยาว ${r1(r.x1-r.x0+2*s.tab)} ซม. บากปีกปลายข้างละ ${s.tab} ซม. พับลง วางให้ <b>ใต้ทับหลังสูงจากพื้น ${r1(r.top)} ซม.</b> แล้วย้ำ/สกรูปลายพับติดเสาคู่`;
+  if(!r.isD)t+=`<br>• ทำ <b>คานล่าง</b> แบบเดียวกัน วางให้ <b>บนคานสูงจากพื้น ${r1(r.bot)} ซม.</b>`;
+  const cr=R.vert.filter(v=>v.kind==='cripple'&&v.note===r.label);
+  const up=cr.filter(v=>v.y0>0),dn=cr.filter(v=>v.y0===0);
+  if(up.length)t+=`<br>• เสาสั้นเหนือทับหลัง ยาว ${up[0].len} ซม. ที่ ${list(up.map(v=>r1(v.x)))}`;
+  if(dn.length)t+=`<br>• เสาสั้นใต้คานล่าง ยาว ${dn[0].len} ซม. ที่ ${list(dn.map(v=>r1(v.x)))}`;
+  if(r.isD)t+=`<br>• ตัดรางล่างช่วงประตูออก ใส่วงกบแล้วยิงสกรูยึดกับเสาคู่ทุก 40–50 ซม.`;
+  else t+=`<br>• ใส่วงกบหน้าต่าง ยิงสกรูยึดรอบวงกบทุก 40–50 ซม. ยาแนวซิลิโคนรอบนอก`;
+  st.push(t)});
+ const ny=[...new Set(R.nogs.map(n=>n.y))];
+ if(ny.length)st.push(`<b>ใส่คานนอน</b> ขวางระหว่างเสาที่ความสูง: ${list(ny)} ซม. (${R.nogs.length} ท่อน ตัดตามระยะในตารางด้านล่าง)`);
+ st.push(`<b>เช็กดิ่งทุกเสา</b> แล้วย้ำด้วยคีมย้ำทั้งสองข้าง ทั้งบนและล่าง · เดินท่อสายไฟก่อนปิดแผ่น`);
+ st.push(`<b>ติดแผ่น</b> ${s.bw}×${s.bh} ซม. เริ่มจากปลายซ้าย รอยต่อแผ่นตกที่: ${list(R.joints.map(r1))} ซม. · ยกแผ่นห่างพื้น 0.5–1 ซม. · สกรูห่างขอบแผ่น ≥ 1.2 ซม. ตรงรอยต่อทุก ${s.scrE} ซม. กลางแผ่นทุก ${s.scrF} ซม.`);
+ return st.map(x=>`<li>${x}</li>`).join('');
+}
+
+function cutHTML(R,s){
+ if(!R.pieces||!R.pieces.length)return'';
+ const gr=group(R.pieces);
+ let h=`<table><tr><th>ชิ้น</th><th>ชนิด</th><th class="n">ยาว (ซม.)</th><th class="n">จำนวน</th></tr>`;
+ gr.forEach(p=>h+=`<tr><td>${p.what}</td><td>${p.t==='C'?'ตัว C':'ตัว U'}</td><td class="n">${p.len}</td><td class="n">${p.q}</td></tr>`);
+ h+='</table>';
+ ['C','U'].forEach(t=>{const bars=pack(R.pieces.filter(p=>p.t===t),s.bar);if(!bars.length)return;
+  h+=`<h3 style="font-size:15px;margin:14px 0 4px">ตัว ${t}: ใช้เหล็กยาว ${s.bar/100} ม. <b>${bars.length} เส้น</b></h3><details><summary>ดูแผนการตัดแต่ละเส้น</summary>`;
+  bars.forEach((b,i)=>{h+=`<div class="note">เส้นที่ ${i+1}: ${b.items.map(p=>p.len).join(' + ')} · เศษ ${b.left}</div><div class="bar">`+
+   b.items.map(p=>`<span class="${t.toLowerCase()}" style="width:${p.len/s.bar*100}%">${p.len}</span>`).join('')+(b.left>0?`<span class="x" style="width:${b.left/s.bar*100}%">${b.left>15?'เศษ':''}</span>`:'')+'</div>'});
+  h+='</details>'});
+ h+=`<p class="note">พุกยึดราง ${R.anchors.length} ตัว${R.wallAnchors.length?` + ยึดผนังเดิม ${R.wallAnchors.length} ตัว`:''}</p>`;
+ return h;
+}
+
+let summary='';
+function totalHTML(s){
+ const all=walls.map(w=>({w,R:design(w,s)}));
+ const pcs=all.flatMap(a=>a.R.pieces||[]);
+ const bc=pack(pcs.filter(p=>p.t==='C'),s.bar).length,bu=pack(pcs.filter(p=>p.t==='U'),s.bar).length;
+ const anc=all.reduce((a,x)=>a+x.R.anchors.length+x.R.wallAnchors.length,0);
+ const area=all.reduce((a,x)=>a+(x.R.L*x.R.H-x.R.ros.reduce((q,r)=>q+(r.x1-r.x0)*(r.top-r.bot),0))/10000,0);
+ const boards=Math.ceil(area/(s.bw*s.bh/10000)*1.1);
+ const doors=walls.reduce((a,w)=>a+w.ops.filter(o=>o.type==='door').length,0),wins=walls.reduce((a,w)=>a+w.ops.filter(o=>o.type==='win').length,0);
+ summary=`สรุปโครงผนังเบา ${walls.length} ผนัง\n`+all.map(a=>`- ${a.w.name}: ${a.R.L}×${a.R.H} ซม.`).join('\n')+
+ `\n\nซีลาย/ตัว C ยาว ${s.bar/100} ม.: ${bc} เส้น\nราง U ยาว ${s.bar/100} ม.: ${bu} เส้น\nพุก+สกรู: ${anc} ชุด\nแผ่นผนัง (1 ด้าน เผื่อ 10%): ${boards} แผ่น\nประตู ${doors} บาน · หน้าต่าง ${wins} ชุด\nพื้นที่ผนังสุทธิ ${r1(area)} ตร.ม.`;
+ return `<table>
+ <tr><td>ตัว C (เสา/คานนอน) เส้นยาว ${s.bar/100} ม.</td><td class="n"><b>${bc}</b> เส้น</td></tr>
+ <tr><td>ตัว U (ราง/ทับหลัง) เส้นยาว ${s.bar/100} ม.</td><td class="n"><b>${bu}</b> เส้น</td></tr>
+ <tr><td>พุก + สกรู</td><td class="n"><b>${anc}</b> ชุด</td></tr>
+ <tr><td>แผ่นผนัง ${s.bw}×${s.bh} (1 ด้าน เผื่อ 10%)</td><td class="n"><b>${boards}</b> แผ่น</td></tr>
+ <tr><td>ประตู / หน้าต่าง</td><td class="n">${doors} / ${wins}</td></tr>
+ <tr><td>พื้นที่ผนังสุทธิ</td><td class="n">${r1(area)} ตร.ม.</td></tr></table>
+ <p class="note">เอาตัวเลขนี้ไปใส่ใน <a href="calc.html" style="color:var(--acc)">หน้าคำนวณค่าใช้จ่าย</a> ได้เลย · จำนวนเส้นคิดจากการตัดรวมทุกผนัง (ใช้เศษข้ามผนัง) ถ้าซื้อแยกทีละผนังอาจต้องเพิ่ม 1–2 เส้น</p>`;
+}
+
+function update(full){
+ const s=S(),w=walls[cur];
+ if(full){renderTabs();renderForm()}
+ const R=design(w,s);
+ $('wName').textContent=`${w.name} · ${R.L}×${R.H} ซม.`;
+ $('draw').innerHTML=drawSVG(R,s,$('showBoard').checked);
+ $('checks').innerHTML=R.msgs.map(m=>`<div class="msg ${m[0]}">${m[1]}</div>`).join('');
+ $('steps').innerHTML=steps(R,w,s);
+ $('cut').innerHTML=cutHTML(R,s);
+ $('total').innerHTML=totalHTML(s);
+ save();
+}
+
+/* ---------- events ---------- */
+document.addEventListener('input',e=>{const t=e.target;const k=t.dataset.k;if(!k){if(setIds.includes(t.id))update();return}
+ const opEl=t.closest('[data-op]');const w=walls[cur];
+ if(opEl){w.ops[+opEl.dataset.op][k]=n(t.value)}else{w[k]=t.type==='number'?n(t.value):t.value;if(k==='name')renderTabs()}
+ update()});
+document.addEventListener('change',e=>{if(e.target.tagName==='SELECT'||e.target.id==='showBoard')update()});
+document.addEventListener('click',e=>{const t=e.target.closest('button,[data-tab]')||e.target;const w=walls[cur];
+ if(t.dataset&&t.dataset.tab!=null){cur=+t.dataset.tab;update(true);return}
+ if(t.id==='addWall'){walls.push({name:'ผนัง '+(walls.length+1),L:300,H:walls[0]?walls[0].H:240,endL:'corner',endR:'corner',ops:[]});cur=walls.length-1;update(true);return}
+ if(t.id==='delWall'){walls.splice(cur,1);cur=Math.max(0,cur-1);update(true);return}
+ if(t.dataset&&t.dataset.delop!=null){w.ops.splice(+t.dataset.delop,1);update(true);return}
+ const p=t.dataset&&t.dataset.preset;
+ if(p){const last=w.ops.reduce((a,o)=>Math.max(a,n(o.x)+n(o.w)),0);const x=Math.round(Math.max(40,last+40));
+  const P={door:{type:'door',w:80,h:200,sill:0},door70:{type:'door',w:70,h:200,sill:0},win:{type:'win',w:120,h:110,sill:100},win60:{type:'win',w:60,h:60,sill:150}}[p];
+  w.ops.push({...P,x});update(true);return}
+ if(t.id==='copy'){(async()=>{let ok=false;try{await navigator.clipboard.writeText(summary);ok=true}catch(err){}t.textContent=ok?'คัดลอกแล้ว ✓':'คัดลอกไม่ได้';setTimeout(()=>t.textContent='คัดลอกสรุป',1500)})();return}
+ if(e.target.closest('#draw')){$('draw').classList.toggle('zoom')}
+});
+load();update(true);
+</script>
+</body>
+</html>

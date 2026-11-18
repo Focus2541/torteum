@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>คำนวณต่อเติมห้อง ผนังเบา</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f6f4ef;--card:#fff;--ink:#1f2328;--mute:#6b6f76;--line:#e3e0d8;--acc:#c2410c;--acc2:#fff3ea;--ok:#166534}
+@media (prefers-color-scheme:dark){:root{--bg:#16181b;--card:#202327;--ink:#eceae5;--mute:#9a9ea5;--line:#33373d;--acc:#fb923c;--acc2:#2c2219;--ok:#4ade80}}
+*{box-sizing:border-box}
+body{margin:0;font-family:Sarabun,system-ui,sans-serif;background:var(--bg);color:var(--ink);font-size:16px;line-height:1.45}
+header{padding:18px 16px 8px;max-width:760px;margin:auto}
+h1{font-size:22px;margin:0}
+header p{margin:4px 0 0;color:var(--mute);font-size:14px}
+main{max-width:760px;margin:auto;padding:8px 12px 140px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin:12px 0}
+.card h2{font-size:17px;margin:0 0 10px;display:flex;justify-content:space-between;align-items:center}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+label{display:block;font-size:13px;color:var(--mute)}
+input,select{width:100%;font:inherit;font-size:16px;padding:9px 10px;border:1px solid var(--line);border-radius:9px;background:var(--bg);color:var(--ink);margin-top:3px}
+input:focus{outline:2px solid var(--acc);border-color:transparent}
+.walls{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.chk{display:flex;align-items:center;gap:8px;padding:10px;border:1px solid var(--line);border-radius:9px;font-size:15px;color:var(--ink)}
+.chk input{width:20px;height:20px;margin:0}
+.item{border:1px dashed var(--line);border-radius:10px;padding:10px;margin-bottom:10px;position:relative}
+.item .grid{grid-template-columns:repeat(auto-fit,minmax(100px,1fr))}
+.del{position:absolute;top:6px;right:8px;border:none;background:none;color:var(--mute);font-size:20px;cursor:pointer}
+button.add{font:inherit;border:1px solid var(--acc);color:var(--acc);background:var(--acc2);border-radius:9px;padding:6px 12px;cursor:pointer;font-size:14px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{padding:7px 4px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+td.n,th.n{text-align:right;white-space:nowrap}
+tr.sec td{font-weight:700;background:var(--acc2);color:var(--acc)}
+.total{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);padding:10px 16px calc(10px + env(safe-area-inset-bottom))}
+.total .in{max-width:760px;margin:auto;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.total b{font-size:24px;color:var(--acc)}
+.total small{color:var(--mute);display:block;font-size:12px}
+.btn{font:inherit;background:var(--acc);color:#fff;border:none;border-radius:10px;padding:10px 14px;cursor:pointer}
+.note{font-size:13px;color:var(--mute);margin:8px 0 0}
+.stat{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}
+.stat div{background:var(--bg);border-radius:10px;padding:8px;text-align:center}
+.stat b{display:block;font-size:18px}
+.stat span{font-size:12px;color:var(--mute)}
+details summary{cursor:pointer;font-weight:600}
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:8px 14px;border-radius:8px;font-size:14px;opacity:0;transition:.3s;pointer-events:none}
+.toast.show{opacity:1}
+</style>
+</head>
+<body>
+<div style="max-width:760px;margin:auto;padding:10px 16px 0;font-size:14px"><a href="./" style="color:var(--acc);text-decoration:none">← หน้าหลัก</a></div>
+<header>
+<h1>คำนวณต่อเติมห้อง (ผนังเบา โครงซีลาย)</h1>
+<p>ใส่ขนาดห้องกับราคาวัสดุ ระบบจะคำนวณจำนวนและค่าใช้จ่ายให้ ค่าที่กรอกจะจำไว้ในเครื่องนี้</p>
+</header>
+<main>
+
+<section class="card">
+<h2>1. ขนาดห้อง</h2>
+<div class="grid">
+<div><label>กว้าง (ม.)</label><input type="number" step="0.01" id="W" value="3"></div>
+<div><label>ยาว (ม.)</label><input type="number" step="0.01" id="L" value="3"></div>
+<div><label>สูง (ม.)</label><input type="number" step="0.01" id="H" value="2.4"></div>
+</div>
+<p class="note" style="margin-top:12px">ติ๊กผนังที่ต้องสร้างใหม่ (ไม่ต้องติ๊กด้านที่ใช้ผนังบ้านเดิม)</p>
+<div class="walls" style="margin-top:6px">
+<label class="chk"><input type="checkbox" id="wF" checked>ด้านหน้า (กว้าง)</label>
+<label class="chk"><input type="checkbox" id="wB" checked>ด้านหลัง (กว้าง)</label>
+<label class="chk"><input type="checkbox" id="wLft" checked>ด้านซ้าย (ยาว)</label>
+<label class="chk"><input type="checkbox" id="wR" checked>ด้านขวา (ยาว)</label>
+</div>
+</section>
+
+<section class="card">
+<h2>2. ประตู <button class="add" data-add="door">+ เพิ่มประตู</button></h2>
+<div id="doors"></div>
+</section>
+
+<section class="card">
+<h2>3. หน้าต่าง <button class="add" data-add="win">+ เพิ่มหน้าต่าง</button></h2>
+<div id="wins"></div>
+</section>
+
+<section class="card">
+<h2>4. ตั้งค่าโครงและแผ่นผนัง</h2>
+<div class="grid">
+<div><label>ระยะห่างเสาตัว C (ม.)</label><input type="number" step="0.05" id="sp" value="0.6"></div>
+<div><label>คานนอนเสริมทุก ๆ (ม.)</label><input type="number" step="0.1" id="nog" value="1.2"></div>
+<div><label>ความยาวซีลาย 1 เส้น (ม.)</label><input type="number" step="0.1" id="cLen" value="4"></div>
+<div><label>บุแผ่นกี่ด้าน</label><select id="sides"><option value="1">1 ด้าน (นอก)</option><option value="2" selected>2 ด้าน (นอก+ใน)</option></select></div>
+<div><label>แผ่น 1 แผ่น กว้าง (ม.)</label><input type="number" step="0.01" id="bw" value="1.2"></div>
+<div><label>แผ่น 1 แผ่น ยาว (ม.)</label><input type="number" step="0.01" id="bh" value="2.4"></div>
+<div><label>เผื่อเสีย/ตัดทิ้ง (%)</label><input type="number" step="1" id="waste" value="10"></div>
+</div>
+</section>
+
+<section class="card">
+<h2>5. ราคาวัสดุ (กรอกเอง)</h2>
+<div class="grid">
+<div><label>ซีลาย ตัว C (บาท/เส้น)</label><input type="number" id="pC" value="0"></div>
+<div><label>ซีลาย ตัว U (บาท/เส้น)</label><input type="number" id="pU" value="0"></div>
+<div><label>แผ่นผนัง (บาท/แผ่น)</label><input type="number" id="pB" value="0"></div>
+<div><label>สกรูยึดแผ่น (ตัว/ตร.ม.)</label><input type="number" id="scrQ" value="20"></div>
+<div><label>สกรูยึดแผ่น (บาท/กล่อง)</label><input type="number" id="pScr" value="0"></div>
+<div><label>สกรู 1 กล่อง มีกี่ตัว</label><input type="number" id="scrBox" value="100"></div>
+<div><label>พุก+สกรูยึดราง (บาท/ชุด)</label><input type="number" id="pAnc" value="0"></div>
+<div><label>ยึดรางทุก ๆ (ม.)</label><input type="number" step="0.1" id="ancSp" value="0.6"></div>
+<div><label>กาว/ซีลแลนท์ (บาท/หลอด)</label><input type="number" id="pGlue" value="0"></div>
+<div><label>กาว 1 หลอด ได้กี่ ตร.ม.</label><input type="number" step="0.5" id="glueCov" value="5"></div>
+<div><label>สีรองพื้น (บาท/แกลลอน)</label><input type="number" id="pPrim" value="0"></div>
+<div><label>สีรองพื้น 1 แกลลอน ได้กี่ ตร.ม.</label><input type="number" id="primCov" value="30"></div>
+<div><label>สีจริง (บาท/แกลลอน)</label><input type="number" id="pPaint" value="0"></div>
+<div><label>สีจริง 1 แกลลอน ได้กี่ ตร.ม. (2 รอบ)</label><input type="number" id="paintCov" value="15"></div>
+<div><label>ค่าแรง (บาท/ตร.ม. ผนัง) ทำเองใส่ 0</label><input type="number" id="pLab" value="0"></div>
+</div>
+</section>
+
+<section class="card">
+<h2>6. รายการอื่น ๆ <button class="add" data-add="ext">+ เพิ่มรายการ</button></h2>
+<p class="note" style="margin:0 0 8px">เช่น หลังคา พื้น ไฟฟ้า ปลั๊ก โคมไฟ ค่าขนส่ง ค่าเครื่องมือ</p>
+<div id="exts"></div>
+</section>
+
+<section class="card">
+<h2>สรุปผล</h2>
+<div class="stat">
+<div><b id="sArea">0</b><span>ผนังสุทธิ ตร.ม.</span></div>
+<div><b id="sOpen">0</b><span>ช่องเปิด ตร.ม.</span></div>
+<div><b id="sFloor">0</b><span>พื้นห้อง ตร.ม.</span></div>
+</div>
+<table id="tbl"><thead><tr><th>รายการ</th><th class="n">จำนวน</th><th class="n">บาท</th></tr></thead><tbody></tbody></table>
+<p class="note" id="warn"></p>
+<details style="margin-top:10px"><summary>วิธีคิด</summary>
+<p class="note">• เสาตัว C ต่อผนัง = ยาวผนัง ÷ ระยะห่าง + 1 ต้น สูงเท่าห้อง<br>
+• ทุกช่องประตู/หน้าต่าง เพิ่มเสาข้าง 2 ต้น + ทับหลังด้านบน (หน้าต่างเพิ่มคานล่างอีก 1)<br>
+• ราง U = บน+ล่าง ตลอดแนวผนัง (หักช่วงประตูด้านล่าง)<br>
+• คานนอนเสริม = ทุก ๆ ระยะที่ตั้งไว้ตามความสูง<br>
+• แผ่นผนัง = พื้นที่สุทธิ × จำนวนด้าน ÷ พื้นที่ 1 แผ่น + % เผื่อเสีย<br>
+• ซีลายรวมเป็นเมตร แล้วหารความยาวต่อเส้น + % เผื่อเสีย</p>
+</details>
+</section>
+
+</main>
+
+<div class="total"><div class="in">
+<div><small>รวมทั้งหมดประมาณ</small><b id="grand">0 บาท</b><small id="perSq"></small></div>
+<button class="btn" id="copy">คัดลอกสรุป</button>
+</div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+const $=id=>document.getElementById(id);
+const KEY='roomcalc_v1';
+let doors=[{w:0.8,h:2,q:1,p:0,f:0,hw:0}];
+let wins=[{w:1.2,h:1.1,q:1,p:0,hw:0}];
+let exts=[{n:'หลังคา',q:1,p:0},{n:'พื้น',q:1,p:0},{n:'งานไฟฟ้า',q:1,p:0}];
+const ids=['W','L','H','sp','nog','cLen','sides','bw','bh','waste','pC','pU','pB','scrQ','pScr','scrBox','pAnc','ancSp','pGlue','glueCov','pPrim','primCov','pPaint','paintCov','pLab'];
+const chks=['wF','wB','wLft','wR'];
+const num=v=>{const x=parseFloat(v);return isFinite(x)?x:0};
+const fmt=n=>n.toLocaleString('th-TH',{maximumFractionDigits:0});
+const fmt2=n=>n.toLocaleString('th-TH',{maximumFractionDigits:2});
+
+function save(){try{const s={doors,wins,exts};ids.forEach(i=>s[i]=$(i).value);chks.forEach(i=>s[i]=$(i).checked);localStorage.setItem(KEY,JSON.stringify(s))}catch(e){}}
+function load(){try{const s=JSON.parse(localStorage.getItem(KEY));if(!s)return;ids.forEach(i=>{if(s[i]!=null)$(i).value=s[i]});chks.forEach(i=>{if(s[i]!=null)$(i).checked=s[i]});if(s.doors)doors=s.doors;if(s.wins)wins=s.wins;if(s.exts)exts=s.exts}catch(e){}}
+
+function field(lbl,key,val,arr,i,type='number',step='0.01'){
+ return `<div><label>${lbl}</label><input type="${type}" step="${step}" value="${val}" data-arr="${arr}" data-i="${i}" data-k="${key}"></div>`}
+function render(){
+ $('doors').innerHTML=doors.map((d,i)=>`<div class="item"><button class="del" data-del="doors" data-i="${i}">×</button><div class="grid">
+ ${field('กว้าง (ม.)','w',d.w,'doors',i)}${field('สูง (ม.)','h',d.h,'doors',i)}${field('จำนวน','q',d.q,'doors',i,'number','1')}
+ ${field('บานประตู (บาท/บาน)','p',d.p,'doors',i,'number','1')}${field('วงกบ (บาท/ชุด)','f',d.f,'doors',i,'number','1')}${field('ลูกบิด+บานพับ (บาท/ชุด)','hw',d.hw,'doors',i,'number','1')}
+ </div></div>`).join('')||'<p class="note">ยังไม่มีประตู</p>';
+ $('wins').innerHTML=wins.map((d,i)=>`<div class="item"><button class="del" data-del="wins" data-i="${i}">×</button><div class="grid">
+ ${field('กว้าง (ม.)','w',d.w,'wins',i)}${field('สูง (ม.)','h',d.h,'wins',i)}${field('จำนวน','q',d.q,'wins',i,'number','1')}
+ ${field('หน้าต่างพร้อมวงกบ (บาท/ชุด)','p',d.p,'wins',i,'number','1')}${field('มือจับ/อุปกรณ์ (บาท/ชุด)','hw',d.hw,'wins',i,'number','1')}
+ </div></div>`).join('')||'<p class="note">ยังไม่มีหน้าต่าง</p>';
+ $('exts').innerHTML=exts.map((d,i)=>`<div class="item"><button class="del" data-del="exts" data-i="${i}">×</button><div class="grid">
+ ${field('ชื่อรายการ','n',d.n,'exts',i,'text')}${field('จำนวน','q',d.q,'exts',i,'number','1')}${field('ราคา/หน่วย (บาท)','p',d.p,'exts',i,'number','1')}
+ </div></div>`).join('')||'<p class="note">ยังไม่มีรายการ</p>';
+}
+const A={doors:()=>doors,wins:()=>wins,exts:()=>exts};
+
+let summaryText='';
+function calc(){
+ const W=num($('W').value),L=num($('L').value),H=num($('H').value);
+ const walls=[];if($('wF').checked)walls.push(W);if($('wB').checked)walls.push(W);if($('wLft').checked)walls.push(L);if($('wR').checked)walls.push(L);
+ const wallLen=walls.reduce((a,b)=>a+b,0);
+ const sp=num($('sp').value)||0.6,nog=num($('nog').value),cLen=num($('cLen').value)||4,sides=num($('sides').value);
+ const bArea=(num($('bw').value)*num($('bh').value))||2.88,waste=1+num($('waste').value)/100;
+ let openArea=0,openN=0,doorW=0,headerM=0;
+ doors.forEach(d=>{const q=num(d.q);openArea+=num(d.w)*num(d.h)*q;openN+=q;doorW+=num(d.w)*q;headerM+=num(d.w)*q});
+ wins.forEach(d=>{const q=num(d.q);openArea+=num(d.w)*num(d.h)*q;openN+=q;headerM+=num(d.w)*2*q});
+ const gross=wallLen*H,net=Math.max(0,gross-openArea);
+ // studs
+ const studs=walls.reduce((a,l)=>a+Math.ceil(l/sp)+1,0)+openN*2;
+ const studM=studs*H+headerM;
+ const nogRows=nog>0?Math.max(0,Math.ceil(H/nog)-1):0;
+ const nogM=nogRows*wallLen;
+ const cM=studM+nogM;
+ const cPcs=walls.length?Math.ceil(cM/cLen*waste):0;
+ const uM=Math.max(0,wallLen*2-doorW);
+ const uPcs=walls.length?Math.ceil(uM/cLen*waste):0;
+ const bdArea=net*sides;
+ const boards=Math.ceil(bdArea/bArea*waste);
+ const scr=Math.ceil(bdArea*num($('scrQ').value));
+ const scrBoxes=Math.ceil(scr/(num($('scrBox').value)||100));
+ const anc=Math.ceil(uM/(num($('ancSp').value)||0.6));
+ const glue=Math.ceil(bdArea/(num($('glueCov').value)||5));
+ const prim=Math.ceil(bdArea/(num($('primCov').value)||30));
+ const paint=Math.ceil(bdArea/(num($('paintCov').value)||15));
+
+ const rows=[];let total=0;
+ const add=(sec,name,qty,unit,price)=>{const c=qty*price;total+=c;rows.push({sec,name,qty,unit,c,price})};
+ add('โครงซีลาย',`ตัว C (เสา ${studs} ต้น + คานเสริม) ≈ ${fmt2(cM)} ม.`,cPcs,'เส้น',num($('pC').value));
+ add('โครงซีลาย',`ตัว U (รางบน-ล่าง) ≈ ${fmt2(uM)} ม.`,uPcs,'เส้น',num($('pU').value));
+ add('โครงซีลาย','พุก+สกรูยึดราง',anc,'ชุด',num($('pAnc').value));
+ add('แผ่นผนัง',`แผ่นผนัง ${sides} ด้าน (${fmt2(bdArea)} ตร.ม.)`,boards,'แผ่น',num($('pB').value));
+ add('แผ่นผนัง',`สกรูยึดแผ่น ≈ ${fmt(scr)} ตัว`,scrBoxes,'กล่อง',num($('pScr').value));
+ add('แผ่นผนัง','กาว/ซีลแลนท์',glue,'หลอด',num($('pGlue').value));
+ add('ทาสี','สีรองพื้น',prim,'แกลลอน',num($('pPrim').value));
+ add('ทาสี','สีจริง',paint,'แกลลอน',num($('pPaint').value));
+ doors.forEach((d,i)=>{const q=num(d.q);if(!q)return;const lbl=`ประตู ${i+1} (${d.w}×${d.h} ม.)`;
+  add('ประตู',lbl+' บาน',q,'บาน',num(d.p));add('ประตู',lbl+' วงกบ',q,'ชุด',num(d.f));add('ประตู',lbl+' ลูกบิด/บานพับ',q,'ชุด',num(d.hw))});
+ wins.forEach((d,i)=>{const q=num(d.q);if(!q)return;const lbl=`หน้าต่าง ${i+1} (${d.w}×${d.h} ม.)`;
+  add('หน้าต่าง',lbl,q,'ชุด',num(d.p));add('หน้าต่าง',lbl+' อุปกรณ์',q,'ชุด',num(d.hw))});
+ if(num($('pLab').value))add('ค่าแรง',`ค่าแรงผนัง ${fmt2(net)} ตร.ม.`,net,'ตร.ม.',num($('pLab').value));
+ exts.forEach(e=>{if(e.n||num(e.p))add('อื่น ๆ',e.n||'รายการ',num(e.q),'',num(e.p))});
+
+ let html='',last='';summaryText=`สรุปต่อเติมห้อง ${W}×${L}×${H} ม.\nผนังสุทธิ ${fmt2(net)} ตร.ม. (หักช่องเปิด ${fmt2(openArea)} ตร.ม.)\n`;
+ rows.forEach(r=>{if(r.sec!==last){html+=`<tr class="sec"><td colspan="3">${r.sec}</td></tr>`;summaryText+=`\n[${r.sec}]\n`;last=r.sec}
+  html+=`<tr><td>${r.name}${r.price?`<br><span class="note">${fmt(r.price)} บาท/${r.unit||'หน่วย'}</span>`:''}</td><td class="n">${fmt2(r.qty)} ${r.unit}</td><td class="n">${fmt(r.c)}</td></tr>`;
+  summaryText+=`- ${r.name}: ${fmt2(r.qty)} ${r.unit} = ${fmt(r.c)} บาท\n`});
+ summaryText+=`\nรวมประมาณ ${fmt(total)} บาท`;
+ document.querySelector('#tbl tbody').innerHTML=html;
+ $('sArea').textContent=fmt2(net);$('sOpen').textContent=fmt2(openArea);$('sFloor').textContent=fmt2(W*L);
+ $('grand').textContent=fmt(total)+' บาท';
+ $('perSq').textContent=W*L>0?`≈ ${fmt(total/(W*L))} บาท/ตร.ม. พื้นที่ห้อง`:'';
+ const w=[];if(!walls.length)w.push('ยังไม่ได้เลือกผนังที่จะสร้าง');if(openArea>gross)w.push('พื้นที่ประตูหน้าต่างมากกว่าผนัง ตรวจขนาดอีกครั้ง');
+ if(rows.some(r=>r.qty>0&&!r.price))w.push('ยังมีบางรายการที่ราคาเป็น 0');
+ $('warn').textContent=w.join(' • ');
+ save();
+}
+
+document.addEventListener('input',e=>{const t=e.target;if(t.dataset.arr){A[t.dataset.arr]()[t.dataset.i][t.dataset.k]=t.type==='text'?t.value:t.value}calc()});
+document.addEventListener('change',calc);
+document.addEventListener('click',e=>{const t=e.target;
+ if(t.dataset.add==='door'){doors.push({w:0.8,h:2,q:1,p:0,f:0,hw:0});render();calc()}
+ if(t.dataset.add==='win'){wins.push({w:1.2,h:1.1,q:1,p:0,hw:0});render();calc()}
+ if(t.dataset.add==='ext'){exts.push({n:'',q:1,p:0});render();calc()}
+ if(t.dataset.del){A[t.dataset.del]().splice(+t.dataset.i,1);render();calc()}
+});
+$('copy').addEventListener('click',async()=>{let ok=false;try{await navigator.clipboard.writeText(summaryText);ok=true}catch(e){}
+ const ts=$('toast');ts.textContent=ok?'คัดลอกแล้ว':'คัดลอกไม่ได้ในหน้านี้';ts.classList.add('show');setTimeout(()=>ts.classList.remove('show'),1600)});
+load();render();calc();
+</script>
+</body>
+</html>

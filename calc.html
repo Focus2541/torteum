@@ -99,6 +99,22 @@ details summary{cursor:pointer;font-weight:600}
 </section>
 
 <section class="card">
+<h2>ช่วงบนใต้เพดาน (ทางเลือก)</h2>
+<p class="note" style="margin:0 0 8px">เปลี่ยนแถวบนของผนังเป็นแผ่นโปร่งแสงหรือเกล็ดระบายอากาศ ห้องจะดูสูงและโล่งขึ้น ส่วนนี้จะไม่ใช้แผ่นทึบ</p>
+<div class="grid">
+<div><label>ช่วงบนเป็น</label><select id="topT"><option value="none">แผ่นทึบตลอด</option><option value="poly">โพลีคาร์บอเนต</option><option value="vent">เกล็ด/ระแนง</option></select></div>
+<div><label>สูง (ม.)</label><input type="number" step="0.05" id="topH" value="0.6"></div>
+<div><label>ยาวรวม (ม.) ใส่ 0 = ทุกผนังที่สร้าง</label><input type="number" step="0.1" id="topLen" value="0"></div>
+<div><label>โพลีคาร์บอเนต (บาท/แผ่น)</label><input type="number" id="pPoly" value="0"></div>
+<div><label>แผ่นโพลี กว้าง (ม.)</label><input type="number" step="0.01" id="polyW" value="1.22"></div>
+<div><label>แผ่นโพลี ยาว (ม.)</label><input type="number" step="0.01" id="polyL" value="2.44"></div>
+<div><label>สกรูแหวนยาง+ซิลิโคน (บาท/แผ่น)</label><input type="number" id="pPolyAcc" value="0"></div>
+<div><label>เกล็ด/ระแนง (บาท/ม.)</label><input type="number" id="pVent" value="0"></div>
+<div><label>มุ้งลวด (บาท/ม.)</label><input type="number" id="pNet" value="0"></div>
+</div>
+</section>
+
+<section class="card">
 <h2>5. ราคาวัสดุ (กรอกเอง)</h2>
 <div class="grid">
 <div><label>ซีลาย ตัว C (บาท/เส้น)</label><input type="number" id="pC" value="0"></div>
@@ -158,7 +174,7 @@ const KEY='roomcalc_v1';
 let doors=[{w:0.8,h:2,q:1,p:0,f:0,hw:0}];
 let wins=[{w:1.2,h:1.1,q:1,p:0,hw:0}];
 let exts=[{n:'หลังคา',q:1,p:0},{n:'พื้น',q:1,p:0},{n:'งานไฟฟ้า',q:1,p:0}];
-const ids=['W','L','H','sp','nog','cLen','sides','bw','bh','orient','waste','pC','pU','pB','scrQ','pScr','scrBox','pAnc','ancSp','pGlue','glueCov','pPrim','primCov','pPaint','paintCov','pLab'];
+const ids=['W','L','H','sp','nog','cLen','sides','bw','bh','orient','waste','pC','pU','pB','scrQ','pScr','scrBox','pAnc','ancSp','pGlue','glueCov','pPrim','primCov','pPaint','paintCov','pLab','topT','topH','topLen','pPoly','polyW','polyL','pPolyAcc','pVent','pNet'];
 const chks=['wF','wB','wLft','wR'];
 const num=v=>{const x=parseFloat(v);return isFinite(x)?x:0};
 const fmt=n=>n.toLocaleString('th-TH',{maximumFractionDigits:0});
@@ -204,13 +220,17 @@ function calc(){
  const cPcs=walls.length?Math.ceil(cM/cLen*waste):0;
  const uM=Math.max(0,wallLen*2-doorW);
  const uPcs=walls.length?Math.ceil(uM/cLen*waste):0;
- const bdArea=net*sides;
+ const topT=$('topT').value,th=topT==='none'?0:Math.min(num($('topH').value),H*0.5);
+ const bandLen=th>0?(num($('topLen').value)>0?Math.min(num($('topLen').value),wallLen):wallLen):0;
+ const bandArea=bandLen*th;
+ const bdArea=Math.max(0,net-bandArea)*sides;
  // นับแผ่นตามการวาง: แผ่นที่ตัดเป็นแถบแคบ ใช้ 1 แผ่นได้หลายแถว
  const bS=Math.min(num($('bw').value),num($('bh').value))||1.2,bL=Math.max(num($('bw').value),num($('bh').value))||2.4;
- const lay=o=>{const cw=o==='h'?bL:bS,rh=o==='h'?bS:bL;let b=0;for(let y=0;y<H-0.05;y+=rh){const hr=Math.min(rh,H-y);b+=walls.reduce((a,l)=>a+l/cw,0)/Math.max(1,Math.floor(rh/hr+0.001))}return b};
+ const lay1=(o,Ht,len)=>{const cw=o==='h'?bL:bS,rh=o==='h'?bS:bL;let b=0;for(let y=0;y<Ht-0.05;y+=rh){const hr=Math.min(rh,Ht-y);b+=(len/cw)/Math.max(1,Math.floor(rh/hr+0.001))}return b};
+ const lay=o=>lay1(o,H,wallLen-bandLen)+lay1(o,H-th,bandLen);
  const om=$('orient').value,bv=lay('v'),bh=lay('h');
  const useH=om==='h'||(om==='auto'&&bh<bv-0.01);
- const frac=gross>0?net/gross:0;
+ const frac=gross>0?Math.max(0,net-bandArea)/Math.max(0.01,gross-bandArea):0;
  const boards=Math.ceil((useH?bh:bv)*frac*sides*waste);
  const boardsAlt=Math.ceil((useH?bv:bh)*frac*sides*waste);
  const scr=Math.ceil(bdArea*num($('scrQ').value));
@@ -228,6 +248,12 @@ function calc(){
  add('แผ่นผนัง',`แผ่นผนัง ${sides} ด้าน วาง${useH?'แนวนอน':'แนวตั้ง'} (${fmt2(bdArea)} ตร.ม.)${boards!==boardsAlt?` · ถ้าวาง${useH?'แนวตั้ง':'แนวนอน'} ใช้ ${boardsAlt} แผ่น`:''}`,boards,'แผ่น',num($('pB').value));
  add('แผ่นผนัง',`สกรูยึดแผ่น ≈ ${fmt(scr)} ตัว`,scrBoxes,'กล่อง',num($('pScr').value));
  add('แผ่นผนัง','กาว/ซีลแลนท์',glue,'หลอด',num($('pGlue').value));
+ if(topT==='poly'&&bandLen>0){const pw=num($('polyW').value)||1.22,pl=num($('polyL').value)||2.44;
+  const ps=Math.ceil(bandLen/pl/Math.max(1,Math.floor(pw/th+0.001))*waste);
+  add('ช่วงบนโปร่งแสง',`โพลีคาร์บอเนต ตัดกว้าง ${fmt2(th)} ม. ยาวรวม ${fmt2(bandLen)} ม.`,ps,'แผ่น',num($('pPoly').value));
+  add('ช่วงบนโปร่งแสง','สกรูแหวนยาง + ซิลิโคน',ps,'แผ่น',num($('pPolyAcc').value))}
+ if(topT==='vent'&&bandLen>0){add('ช่วงบนระบายอากาศ',`เกล็ด/ระแนง สูง ${fmt2(th)} ม.`,Math.ceil(bandLen*10)/10,'ม.',num($('pVent').value));
+  add('ช่วงบนระบายอากาศ','มุ้งลวดกันแมลง',Math.ceil(bandLen*10)/10,'ม.',num($('pNet').value))}
  add('ทาสี','สีรองพื้น',prim,'แกลลอน',num($('pPrim').value));
  add('ทาสี','สีจริง',paint,'แกลลอน',num($('pPaint').value));
  doors.forEach((d,i)=>{const q=num(d.q);if(!q)return;const lbl=`ประตู ${i+1} (${d.w}×${d.h} ม.)`;

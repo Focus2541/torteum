@@ -117,6 +117,9 @@ svg text{font-family:Sarabun,sans-serif}
 <div><label>ตัดเสาสั้นกว่าห้อง (ซม.)</label><input type="number" step="0.5" id="short" value="1"></div>
 <div><label>แผ่นผนัง ด้านสั้น (ซม.)</label><input type="number" id="bw" value="120"></div>
 <div><label>แผ่นผนัง ด้านยาว (ซม.)</label><input type="number" id="bh" value="240"></div>
+<div><label>ช่วงบนโปร่งแสง สูง (ซม.) ใช้เมื่อวางแผ่นแนวตั้ง</label><input type="number" id="topH" value="60"></div>
+<div><label>แผ่นโพลีคาร์บอเนต กว้าง (ซม.)</label><input type="number" id="polyW" value="122"></div>
+<div><label>แผ่นโพลีคาร์บอเนต ยาว (ซม.)</label><input type="number" id="polyL" value="244"></div>
 <div><label>สกรูแผ่น ตรงรอยต่อ ทุก (ซม.)</label><input type="number" id="scrE" value="20"></div>
 <div><label>สกรูแผ่น กลางแผ่น ทุก (ซม.)</label><input type="number" id="scrF" value="30"></div>
 </div>
@@ -130,7 +133,7 @@ const $=id=>document.getElementById(id);
 const KEY='torteum_design_v1';
 const T=4; // ความกว้างหน้าเสาในแบบ (ซม.)
 const OV=30; // ต่อเสาซ้อน
-const setIds=['sp','nog','bar','gap','tab','anc','ancEnd','short','bw','bh','scrE','scrF','orient'];
+const setIds=['sp','nog','bar','gap','tab','anc','ancEnd','short','bw','bh','scrE','scrF','orient','topH','polyW','polyL'];
 let walls=[{name:'ผนังหน้า',L:300,H:240,endL:'corner',endR:'corner',ops:[{type:'door',x:40,w:80,h:200,sill:0},{type:'win',x:165,w:90,h:110,sill:100}]}];
 let cur=0;
 const n=v=>{const x=parseFloat(v);return isFinite(x)?x:0};
@@ -146,6 +149,7 @@ function renderTabs(){
 function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
 function inp(lbl,k,v,extra=''){return `<div><label>${lbl}</label><input ${extra} data-k="${k}" value="${esc(v)}"></div>`}
 function sel(lbl,k,v,opts){return `<div><label>${lbl}</label><select data-k="${k}">${opts.map(o=>`<option value="${o[0]}" ${o[0]===v?'selected':''}>${o[1]}</option>`).join('')}</select></div>`}
+const topOpts=[['none','แผ่นทึบตลอด'],['poly','แผ่นโปร่งแสง (โพลีคาร์บอเนต)'],['vent','เกล็ด/ระแนง ระบายอากาศ']];
 const endOpts=[['corner','มุมผนัง / ปลายลอย (เสาคู่)'],['existing','ชนผนังบ้านเดิม (ยึดพุก)']];
 function renderForm(){
  const w=walls[cur];
@@ -155,6 +159,7 @@ function renderForm(){
  ${inp('สูง (ซม.)','H',w.H,'type="number"')}
  ${sel('ปลายซ้าย','endL',w.endL,endOpts)}
  ${sel('ปลายขวา','endR',w.endR,endOpts)}
+ ${sel('ช่วงบนใต้เพดาน','top',w.top||'none',topOpts)}
  </div>`;
  h+=w.ops.map((o,i)=>`<div class="op" data-op="${i}"><button class="del" data-delop="${i}" title="ลบ">×</button>
  <div class="ttl">${o.type==='door'?'🚪 ประตู':'🪟 หน้าต่าง'} ${i+1}</div>
@@ -199,6 +204,12 @@ function design(w,s){
  const LV=layout(L,H,s,'v'),LH=layout(L,H,s,'h');
  const pick=s.orient==='v'?LV:s.orient==='h'?LH:(LH.raw<LV.raw-0.01?LH:LV);
  R.lay=pick;R.alt=pick===LV?LH:LV;
+ // ช่วงบนโปร่งแสง/ระบายอากาศ
+ R.band=null;
+ if(w.top&&w.top!=='none'){
+  const th=r1((pick.o==='h'&&pick.rows.length>1)?H-pick.rows[pick.rows.length-1].y0:Math.min(s.topH||60,H-60));
+  if(th>=10){R.band={y0:r1(H-th),th,type:w.top};
+   R.lay=layout(L,H-th,s,pick.o);R.alt=layout(L,H-th,s,R.alt.o)}}
  // ตรวจ
  ros.forEach(r=>{
   if(n(r.o.w)<=0||n(r.o.h)<=0)msgs.push(['e',`${r.label}: ใส่ขนาดวงกบ`]);
@@ -245,7 +256,7 @@ function design(w,s){
  });
  R.vert.sort((a,b)=>a.x-b.x);
  // คานนอน
- const rows=[...R.lay.hJoints];
+ const rows=[...R.lay.hJoints];if(R.band&&!rows.some(y=>Math.abs(y-R.band.y0)<3))rows.push(R.band.y0);
  if(s.nog>=30)for(let y=s.nog;y<H-15;y+=s.nog)if(!rows.some(j=>Math.abs(j-y)<20))rows.push(y);
  rows.sort((a,b)=>a-b);
  rows.forEach(y=>{
@@ -270,11 +281,17 @@ function design(w,s){
  R.lay.rows.forEach((row,ri)=>row.joints.forEach(x=>{const has=R.vert.some(v=>Math.abs(v.x-x)<=T&&v.y0<row.y1-5&&v.y1>row.y0+5)||ros.some(r=>x>r.x0&&x<r.x1&&r.bot<row.y1&&r.top>row.y0);
   if(!has){const near=R.vert.filter(v=>v.y0===0&&v.y1===H).sort((a,b)=>Math.abs(a.x-x)-Math.abs(b.x-x))[0];
    msgs.push(['w',`รอยต่อแผ่นที่ ${r1(x)} ซม. ไม่มีเสารับ → ตัดแผ่นให้รอยต่อไปตกที่เสา ${near?r1(near.x)+' ซม.':''} หรือเพิ่มเสาที่ ${r1(x)} ซม.${multi?` (แถวแผ่นที่ ${ri+1})`:''}`])}}));
- const gross=L*H,net=gross-ros.reduce((q,r)=>q+(r.x1-r.x0)*(r.top-r.bot),0);
+ const hb=R.band?R.band.y0:H;
+ const clipA=(a,b)=>ros.reduce((q,r)=>q+(r.x1-r.x0)*Math.max(0,Math.min(r.top,b)-Math.max(r.bot,a)),0);
+ const gross=L*hb,net=Math.max(0,gross-clipA(0,hb));
+ R.poly=0;R.ventM=0;
+ if(R.band){const gb=L*R.band.th,nb=Math.max(0,gb-clipA(hb,H)),f=gb?nb/gb:0;
+  if(R.band.type==='poly'){R.poly=(L/s.polyL)/Math.max(1,Math.floor(s.polyW/R.band.th+0.001))*f}else R.ventM=r1(L*f/100);
+  msgs.push(['ok',R.band.type==='poly'?`🔆 ช่วงบนสูง ${R.band.y0}–${H} ซม. เป็นโพลีคาร์บอเนต ใช้ประมาณ ${Math.ceil(R.poly*1.1)} แผ่น (${s.polyW}×${s.polyL}) มีคานนอนรับขอบล่างที่ ${R.band.y0} ซม.`:`🌬️ ช่วงบนสูง ${R.band.y0}–${H} ซม. เป็นเกล็ด/ระแนง ยาวประมาณ ${R.ventM} ม. มีคานนอนรับที่ ${R.band.y0} ซม.`])}
  const cnt=lay=>Math.ceil(lay.raw*(net/gross)*1.1);
  R.boards=cnt(R.lay);R.boardsAlt=cnt(R.alt);
  const nm=o=>o==='h'?'แนวนอน':'แนวตั้ง';
- if(R.boards!==R.boardsAlt||R.lay.o==='h')msgs.push(['ok',`📐 วางแผ่น${nm(R.lay.o)} ใช้ ${R.boards} แผ่น/ด้าน · ถ้าวาง${nm(R.alt.o)} ใช้ ${R.boardsAlt} แผ่น${R.lay.o==='h'?` · รอยต่อแนวนอนที่ ${R.lay.hJoints.join(', ')} ซม. มีคานนอนรับแล้ว`:''}`]);
+ if(R.boards!==R.boardsAlt||R.lay.o==='h')msgs.push(['ok',`📐 วางแผ่น${nm(R.lay.o)} ใช้ ${R.boards} แผ่น/ด้าน · ถ้าวาง${nm(R.alt.o)} ใช้ ${R.boardsAlt} แผ่น${R.lay.o==='h'&&R.lay.hJoints.length?` · รอยต่อแนวนอนที่ ${R.lay.hJoints.join(', ')} ซม. มีคานนอนรับแล้ว`:''}`]);
  if(!msgs.some(m=>m[0]!=='ok'))msgs.push(['ok','✓ ระยะทุกจุดผ่านการตรวจ ทำตามแบบได้เลย']);
  // ชิ้นงาน
  R.pieces=[];
@@ -306,6 +323,11 @@ function drawSVG(R,s,showB){
  // แผ่น
  if(showB){R.lay.rows.forEach(row=>row.joints.forEach(x=>g+=`<line x1="${X(x)}" y1="${Y(row.y1)}" x2="${X(x)}" y2="${Y(row.y0)}" stroke="var(--board)" stroke-width="${fs/5}" stroke-dasharray="${fs} ${fs/2}"/>`));
   R.lay.hJoints.forEach(y=>g+=`<line x1="${X(0)}" y1="${Y(y)}" x2="${X(L)}" y2="${Y(y)}" stroke="var(--board)" stroke-width="${fs/5}" stroke-dasharray="${fs} ${fs/2}"/>`)}
+ // ช่วงบน
+ if(R.band){const yb=Y(H),hh=R.band.th;
+  if(R.band.type==='poly')g+=`<rect x="${X(0)}" y="${yb}" width="${L}" height="${hh}" fill="#93c5fd" opacity=".45"/>`;
+  else{g+=`<rect x="${X(0)}" y="${yb}" width="${L}" height="${hh}" fill="#a7f3d0" opacity=".35"/>`;for(let y=H-6;y>R.band.y0;y-=8)g+=`<line x1="${X(0)}" y1="${Y(y)}" x2="${X(L)}" y2="${Y(y)+4}" stroke="var(--hdr)" stroke-width="${fs/12}" opacity=".7"/>`}
+  g+=`<text x="${X(L)-fs*.4}" y="${Y(H)+fs*1.2}" text-anchor="end" font-size="${r1(fs*.8)}" fill="var(--blue)" font-weight="700">${R.band.type==='poly'?'โพลีคาร์บอเนต':'เกล็ดระบายอากาศ'}</text>`}
  // ช่องเปิด
  R.ros.forEach(r=>{g+=`<rect x="${X(r.x0)}" y="${Y(r.top)}" width="${r.x1-r.x0}" height="${r.top-r.bot}" fill="var(--acc2)" stroke="var(--acc)" stroke-dasharray="${fs/2} ${fs/3}" stroke-width="${fs/8}"/>`;
   g+=`<text x="${X((r.x0+r.x1)/2)}" y="${Y((r.top+r.bot)/2)}" text-anchor="middle" fill="var(--acc)" font-weight="700">${r.label}</text>`;
@@ -321,7 +343,7 @@ function drawSVG(R,s,showB){
  R.botTr.forEach(([a,b])=>g+=`<rect x="${X(a)}" y="${Y(0)-T/2}" width="${b-a}" height="${T}" fill="var(--hdr)"/>`);
  // สกรูแผ่น
  if(showB){R.vert.forEach(v=>{const edge=R.joints.some(j=>Math.abs(j-v.x)<=T)||v.kind==='end'||v.kind==='jamb';const st=edge?s.scrE:s.scrF;
-   for(let y=Math.max(v.y0,0)+5;y<=v.y1-5;y+=st){if(R.ros.some(r=>v.x>r.x0&&v.x<r.x1&&y>r.bot&&y<r.top))continue;g+=`<circle cx="${X(v.x)}" cy="${Y(y)}" r="${fs/7}" fill="var(--board)"/>`}})}
+   for(let y=Math.max(v.y0,0)+5;y<=v.y1-5;y+=st){if(R.ros.some(r=>v.x>r.x0&&v.x<r.x1&&y>r.bot&&y<r.top))continue;if(R.band&&y>R.band.y0+2)continue;g+=`<circle cx="${X(v.x)}" cy="${Y(y)}" r="${fs/7}" fill="var(--board)"/>`}})}
  // พุก
  R.anchors.forEach(a=>g+=`<circle cx="${X(a.x)}" cy="${Y(a.y)}" r="${fs/3.2}" fill="var(--blue)" stroke="var(--card)" stroke-width="${fs/12}"/>`);
  R.wallAnchors.forEach(a=>g+=`<circle cx="${X(a.x)}" cy="${Y(a.y)}" r="${fs/3.2}" fill="var(--blue)" stroke="var(--card)" stroke-width="${fs/12}"/>`);
@@ -371,10 +393,11 @@ function steps(R,w,s){
   st.push(t)});
  const ny=[...new Set(R.nogs.map(n=>n.y))];
  if(ny.length)st.push(`<b>ใส่คานนอน</b> ขวางระหว่างเสาที่ความสูง: ${list(ny)} ซม. (${R.nogs.length} ท่อน ตัดตามระยะในตารางด้านล่าง)`);
+ if(R.band)st.push(R.band.type==='poly'?`<b>ช่วงบนโปร่งแสง</b> สูง ${R.band.y0}–${R.H} ซม. ตัดแผ่นโพลีคาร์บอเนตกว้าง ${R.band.th} ซม. ติดด้านนอก · เจาะรูใหญ่กว่าสกรูเล็กน้อย เว้นขอบ 3–5 มม. ใช้สกรูมีแหวนยาง · หันด้านกัน UV ออกนอก · ด้านที่ฝนสาด ยาแนวซิลิโคนรอบขอบ`:`<b>ช่วงบนระบายอากาศ</b> สูง ${R.band.y0}–${R.H} ซม. ติดเกล็ดหรือระแนงเอียงลงด้านนอก กันฝน · ติดมุ้งลวดด้านในกันแมลง · ไม่ควรใช้กับด้านที่ฝนสาด`);
  st.push(`<b>เช็กดิ่งทุกเสา</b> แล้วย้ำด้วยคีมย้ำทั้งสองข้าง ทั้งบนและล่าง · เดินท่อสายไฟก่อนปิดแผ่น`);
  const lay=R.lay;
  if(lay.o==='h')st.push(`<b>ติดแผ่นแนวนอน</b> (นอนยาว ${lay.colW} ซม.) ${lay.rows.map((r,i)=>`แถว ${i+1} สูง ${r1(r.y0)}–${r1(r.y1)} ซม.${r.y1-r.y0<lay.rowH-1?` (ผ่าแผ่นให้กว้าง ${r1(r.y1-r.y0)} ซม.)`:''} รอยต่อตั้งที่: ${r.joints.length?list(r.joints.map(r1)):'ไม่มี'}`).join('<br>')}<br>แถวล่างใช้แผ่นเต็มก่อน · รอยต่อแถวบนกับแถวล่างเหลื่อมกัน ${lay.rows[1]?lay.rows[1].off:0} ซม. · `);
- else st.push(`<b>ติดแผ่นแนวตั้ง</b> ${s.bw}×${s.bh} ซม. (ตัดสูง ${r1(Math.min(R.H,lay.rowH))} ซม.${lay.rows.length>1?` แล้วต่อแถวบนสูง ${r1(R.H-lay.rowH)} ซม. มีคานนอนรับรอยต่อที่ ${lay.rowH} ซม.`:''}) เริ่มจากปลายซ้าย รอยต่อแผ่นตกที่: ${list(R.joints.map(r1))} ซม. · `);
+ else st.push(`<b>ติดแผ่นแนวตั้ง</b> ${s.bw}×${s.bh} ซม. (ตัดสูง ${r1(Math.min(R.band?R.band.y0:R.H,lay.rowH))} ซม.${lay.rows.length>1?` แล้วต่อแถวบนสูง ${r1((R.band?R.band.y0:R.H)-lay.rowH)} ซม. มีคานนอนรับรอยต่อที่ ${lay.rowH} ซม.`:''}) เริ่มจากปลายซ้าย รอยต่อแผ่นตกที่: ${list(R.joints.map(r1))} ซม. · `);
  st[st.length-1]+=`ยกแผ่นห่างพื้น 0.5–1 ซม. · สกรูห่างขอบแผ่น ≥ 1.2 ซม. ตรงรอยต่อทุก ${s.scrE} ซม. กลางแผ่นทุก ${s.scrF} ซม.`;
  return st.map(x=>`<li>${x}</li>`).join('');
 }
@@ -402,14 +425,16 @@ function totalHTML(s){
  const anc=all.reduce((a,x)=>a+x.R.anchors.length+x.R.wallAnchors.length,0);
  const area=all.reduce((a,x)=>a+(x.R.L*x.R.H-x.R.ros.reduce((q,r)=>q+(r.x1-r.x0)*(r.top-r.bot),0))/10000,0);
  const boards=all.reduce((a,x)=>a+(x.R.boards||0),0);
+ const poly=Math.ceil(all.reduce((a,x)=>a+(x.R.poly||0),0)*1.1),vent=r1(all.reduce((a,x)=>a+(x.R.ventM||0),0));
  const doors=walls.reduce((a,w)=>a+w.ops.filter(o=>o.type==='door').length,0),wins=walls.reduce((a,w)=>a+w.ops.filter(o=>o.type==='win').length,0);
  summary=`สรุปโครงผนังเบา ${walls.length} ผนัง\n`+all.map(a=>`- ${a.w.name}: ${a.R.L}×${a.R.H} ซม.`).join('\n')+
- `\n\nซีลาย/ตัว C ยาว ${s.bar/100} ม.: ${bc} เส้น\nราง U ยาว ${s.bar/100} ม.: ${bu} เส้น\nพุก+สกรู: ${anc} ชุด\nแผ่นผนัง (1 ด้าน เผื่อ 10%): ${boards} แผ่น\nประตู ${doors} บาน · หน้าต่าง ${wins} ชุด\nพื้นที่ผนังสุทธิ ${r1(area)} ตร.ม.`;
+ `\n\nซีลาย/ตัว C ยาว ${s.bar/100} ม.: ${bc} เส้น\nราง U ยาว ${s.bar/100} ม.: ${bu} เส้น\nพุก+สกรู: ${anc} ชุด\nแผ่นผนัง (1 ด้าน เผื่อ 10%): ${boards} แผ่น${poly?`\nโพลีคาร์บอเนต ช่วงบน: ${poly} แผ่น`:''}${vent?`\nเกล็ด/ระแนง ช่วงบน: ${vent} ม.`:''}\nประตู ${doors} บาน · หน้าต่าง ${wins} ชุด\nพื้นที่ผนังสุทธิ ${r1(area)} ตร.ม.`;
  return `<table>
  <tr><td>ตัว C (เสา/คานนอน) เส้นยาว ${s.bar/100} ม.</td><td class="n"><b>${bc}</b> เส้น</td></tr>
  <tr><td>ตัว U (ราง/ทับหลัง) เส้นยาว ${s.bar/100} ม.</td><td class="n"><b>${bu}</b> เส้น</td></tr>
  <tr><td>พุก + สกรู</td><td class="n"><b>${anc}</b> ชุด</td></tr>
  <tr><td>แผ่นผนัง ${s.bw}×${s.bh} (1 ด้าน เผื่อ 10% · วางตามที่เลือกแต่ละผนัง)</td><td class="n"><b>${boards}</b> แผ่น</td></tr>
+ ${poly?`<tr><td>แผ่นโพลีคาร์บอเนต ${s.polyW}×${s.polyL} (ช่วงบน เผื่อ 10%)</td><td class="n"><b>${poly}</b> แผ่น</td></tr>`:''}${vent?`<tr><td>เกล็ด/ระแนง ช่วงบน</td><td class="n"><b>${vent}</b> ม.</td></tr>`:''}
  <tr><td>ประตู / หน้าต่าง</td><td class="n">${doors} / ${wins}</td></tr>
  <tr><td>พื้นที่ผนังสุทธิ</td><td class="n">${r1(area)} ตร.ม.</td></tr></table>
  <p class="note">เอาตัวเลขนี้ไปใส่ใน <a href="calc.html" style="color:var(--acc)">หน้าคำนวณค่าใช้จ่าย</a> ได้เลย · จำนวนเส้นคิดจากการตัดรวมทุกผนัง (ใช้เศษข้ามผนัง) ถ้าซื้อแยกทีละผนังอาจต้องเพิ่ม 1–2 เส้น</p>`;

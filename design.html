@@ -207,9 +207,11 @@ function design(w,s){
  // ช่วงบนโปร่งแสง/ระบายอากาศ
  R.band=null;
  if(w.top&&w.top!=='none'){
-  const th=r1((pick.o==='h'&&pick.rows.length>1)?H-pick.rows[pick.rows.length-1].y0:Math.min(s.topH||60,H-60));
-  if(th>=10){R.band={y0:r1(H-th),th,type:w.top};
-   R.lay=layout(L,H-th,s,pick.o);R.alt=layout(L,H-th,s,R.alt.o)}}
+  const bandFor=o=>{const full=o==='h'?LH:LV;const th=r1((o==='h'&&full.rows.length>1)?H-full.rows[full.rows.length-1].y0:Math.min(s.topH||60,H-60));
+   const lay=layout(L,H-th,s,o);const poly=w.top==='poly'?(L/s.polyL)/Math.max(1,Math.floor(s.polyW/th+0.001)):0;return{o,th,lay,score:2*lay.raw+poly}};
+  const cv=bandFor('v'),ch=bandFor('h');
+  const c=s.orient==='v'?cv:s.orient==='h'?ch:(ch.score<cv.score-0.01?ch:cv),alt=c===cv?ch:cv;
+  if(c.th>=10){R.band={y0:r1(H-c.th),th:c.th,type:w.top};R.lay=c.lay;R.alt=alt.lay}}
  // ตรวจ
  ros.forEach(r=>{
   if(n(r.o.w)<=0||n(r.o.h)<=0)msgs.push(['e',`${r.label}: ใส่ขนาดวงกบ`]);

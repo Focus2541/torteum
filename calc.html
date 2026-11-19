@@ -34,6 +34,14 @@ button.add{font:inherit;border:1px solid var(--acc);color:var(--acc);background:
 table{width:100%;border-collapse:collapse;font-size:14px}
 th,td{padding:7px 4px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
 td.n,th.n{text-align:right;white-space:nowrap}
+tr.tier td{font-weight:700;background:var(--bg)}
+.pill{display:inline-block;font-size:12px;padding:1px 8px;border-radius:99px;margin-right:4px}
+.t1{background:#fee2e2;color:#991b1b}.t2{background:#fef3c7;color:#92400e}.t3{background:#e0f2fe;color:#075985}
+@media (prefers-color-scheme:dark){.t1{background:#3b1a1a;color:#fca5a5}.t2{background:#3a2f12;color:#fcd34d}.t3{background:#0c2a3a;color:#7dd3fc}}
+tr.out td{opacity:.55}
+td select.ts{font-size:13px;padding:3px 4px;margin:0;width:auto}
+.bar2{height:12px;background:var(--line);border-radius:6px;overflow:hidden;margin:8px 0}.bar2 i{display:block;height:100%;background:var(--acc)}
+.btn2{font:inherit;font-size:14px;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:8px 12px;cursor:pointer}
 tr.sec td{font-weight:700;background:var(--acc2);color:var(--acc)}
 .total{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);padding:10px 16px calc(10px + env(safe-area-inset-bottom))}
 .total .in{max-width:760px;margin:auto;display:flex;justify-content:space-between;align-items:center;gap:10px}
@@ -160,6 +168,18 @@ details summary{cursor:pointer;font-weight:600}
 </details>
 </section>
 
+<section class="card" id="plan">
+<h2>🛒 แผนซื้อตามงบ</h2>
+<div class="grid">
+<div><label>งบที่มี (บาท)</label><input type="number" id="budget" value="20000"></div>
+<div style="display:flex;align-items:end"><button class="btn2" id="preset">ใส่ข้อมูลห้องใต้ถุน 3×9 ม. + ราคาที่สำรวจ</button></div>
+</div>
+<p class="note">เรียงซื้อตามความสำคัญ: <span class="pill t1">1 จำเป็น</span> ต้องมีห้องถึงจะปิดได้ → <span class="pill t2">2 ควรมี</span> → <span class="pill t3">3 ทำทีหลังได้</span> · เปลี่ยนระดับได้ในตาราง · ติ๊ก ✓ เมื่อซื้อแล้ว</p>
+<div class="bar2"><i id="bBar"></i></div>
+<div id="bSum" class="note"></div>
+<table id="bTbl"><thead><tr><th></th><th>รายการ</th><th class="n">บาท</th><th class="n">สะสม</th></tr></thead><tbody></tbody></table>
+<p style="margin-top:10px"><button class="btn2" id="copyShop">คัดลอกรายการที่ต้องซื้อรอบนี้</button></p>
+</section>
 </main>
 
 <div class="total"><div class="in">
@@ -173,18 +193,20 @@ const $=id=>document.getElementById(id);
 const KEY='roomcalc_v1';
 let doors=[{w:0.8,h:2,q:1,p:0,f:0,hw:0}];
 let wins=[{w:1.2,h:1.1,q:1,p:0,hw:0}];
-let exts=[{n:'หลังคา',q:1,p:0},{n:'พื้น',q:1,p:0},{n:'งานไฟฟ้า',q:1,p:0}];
-const ids=['W','L','H','sp','nog','cLen','sides','bw','bh','orient','waste','pC','pU','pB','scrQ','pScr','scrBox','pAnc','ancSp','pGlue','glueCov','pPrim','primCov','pPaint','paintCov','pLab','topT','topH','topLen','pPoly','polyW','polyL','pPolyAcc','pVent','pNet'];
+let exts=[{n:'หลังคา',q:1,p:0,tier:2},{n:'พื้น',q:1,p:0,tier:3},{n:'งานไฟฟ้า',q:1,p:0,tier:2}];
+let tierOv={},bought={};
+const ids=['W','L','H','sp','nog','cLen','sides','bw','bh','orient','waste','pC','pU','pB','scrQ','pScr','scrBox','pAnc','ancSp','pGlue','glueCov','pPrim','primCov','pPaint','paintCov','pLab','topT','topH','topLen','pPoly','polyW','polyL','pPolyAcc','pVent','pNet','budget'];
 const chks=['wF','wB','wLft','wR'];
 const num=v=>{const x=parseFloat(v);return isFinite(x)?x:0};
 const fmt=n=>n.toLocaleString('th-TH',{maximumFractionDigits:0});
 const fmt2=n=>n.toLocaleString('th-TH',{maximumFractionDigits:2});
 
-function save(){try{const s={doors,wins,exts};ids.forEach(i=>s[i]=$(i).value);chks.forEach(i=>s[i]=$(i).checked);localStorage.setItem(KEY,JSON.stringify(s))}catch(e){}}
-function load(){try{const s=JSON.parse(localStorage.getItem(KEY));if(!s)return;ids.forEach(i=>{if(s[i]!=null)$(i).value=s[i]});chks.forEach(i=>{if(s[i]!=null)$(i).checked=s[i]});if(s.doors)doors=s.doors;if(s.wins)wins=s.wins;if(s.exts)exts=s.exts}catch(e){}}
+function save(){try{const s={doors,wins,exts,tierOv,bought};ids.forEach(i=>s[i]=$(i).value);chks.forEach(i=>s[i]=$(i).checked);localStorage.setItem(KEY,JSON.stringify(s))}catch(e){}}
+function load(){try{const s=JSON.parse(localStorage.getItem(KEY));if(!s)return;tierOv=s.tierOv||{};bought=s.bought||{};ids.forEach(i=>{if(s[i]!=null)$(i).value=s[i]});chks.forEach(i=>{if(s[i]!=null)$(i).checked=s[i]});if(s.doors)doors=s.doors;if(s.wins)wins=s.wins;if(s.exts)exts=s.exts}catch(e){}}
 
 function field(lbl,key,val,arr,i,type='number',step='0.01'){
  return `<div><label>${lbl}</label><input type="${type}" step="${step}" value="${val}" data-arr="${arr}" data-i="${i}" data-k="${key}"></div>`}
+const TIERN={1:'1 จำเป็น',2:'2 ควรมี',3:'3 ทีหลังได้'};
 function render(){
  $('doors').innerHTML=doors.map((d,i)=>`<div class="item"><button class="del" data-del="doors" data-i="${i}">×</button><div class="grid">
  ${field('กว้าง (ม.)','w',d.w,'doors',i)}${field('สูง (ม.)','h',d.h,'doors',i)}${field('จำนวน','q',d.q,'doors',i,'number','1')}
@@ -196,11 +218,44 @@ function render(){
  </div></div>`).join('')||'<p class="note">ยังไม่มีหน้าต่าง</p>';
  $('exts').innerHTML=exts.map((d,i)=>`<div class="item"><button class="del" data-del="exts" data-i="${i}">×</button><div class="grid">
  ${field('ชื่อรายการ','n',d.n,'exts',i,'text')}${field('จำนวน','q',d.q,'exts',i,'number','1')}${field('ราคา/หน่วย (บาท)','p',d.p,'exts',i,'number','1')}
+ <div><label>ความสำคัญ</label><select data-arr="exts" data-i="${i}" data-k="tier">${[1,2,3].map(t=>`<option value="${t}" ${+(d.tier||2)===t?'selected':''}>${TIERN[t]}</option>`).join('')}</select></div>
  </div></div>`).join('')||'<p class="note">ยังไม่มีรายการ</p>';
 }
 const A={doors:()=>doors,wins:()=>wins,exts:()=>exts};
 
-let summaryText='';
+let summaryText='',shopText='';
+function renderPlan(rows){
+ const budget=num($('budget').value);
+ const it=rows.filter(r=>r.qty>0&&!(r.price===0&&/อุปกรณ์|ลูกบิด/.test(r.name))).map((r,i)=>({...r,o:i})).sort((a,b)=>a.tier-b.tier||a.o-b.o);
+ let cum=0,stop=false,used=0,next=0,lack1=0;const tb=document.querySelector('#bTbl tbody');let h='',lastT=0;
+ const now=[];
+ it.forEach(r=>{
+  if(r.tier!==lastT){h+=`<tr class="tier"><td colspan="4"><span class="pill t${r.tier}">${TIERN[r.tier]}</span></td></tr>`;lastT=r.tier}
+  const fits=!stop&&cum+r.c<=budget;
+  if(fits){cum+=r.c;used=cum;now.push(r)}else{stop=true;next+=r.c;if(r.tier===1)lack1+=r.c}
+  const k=r.key.replace(/"/g,'');
+  h+=`<tr class="${fits?'':'out'}"><td><input type="checkbox" data-bought="${k}" ${bought[k]?'checked':''} style="width:18px;height:18px;margin:0"></td><td>${fits?'✅':'⏭'} ${r.name}<br><span class="note">${fmt2(r.qty)} ${r.unit}${r.price?` × ${fmt(r.price)}`:' · <b>ยังไม่ใส่ราคา</b>'}</span> ${r.ext?'':`<select class="ts" data-tier="${k}">${[1,2,3].map(t=>`<option value="${t}" ${r.tier===t?'selected':''}>${TIERN[t]}</option>`).join('')}</select>`}</td><td class="n">${fmt(r.c)}</td><td class="n">${fits?fmt(cum):'—'}</td></tr>`});
+ tb.innerHTML=h||'<tr><td colspan="4" class="note">ยังไม่มีรายการ</td></tr>';
+ const all=it.reduce((a,r)=>a+r.c,0),left=budget-used,noPrice=it.filter(r=>!r.price).length;
+ $('bBar').style.width=Math.min(100,budget?used/budget*100:0)+'%';
+ $('bSum').innerHTML=`ซื้อรอบนี้ <b>${fmt(used)}</b> บาท · เหลือ <b>${fmt(left)}</b> บาท · รอบถัดไปต้องใช้อีก <b>${fmt(next)}</b> บาท (รวมทั้งหมด ${fmt(all)})`+
+  (lack1>0?`<br>⚠️ ของจำเป็นยังขาดอีก ${fmt(lack1)} บาท ลองลดขนาด/ทำทีละเฟส หรือย้ายบางอย่างไประดับ 2–3`:'')+
+  (noPrice?`<br>มี ${noPrice} รายการที่ยังไม่ใส่ราคา (นับเป็น 0)`:'')+(stop&&left>0?`<br>เงินที่เหลือ ${fmt(left)} บาท ไม่พอรายการถัดไป เก็บไว้เป็นเงินสำรองได้`:'');
+ shopText=`🛒 รายการซื้อรอบนี้ (งบ ${fmt(budget)} บาท)\n`+now.map(r=>`☐ ${r.name}: ${fmt2(r.qty)} ${r.unit}${r.price?` = ${fmt(r.c)} บาท`:''}`).join('\n')+`\nรวม ${fmt(used)} บาท · เหลือ ${fmt(left)} บาท`;
+}
+function preset(){
+ const set=(id,v)=>{$(id).value=v};
+ set('W',3);set('L',9);set('H',1.8);set('sides','2');set('orient','auto');
+ set('topT','poly');set('topH',0.6);set('topLen',0);set('polyW',1.22);set('polyL',1.22);set('pPoly',207);
+ set('pC',55);set('pU',55);set('pB',230);
+ [['pAnc',3],['pScr',60],['pGlue',90],['pPrim',450],['pPaint',550],['pPolyAcc',30]].forEach(([k,v])=>{if(!num($(k).value))set(k,v)});
+ doors=[{w:0.8,h:1.7,q:1,p:1990,f:720,hw:350}];
+ wins=[{w:1.0,h:1.0,q:2,p:1500,hw:0}];
+ exts=[{n:'เครื่องมือ (คีมย้ำ กรรไกร ดอกสว่าน)',q:1,p:800,tier:1},{n:'คันปูนกันน้ำ ด้านฝนสาด',q:1,p:400,tier:1},{n:'น้ำยากันปลวก',q:1,p:400,tier:1},{n:'งานไฟฟ้า (สาย ท่อ ปลั๊ก RCBO)',q:1,p:3000,tier:2},{n:'พื้น SPC 27 ตร.ม.',q:1,p:8100,tier:3}];
+ render();calc();
+ const ts=$('toast');ts.textContent='ใส่ข้อมูลแล้ว · ราคาที่ไม่ได้สำรวจเป็นตัวเลขประมาณ แก้ได้';ts.classList.add('show');setTimeout(()=>ts.classList.remove('show'),2600);
+ $('plan').scrollIntoView({behavior:'smooth'});
+}
 function calc(){
  const W=num($('W').value),L=num($('L').value),H=num($('H').value);
  const walls=[];if($('wF').checked)walls.push(W);if($('wB').checked)walls.push(W);if($('wLft').checked)walls.push(L);if($('wR').checked)walls.push(L);
@@ -241,27 +296,30 @@ function calc(){
  const paint=Math.ceil(bdArea/(num($('paintCov').value)||15));
 
  const rows=[];let total=0;
- const add=(sec,name,qty,unit,price)=>{const c=qty*price;total+=c;rows.push({sec,name,qty,unit,c,price})};
- add('โครงซีลาย',`ตัว C (เสา ${studs} ต้น + คานเสริม) ≈ ${fmt2(cM)} ม.`,cPcs,'เส้น',num($('pC').value));
- add('โครงซีลาย',`ตัว U (รางบน-ล่าง) ≈ ${fmt2(uM)} ม.`,uPcs,'เส้น',num($('pU').value));
- add('โครงซีลาย','พุก+สกรูยึดราง',anc,'ชุด',num($('pAnc').value));
- add('แผ่นผนัง',`แผ่นผนัง ${sides} ด้าน วาง${useH?'แนวนอน':'แนวตั้ง'} (${fmt2(bdArea)} ตร.ม.)${boards!==boardsAlt?` · ถ้าวาง${useH?'แนวตั้ง':'แนวนอน'} ใช้ ${boardsAlt} แผ่น`:''}`,boards,'แผ่น',num($('pB').value));
- add('แผ่นผนัง',`สกรูยึดแผ่น ≈ ${fmt(scr)} ตัว`,scrBoxes,'กล่อง',num($('pScr').value));
- add('แผ่นผนัง','กาว/ซีลแลนท์',glue,'หลอด',num($('pGlue').value));
+ const add=(sec,name,qty,unit,price,key,tier=2)=>{const c=qty*price;total+=c;rows.push({sec,name,qty,unit,c,price,key:key||sec+name,tier:tierOv[key||sec+name]||tier})};
+ add('โครงซีลาย',`ตัว C (เสา ${studs} ต้น + คานเสริม) ≈ ${fmt2(cM)} ม.`,cPcs,'เส้น',num($('pC').value),'C',1);
+ add('โครงซีลาย',`ตัว U (รางบน-ล่าง) ≈ ${fmt2(uM)} ม.`,uPcs,'เส้น',num($('pU').value),'U',1);
+ add('โครงซีลาย','พุก+สกรูยึดราง',anc,'ชุด',num($('pAnc').value),'anc',1);
+ const bOut=sides>1?Math.ceil((useH?bh:bv)*frac*waste):boards,bIn=boards-bOut;
+ if(sides>1){add('แผ่นผนัง',`แผ่นผนัง ด้านนอก วาง${useH?'แนวนอน':'แนวตั้ง'}${boards!==boardsAlt?` (ถ้าวาง${useH?'แนวตั้ง':'แนวนอน'} รวม 2 ด้าน ${boardsAlt} แผ่น)`:''}`,bOut,'แผ่น',num($('pB').value),'bOut',1);
+  add('แผ่นผนัง','แผ่นผนัง ด้านใน (บุทีหลังได้)',bIn,'แผ่น',num($('pB').value),'bIn',3)}
+ else add('แผ่นผนัง',`แผ่นผนัง ${sides} ด้าน วาง${useH?'แนวนอน':'แนวตั้ง'} (${fmt2(bdArea)} ตร.ม.)${boards!==boardsAlt?` · ถ้าวาง${useH?'แนวตั้ง':'แนวนอน'} ใช้ ${boardsAlt} แผ่น`:''}`,boards,'แผ่น',num($('pB').value),'bOut',1);
+ add('แผ่นผนัง',`สกรูยึดแผ่น ≈ ${fmt(scr)} ตัว`,scrBoxes,'กล่อง',num($('pScr').value),'scr',1);
+ add('แผ่นผนัง','กาว/ซีลแลนท์',glue,'หลอด',num($('pGlue').value),'glue',2);
  if(topT==='poly'&&bandLen>0){const pw=num($('polyW').value)||1.22,pl=num($('polyL').value)||2.44;
   const ps=Math.ceil(bandLen/pl/Math.max(1,Math.floor(pw/th+0.001))*waste);
-  add('ช่วงบนโปร่งแสง',`โพลีคาร์บอเนต ตัดกว้าง ${fmt2(th)} ม. ยาวรวม ${fmt2(bandLen)} ม.`,ps,'แผ่น',num($('pPoly').value));
-  add('ช่วงบนโปร่งแสง','สกรูแหวนยาง + ซิลิโคน',ps,'แผ่น',num($('pPolyAcc').value))}
- if(topT==='vent'&&bandLen>0){add('ช่วงบนระบายอากาศ',`เกล็ด/ระแนง สูง ${fmt2(th)} ม.`,Math.ceil(bandLen*10)/10,'ม.',num($('pVent').value));
-  add('ช่วงบนระบายอากาศ','มุ้งลวดกันแมลง',Math.ceil(bandLen*10)/10,'ม.',num($('pNet').value))}
- add('ทาสี','สีรองพื้น',prim,'แกลลอน',num($('pPrim').value));
- add('ทาสี','สีจริง',paint,'แกลลอน',num($('pPaint').value));
+  add('ช่วงบนโปร่งแสง',`โพลีคาร์บอเนต ตัดกว้าง ${fmt2(th)} ม. ยาวรวม ${fmt2(bandLen)} ม.`,ps,'แผ่น',num($('pPoly').value),'poly',1);
+  add('ช่วงบนโปร่งแสง','สกรูแหวนยาง + ซิลิโคน',ps,'แผ่น',num($('pPolyAcc').value),'polyAcc',1)}
+ if(topT==='vent'&&bandLen>0){add('ช่วงบนระบายอากาศ',`เกล็ด/ระแนง สูง ${fmt2(th)} ม.`,Math.ceil(bandLen*10)/10,'ม.',num($('pVent').value),'vent',1);
+  add('ช่วงบนระบายอากาศ','มุ้งลวดกันแมลง',Math.ceil(bandLen*10)/10,'ม.',num($('pNet').value),'net',2)}
+ add('ทาสี','สีรองพื้น',prim,'แกลลอน',num($('pPrim').value),'prim',2);
+ add('ทาสี','สีจริง (ทาทีหลังได้ ทารองพื้นไว้ก่อน)',paint,'แกลลอน',num($('pPaint').value),'paint',3);
  doors.forEach((d,i)=>{const q=num(d.q);if(!q)return;const lbl=`ประตู ${i+1} (${d.w}×${d.h} ม.)`;
-  add('ประตู',lbl+' บาน',q,'บาน',num(d.p));add('ประตู',lbl+' วงกบ',q,'ชุด',num(d.f));add('ประตู',lbl+' ลูกบิด/บานพับ',q,'ชุด',num(d.hw))});
+  add('ประตู',lbl+' บาน',q,'บาน',num(d.p),'door'+i,1);add('ประตู',lbl+' วงกบ',q,'ชุด',num(d.f),'doorF'+i,1);add('ประตู',lbl+' ลูกบิด/บานพับ',q,'ชุด',num(d.hw),'doorH'+i,1)});
  wins.forEach((d,i)=>{const q=num(d.q);if(!q)return;const lbl=`หน้าต่าง ${i+1} (${d.w}×${d.h} ม.)`;
-  add('หน้าต่าง',lbl,q,'ชุด',num(d.p));add('หน้าต่าง',lbl+' อุปกรณ์',q,'ชุด',num(d.hw))});
- if(num($('pLab').value))add('ค่าแรง',`ค่าแรงผนัง ${fmt2(net)} ตร.ม.`,net,'ตร.ม.',num($('pLab').value));
- exts.forEach(e=>{if(e.n||num(e.p))add('อื่น ๆ',e.n||'รายการ',num(e.q),'',num(e.p))});
+  add('หน้าต่าง',lbl,q,'ชุด',num(d.p),'win'+i,2);add('หน้าต่าง',lbl+' อุปกรณ์',q,'ชุด',num(d.hw),'winH'+i,2)});
+ if(num($('pLab').value))add('ค่าแรง',`ค่าแรงผนัง ${fmt2(net)} ตร.ม.`,net,'ตร.ม.',num($('pLab').value),'lab',1);
+ exts.forEach((e,i)=>{if(e.n||num(e.p)){const key='ext:'+(e.n||i);const c=num(e.q)*num(e.p);total+=c;rows.push({sec:'อื่น ๆ',name:e.n||'รายการ',qty:num(e.q),unit:'',c,price:num(e.p),key,tier:+(e.tier||2),ext:true})}});
 
  let html='',last='';summaryText=`สรุปต่อเติมห้อง ${W}×${L}×${H} ม.\nผนังสุทธิ ${fmt2(net)} ตร.ม. (หักช่องเปิด ${fmt2(openArea)} ตร.ม.)\n`;
  rows.forEach(r=>{if(r.sec!==last){html+=`<tr class="sec"><td colspan="3">${r.sec}</td></tr>`;summaryText+=`\n[${r.sec}]\n`;last=r.sec}
@@ -275,15 +333,18 @@ function calc(){
  const w=[];if(!walls.length)w.push('ยังไม่ได้เลือกผนังที่จะสร้าง');if(openArea>gross)w.push('พื้นที่ประตูหน้าต่างมากกว่าผนัง ตรวจขนาดอีกครั้ง');
  if(rows.some(r=>r.qty>0&&!r.price))w.push('ยังมีบางรายการที่ราคาเป็น 0');
  $('warn').textContent=w.join(' • ');
+ renderPlan(rows);
  save();
 }
 
-document.addEventListener('input',e=>{const t=e.target;if(t.dataset.arr){A[t.dataset.arr]()[t.dataset.i][t.dataset.k]=t.type==='text'?t.value:t.value}calc()});
-document.addEventListener('change',calc);
+document.addEventListener('input',e=>{const t=e.target;if(t.dataset.bought!=null){bought[t.dataset.bought]=t.checked;save();return}if(t.dataset.tier!=null){tierOv[t.dataset.tier]=+t.value;calc();return}if(t.dataset.arr){A[t.dataset.arr]()[t.dataset.i][t.dataset.k]=t.type==='text'?t.value:t.value}calc()});
+document.addEventListener('change',e=>{const t=e.target;if(t.dataset.bought!=null||t.dataset.tier!=null)return;calc()});
 document.addEventListener('click',e=>{const t=e.target;
  if(t.dataset.add==='door'){doors.push({w:0.8,h:2,q:1,p:0,f:0,hw:0});render();calc()}
  if(t.dataset.add==='win'){wins.push({w:1.2,h:1.1,q:1,p:0,hw:0});render();calc()}
- if(t.dataset.add==='ext'){exts.push({n:'',q:1,p:0});render();calc()}
+ if(t.id==='preset'){preset();return}
+ if(t.id==='copyShop'){(async()=>{let ok=false;try{await navigator.clipboard.writeText(shopText);ok=true}catch(err){}const ts=$('toast');ts.textContent=ok?'คัดลอกรายการแล้ว':'คัดลอกไม่ได้ในหน้านี้';ts.classList.add('show');setTimeout(()=>ts.classList.remove('show'),1600)})();return}
+ if(t.dataset.add==='ext'){exts.push({n:'',q:1,p:0,tier:2});render();calc()}
  if(t.dataset.del){A[t.dataset.del]().splice(+t.dataset.i,1);render();calc()}
 });
 $('copy').addEventListener('click',async()=>{let ok=false;try{await navigator.clipboard.writeText(summaryText);ok=true}catch(e){}

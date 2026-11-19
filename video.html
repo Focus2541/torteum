@@ -267,6 +267,38 @@ const CLIPS=[
   {cap:'ทาสีรองพื้นหนึ่งรอบ ตามที่ผู้ผลิตแผ่นแนะนำ',show:['l4','l4t'],hl:['l4']},
   {cap:'แล้วทาสีจริงสองรอบ ผนังภายนอกยาแนวซิลิโคนกันน้ำที่ขอบล่างด้วย',show:['l5','l5t'],hl:['l5']},
   {cap:'เสร็จแล้ว ลองไปออกแบบโครงผนังจริงของคุณในหน้าออกแบบโครงได้เลย',show:['fin']}
+ ]},
+{t:'ติดโพลีคาร์บอเนตช่วงบน',d:'ร่องแนวตั้ง ปิดขอบ เจาะรูโต สกรูแหวนยาง ซิลิโคนไม่มีกรด',
+ stage:()=>SV(
+  R(40,26,320,10,'ex')+T(200,20,'ตงไม้ / รางบน')+R(40,262,320,8,'ex')+
+  E('frame','fade',[80,160,240,320].map(x=>R(x-3,36,6,226,'st')).join('')+R(60,36,280,5,'tr'))+
+  E('nog','growx',R(60,148,280,5,'ng')+T(370,154,'120','dt','start'))+
+  E('board','rise',R(60,153,280,109,'bd')+T(200,215,'สมาร์ทบอร์ด','lb'))+
+  E('sheet','drop',`<rect x="60" y="42" width="280" height="117" fill="#bfdbfe" stroke="var(--blue)" stroke-width="1.5" opacity=".9"/>`+Array.from({length:27},(_,i)=>`<line x1="${70+i*10}" y1="44" x2="${70+i*10}" y2="157" stroke="var(--blue)" stroke-width=".6" opacity=".6"/>`).join(''))+
+  E('flute','pop',T(200,100,'ร่องลูกฟูกแนวตั้ง ↕','big'))+
+  E('tapeT','growx',R(60,42,280,4,'ex')+`<rect x="60" y="42" width="280" height="4" fill="#9ca3af"/>`)+
+  E('tapeB','growx',`<rect x="60" y="155" width="280" height="4" fill="#facc15"/>`)+
+  E('tapeL','pop',T(372,48,'เทปอลูมิเนียม','lb','start')+T(372,170,'เทปมีรูระบาย','lb','start'))+
+  E('uv','pop',`<rect x="110" y="60" width="180" height="22" rx="4" fill="var(--card)" opacity=".9"/>`+T(200,76,'☀ ด้านกัน UV หันออกนอก','dt'))+
+  E('ovl','pop',`<circle cx="320" cy="156" r="16" fill="none" stroke="var(--acc)" stroke-width="2"/>`+T(250,186,'โพลีทับสมาร์ทบอร์ด 2–3 ซม.','dt'))+
+  E('holes','pop',[80,160,240,320].flatMap(x=>[52,100,148].map(y=>`<circle cx="${x}" cy="${y}" r="5" fill="none" stroke="var(--acc)" stroke-width="1.5"/>`)).join(''))+
+  E('zoom','pop',`<rect x="8" y="190" width="120" height="66" rx="6" fill="var(--card)" stroke="var(--line)"/><circle cx="40" cy="222" r="14" fill="none" stroke="var(--acc)" stroke-width="2"/><circle cx="40" cy="222" r="6" fill="var(--ink)"/><circle cx="40" cy="222" r="10" fill="none" stroke="#111" stroke-width="3" opacity=".6"/>`+T(92,214,'รูโต','lb')+T(92,230,'+2–3 มม.','dt')+T(92,246,'แหวนยาง','lb'))+
+  E('screws','pop',[80,160,240,320].flatMap(x=>[52,100,148].map(y=>`<circle cx="${x}" cy="${y}" r="3.2" fill="var(--ink)"/>`)).join(''))+
+  E('gap','pop',T(200,128,'ระยะสกรู ~30 ซม. · ห่างขอบ 4–5 ซม.','dt'))+
+  E('seal','fade',`<rect x="58" y="40" width="284" height="121" fill="none" stroke="#f97316" stroke-width="2.5" stroke-dasharray="6 3"/>`)+
+  E('warn','pop',`<rect x="80" y="196" width="240" height="40" rx="6" fill="#fee2e2"/>`+T(200,213,'⚠️ ใช้ซิลิโคนชนิดไม่มีกรดเท่านั้น','dt')+T(200,229,'ซิลิโคนกรดทำให้แผ่นขุ่นและร้าว','lb'))+
+  E('film','pop',`<path d="M340 42 l-40 0 l40 40 z" fill="#e5e7eb" stroke="var(--mute)"/>`+T(296,100,'ลอกฟิล์มทันที','lb'))
+ ),
+ sc:[
+  {cap:'ช่วงบนของผนังสูงประมาณ 60 ซม. ใช้โครงเสา C ชุดเดิม และมีคานนอนที่ความสูง 120 ซม. รับขอบล่าง',show:['frame','nog','board']},
+  {cap:'ตัดแผ่นโพลีคาร์บอเนตให้ร่องลูกฟูกเป็นแนวตั้ง ไอน้ำในร่องจะได้ไหลลง',show:['sheet','flute'],hl:['sheet']},
+  {cap:'ปิดขอบบนด้วยเทปอลูมิเนียม ขอบล่างใช้เทปกันฝุ่นแบบมีรูระบาย',show:['tapeT','tapeB','tapeL'],hide:['flute'],hl:['tapeT','tapeB']},
+  {cap:'หันด้านที่เคลือบกัน UV ออกนอก ดูตัวหนังสือบนฟิล์ม',show:['uv'],hide:['tapeL']},
+  {cap:'ด้านที่ฝนสาด ให้ขอบล่างของโพลีทับขอบบนสมาร์ทบอร์ด 2 ถึง 3 ซม. น้ำจะไหลออกนอก',show:['ovl'],hide:['uv'],hl:['ovl']},
+  {cap:'เจาะรูตรงเสา C ทุกต้น ให้รูโตกว่าสกรู 2 ถึง 3 มิลลิเมตร เพราะแผ่นยืดหดตามอากาศ',show:['holes','zoom'],hide:['ovl'],hl:['holes']},
+  {cap:'ยิงสกรูแบบมีแหวนยาง ระยะประมาณ 30 ซม. ขันพอแนบ ห้ามขันจนแผ่นยุบ',show:['screws','gap'],hide:['holes','zoom'],hl:['screws']},
+  {cap:'ยาแนวรอบขอบด้วยซิลิโคนชนิดไม่มีกรดเท่านั้น ซิลิโคนกรดจะทำให้แผ่นขุ่นและร้าว',show:['seal','warn'],hide:['gap'],hl:['seal']},
+  {cap:'ติดเสร็จแล้ว ลอกฟิล์มออกทันที ถ้าทิ้งไว้ตากแดด ฟิล์มจะติดแน่นจนลอกไม่ออก',show:['film'],hide:['warn'],hl:['film']}
  ]}
 ];
 

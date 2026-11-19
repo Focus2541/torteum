@@ -246,12 +246,12 @@ function renderPlan(rows){
 function preset(){
  const set=(id,v)=>{$(id).value=v};
  set('W',2.5);set('L',7.8);set('H',1.85);$('wF').checked=true;$('wB').checked=true;$('wLft').checked=true;$('wR').checked=false;set('sides','2');set('orient','auto');
- set('topT','poly');set('topH',0.6);set('topLen',0);set('polyW',1.22);set('polyL',1.22);set('pPoly',207);
+ set('topT','poly');set('topH',0.6);set('topLen',5.1);set('polyW',1.22);set('polyL',1.22);set('pPoly',207);
  set('pC',55);set('pU',55);set('pB',230);
  [['pAnc',3],['pScr',60],['pGlue',90],['pPrim',450],['pPaint',550],['pPolyAcc',30]].forEach(([k,v])=>{if(!num($(k).value))set(k,v)});
  doors=[{w:0.8,h:1.75,q:1,p:1990,f:720,hw:350}];
  wins=[];
- exts=[{n:'เครื่องมือ (คีมย้ำ กรรไกร ดอกสว่าน)',q:1,p:800,tier:1},{n:'ผนังกั้นใน 2.5 ม. (สมาร์ทบอร์ด 4 + เหล็ก 6 เส้น)',q:1,p:1250,tier:1},{n:'คันปูนกันน้ำ หัวห้อง 2 ด้าน (ฝนสาด)',q:1,p:600,tier:1},{n:'น้ำยากันปลวก',q:1,p:400,tier:1},{n:'งานไฟฟ้า (สาย ท่อ ปลั๊ก RCBO)',q:1,p:3000,tier:2},{n:'พื้น SPC 19.5 ตร.ม.',q:1,p:5850,tier:3}];
+ exts=[{n:'เครื่องมือ (คีมย้ำ กรรไกร ดอกสว่าน)',q:1,p:800,tier:1},{n:'ผนังกั้นใน 2.5 ม. (สมาร์ทบอร์ด 4 + เหล็ก 6 เส้น)',q:1,p:1250,tier:1},{n:'คันปูนกันน้ำ หัวห้อง 2 ด้าน (ฝนสาด)',q:1,p:600,tier:1},{n:'น้ำยากันปลวก',q:1,p:400,tier:1},{n:'ทุบผนังเดิมทำทางเข้าหลัก + คิ้วเก็บขอบช่อง',q:1,p:500,tier:1},{n:'งานไฟฟ้า (สาย ท่อ ปลั๊ก RCBO)',q:1,p:3000,tier:2},{n:'พื้น SPC 19.5 ตร.ม.',q:1,p:5850,tier:3}];
  render();calc();
  const ts=$('toast');ts.textContent='ใส่ข้อมูลแล้ว · ราคาที่ไม่ได้สำรวจเป็นตัวเลขประมาณ แก้ได้';ts.classList.add('show');setTimeout(()=>ts.classList.remove('show'),2600);
  $('plan').scrollIntoView({behavior:'smooth'});

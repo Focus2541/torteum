@@ -137,11 +137,11 @@ const setIds=['sp','nog','bar','gap','tab','anc','ancEnd','short','bw','bh','scr
 let walls=[{name:'ผนังหน้า',L:300,H:240,endL:'corner',endR:'corner',ops:[{type:'door',x:40,w:80,h:200,sill:0},{type:'win',x:165,w:90,h:110,sill:100}]}];
 let cur=0;
 const MYROOM=()=>[
- {name:'ยาว ช่วง 1',L:260,H:185,endL:'corner',endR:'existing',top:'poly',ops:[]},
- {name:'ยาว ช่วง 2',L:260,H:185,endL:'existing',endR:'existing',top:'vent',ops:[]},
- {name:'ยาว ช่วง 3',L:260,H:185,endL:'existing',endR:'corner',top:'poly',ops:[]},
- {name:'หัวห้อง 1 (ฝนสาด)',L:250,H:185,endL:'existing',endR:'corner',top:'poly',ops:[]},
- {name:'หัวห้อง 2 (ฝนสาด)',L:250,H:185,endL:'corner',endR:'existing',top:'poly',ops:[]},
+ {name:'ยาว ช่วง 1 (ติดด้านบน)',L:260,H:185,endL:'corner',endR:'existing',top:'poly',ops:[]},
+ {name:'ยาว ช่วง 2',L:260,H:185,endL:'existing',endR:'existing',top:'none',ops:[]},
+ {name:'ยาว ช่วง 3',L:260,H:185,endL:'existing',endR:'corner',top:'none',ops:[]},
+ {name:'หัวห้อง ด้านบน (ฝนสาด)',L:250,H:185,endL:'existing',endR:'corner',top:'poly',ops:[]},
+ {name:'หัวห้อง ด้านล่าง (ฝนสาด)',L:250,H:185,endL:'corner',endR:'existing',top:'none',ops:[]},
  {name:'ผนังกั้นใน + ประตู',L:250,H:185,endL:'existing',endR:'existing',top:'none',ops:[{type:'door',x:20,w:80,h:175,sill:0}]}];
 const n=v=>{const x=parseFloat(v);return isFinite(x)?x:0};
 const r1=v=>Math.round(v*10)/10;

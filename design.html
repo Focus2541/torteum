@@ -68,7 +68,7 @@ svg text{font-family:Sarabun,sans-serif}
 <main>
 
 <section class="card">
-<h2>ผนัง <button class="add" id="addWall">+ เพิ่มผนัง</button></h2>
+<h2>ผนัง <span><button class="add" id="myRoom" style="background:var(--bg);color:var(--ink);border-color:var(--line)">🏠 ห้องใต้ถุนของฉัน</button> <button class="add" id="addWall">+ เพิ่มผนัง</button></span></h2>
 <div class="tabs" id="tabs"></div>
 <div id="wallForm"></div>
 </section>
@@ -136,6 +136,13 @@ const OV=30; // ต่อเสาซ้อน
 const setIds=['sp','nog','bar','gap','tab','anc','ancEnd','short','bw','bh','scrE','scrF','orient','topH','polyW','polyL'];
 let walls=[{name:'ผนังหน้า',L:300,H:240,endL:'corner',endR:'corner',ops:[{type:'door',x:40,w:80,h:200,sill:0},{type:'win',x:165,w:90,h:110,sill:100}]}];
 let cur=0;
+const MYROOM=()=>[
+ {name:'ยาว ช่วง 1',L:260,H:185,endL:'corner',endR:'existing',top:'poly',ops:[]},
+ {name:'ยาว ช่วง 2',L:260,H:185,endL:'existing',endR:'existing',top:'vent',ops:[]},
+ {name:'ยาว ช่วง 3',L:260,H:185,endL:'existing',endR:'corner',top:'poly',ops:[]},
+ {name:'หัวห้อง 1 (ฝนสาด)',L:250,H:185,endL:'existing',endR:'corner',top:'poly',ops:[]},
+ {name:'หัวห้อง 2 (ฝนสาด)',L:250,H:185,endL:'corner',endR:'existing',top:'poly',ops:[]},
+ {name:'ผนังกั้นใน + ประตู',L:250,H:185,endL:'existing',endR:'existing',top:'none',ops:[{type:'door',x:20,w:80,h:175,sill:0}]}];
 const n=v=>{const x=parseFloat(v);return isFinite(x)?x:0};
 const r1=v=>Math.round(v*10)/10;
 const S=()=>{const o={};setIds.forEach(i=>o[i]=n($(i).value));o.orient=$('orient').value;if(o.bw<30)o.bw=120;if(o.bh<o.bw)o.bh=Math.max(o.bw,240);if(o.sp<20)o.sp=60;if(o.bar<100)o.bar=400;return o};
@@ -465,6 +472,7 @@ document.addEventListener('input',e=>{const t=e.target;const k=t.dataset.k;if(!k
 document.addEventListener('change',e=>{if(e.target.tagName==='SELECT'||e.target.id==='showBoard')update()});
 document.addEventListener('click',e=>{const t=e.target.closest('button,[data-tab]')||e.target;const w=walls[cur];
  if(t.dataset&&t.dataset.tab!=null){cur=+t.dataset.tab;update(true);return}
+ if(t.id==='myRoom'){walls=MYROOM();cur=0;$('polyW').value=122;$('polyL').value=122;$('orient').value='auto';$('sp').value=60;update(true);return}
  if(t.id==='addWall'){walls.push({name:'ผนัง '+(walls.length+1),L:300,H:walls[0]?walls[0].H:240,endL:'corner',endR:'corner',ops:[]});cur=walls.length-1;update(true);return}
  if(t.id==='delWall'){walls.splice(cur,1);cur=Math.max(0,cur-1);update(true);return}
  if(t.dataset&&t.dataset.delop!=null){w.ops.splice(+t.dataset.delop,1);update(true);return}

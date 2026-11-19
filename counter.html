@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#c2410c">
+<title>ออกแบบเคาน์เตอร์ผนังเบา</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f6f4ef;--card:#fff;--ink:#1f2328;--mute:#6b6f76;--line:#e3e0d8;--acc:#c2410c;--acc2:#fff3ea;--steel:#475569;--blue:#2563eb;--hdr:#0f766e;--warn:#fef3c7;--warnI:#92400e;--top:#b7895a;--bd:#e7e2d6}
+@media (prefers-color-scheme:dark){:root{--bg:#16181b;--card:#202327;--ink:#eceae5;--mute:#9a9ea5;--line:#33373d;--acc:#fb923c;--acc2:#2c2219;--steel:#94a3b8;--blue:#60a5fa;--hdr:#2dd4bf;--warn:#3a2f12;--warnI:#fcd34d;--top:#a87b4f;--bd:#3a3730}}
+*{box-sizing:border-box}
+body{margin:0;font-family:Sarabun,system-ui,sans-serif;background:var(--bg);color:var(--ink);font-size:16px;line-height:1.5}
+.top{max-width:820px;margin:auto;padding:10px 16px 0;font-size:14px}.top a{color:var(--acc);text-decoration:none}
+header{max-width:820px;margin:auto;padding:6px 16px 4px}
+h1{font-size:22px;margin:0}header p{margin:4px 0 0;color:var(--mute);font-size:14px}
+main{max-width:820px;margin:auto;padding:4px 12px 110px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin:12px 0}
+.card h2{font-size:17px;margin:0 0 10px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+label{display:block;font-size:13px;color:var(--mute)}
+input,select{width:100%;font:inherit;font-size:16px;padding:8px 9px;border:1px solid var(--line);border-radius:9px;background:var(--bg);color:var(--ink);margin-top:3px}
+input:focus,select:focus{outline:2px solid var(--acc);border-color:transparent}
+.shapes{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px}
+.shapes button{font:inherit;font-size:13px;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:10px;padding:8px 4px;cursor:pointer}
+.shapes button.on{border-color:var(--acc);background:var(--acc2);color:var(--acc);font-weight:700}
+.shapes svg{display:block;margin:0 auto 4px;width:44px;height:30px}
+.sw{display:flex;align-items:center;gap:8px;font-size:14px;margin:8px 0 0;color:var(--ink)}.sw input{width:20px;height:20px;margin:0}
+.draw{background:var(--bg);border-radius:12px;padding:6px;overflow-x:auto;cursor:zoom-in;margin-bottom:8px}
+.draw svg{width:100%;height:auto;display:block}.draw.zoom{cursor:zoom-out}.draw.zoom svg{width:1100px;max-width:none}
+.cap{font-size:13px;color:var(--mute);margin:2px 2px 10px}
+.msg{padding:8px 12px;border-radius:8px;margin:6px 0;font-size:14.5px}.msg.w{background:var(--warn);color:var(--warnI)}.msg.ok{background:var(--acc2)}
+table{width:100%;border-collapse:collapse;font-size:14.5px}
+th,td{border-bottom:1px solid var(--line);padding:6px 4px;text-align:left;vertical-align:top}th{color:var(--mute);font-weight:600}
+td.n{text-align:right;white-space:nowrap}
+td input{padding:5px 6px;font-size:15px;margin:0;width:90px;text-align:right}
+ol.steps{padding-left:22px;margin:4px 0}ol.steps li{margin:6px 0}
+.pos{font-family:ui-monospace,monospace;font-size:13px;background:var(--bg);padding:1px 5px;border-radius:5px}
+.note{font-size:13px;color:var(--mute)}
+details summary{cursor:pointer;font-weight:600}
+.total{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);padding:10px 16px calc(10px + env(safe-area-inset-bottom))}
+.total .in{max-width:820px;margin:auto;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.total b{font-size:23px;color:var(--acc)}.total small{color:var(--mute);display:block;font-size:12px}
+.btn{font:inherit;background:var(--acc);color:#fff;border:none;border-radius:10px;padding:10px 14px;cursor:pointer}
+svg text{font-family:Sarabun,sans-serif}
+</style>
+</head>
+<body>
+<div class="top"><a href="./">← หน้าหลัก</a></div>
+<header><h1>ออกแบบเคาน์เตอร์ผนังเบา</h1><p>เคาน์เตอร์โครงเหล็ก C/U บุแผ่น มีท็อปด้านบน · ใส่ขนาดเป็น ซม. ระบบวางโครง จุดพุก ขาฉาก และคิดราคาให้</p></header>
+<main>
+
+<section class="card">
+<h2>1. รูปทรงและขนาด</h2>
+<div class="shapes" id="shapes">
+ <button data-s="I"><svg viewBox="0 0 44 30"><rect x="4" y="18" width="36" height="6" fill="currentColor"/><rect x="2" y="4" width="40" height="4" fill="currentColor" opacity=".3"/></svg>ตรง (แผงเดียว)</button>
+ <button data-s="L"><svg viewBox="0 0 44 30"><rect x="4" y="18" width="36" height="6" fill="currentColor"/><rect x="4" y="6" width="6" height="18" fill="currentColor"/><rect x="2" y="2" width="40" height="3" fill="currentColor" opacity=".3"/></svg>ตัว L (ข้างซ้าย)</button>
+ <button data-s="R"><svg viewBox="0 0 44 30"><rect x="4" y="18" width="36" height="6" fill="currentColor"/><rect x="34" y="6" width="6" height="18" fill="currentColor"/><rect x="2" y="2" width="40" height="3" fill="currentColor" opacity=".3"/></svg>ตัว L (ข้างขวา)</button>
+ <button data-s="U"><svg viewBox="0 0 44 30"><rect x="4" y="18" width="36" height="6" fill="currentColor"/><rect x="4" y="6" width="6" height="18" fill="currentColor"/><rect x="34" y="6" width="6" height="18" fill="currentColor"/><rect x="2" y="2" width="40" height="3" fill="currentColor" opacity=".3"/></svg>ตัว U (กล่อง)</button>
+</div>
+<div class="grid">
+ <div><label>ยาวด้านหน้า (ซม.)</label><input type="number" id="L" value="150"></div>
+ <div><label>สูงถึงใต้ท็อป (ซม.)</label><input type="number" id="H" value="100"></div>
+ <div id="dBox"><label>ลึก (จากหน้าเคาน์เตอร์ถึงผนังหลัง) (ซม.)</label><input type="number" id="D" value="40"></div>
+ <div id="eLBox"><label>ปลายซ้ายด้านหน้า</label><select id="eL"><option value="wall">ชนผนังเดิม</option><option value="free">ลอยอิสระ</option></select></div>
+ <div id="eRBox"><label>ปลายขวาด้านหน้า</label><select id="eR"><option value="free">ลอยอิสระ</option><option value="wall">ชนผนังเดิม</option></select></div>
+</div>
+<label class="sw" id="backBox"><input type="checkbox" id="backWall" checked>ด้านข้างวิ่งไปชนผนังด้านหลัง (ยึดพุกกับผนัง)</label>
+<label class="sw"><input type="checkbox" id="inside" checked>บุแผ่นด้านใน (ฝั่งพนักงาน)</label>
+</section>
+
+<section class="card">
+<h2>2. ท็อปเคาน์เตอร์</h2>
+<div class="grid">
+ <div><label>ยื่นด้านหน้า (ซม.)</label><input type="number" id="oF" value="10"></div>
+ <div><label>ยื่นด้านใน (ซม.)</label><input type="number" id="oB" value="25"></div>
+ <div><label>ยื่นเลยปลายข้าง (ซม.)</label><input type="number" id="oS" value="3"></div>
+ <div><label>ท็อป 1 แผ่น กว้าง (ซม.)</label><input type="number" id="pw" value="30"></div>
+ <div><label>ท็อป 1 แผ่น ยาว (ซม.)</label><input type="number" id="pl" value="300"></div>
+ <div><label>คิ้วครอบขอบ 1 เส้นยาว (ซม.)</label><input type="number" id="trL" value="300"></div>
+</div>
+<p class="note">ท็อปยื่นเกิน 20 ซม. ระบบจะใส่ขาฉากรองให้ทุก ~50 ซม. · ท็อปแบบ WPC/ไม้เทียม/ไม้จริง/แผ่นลามิเนต ใส่ขนาดแผ่นที่ซื้อได้เลย</p>
+</section>
+
+<section class="card">
+<h2>แบบเคาน์เตอร์</h2>
+<div class="draw" id="plan"></div><div class="cap">มองจากด้านบน: สีน้ำตาล = ท็อป · เส้นเทา = แนวผนังเบา · สีส้ม = เสาคู่ที่มุม/ปลายลอย</div>
+<div id="elev"></div>
+<div id="checks"></div>
+</section>
+
+<section class="card"><h2>ขั้นตอนทำ</h2><ol class="steps" id="steps"></ol></section>
+
+<section class="card"><h2>วัสดุและราคา (กรอกราคาเอง)</h2><div id="bom"></div>
+<details style="margin-top:10px"><summary>ดูรายการตัดเหล็กทีละชิ้น</summary><div id="cut"></div></details></section>
+
+<section class="card"><details><summary>ตั้งค่า (ไม่ต้องแก้ก็ได้)</summary>
+<div class="grid" style="margin-top:10px">
+ <div><label>ระยะเสา (ซม.) เคาน์เตอร์ใช้ 40</label><input type="number" id="sp" value="40"></div>
+ <div><label>เหล็ก 1 เส้นยาว (ซม.)</label><input type="number" id="bar" value="400"></div>
+ <div><label>แผ่นผนัง ด้านสั้น (ซม.)</label><input type="number" id="bw" value="120"></div>
+ <div><label>แผ่นผนัง ด้านยาว (ซม.)</label><input type="number" id="bh" value="240"></div>
+ <div><label>พุกยึดพื้น ห่างไม่เกิน (ซม.)</label><input type="number" id="anc" value="50"></div>
+ <div><label>ระยะขาฉาก (ซม.)</label><input type="number" id="brS" value="50"></div>
+ <div><label>สีทาได้ (ตร.ม./แกลลอน 2 รอบ)</label><input type="number" id="pcov" value="15"></div>
+</div></details></section>
+</main>
+<div class="total"><div class="in"><div><small>รวมทั้งหมดประมาณ</small><b id="grand">0 บาท</b><small id="sub"></small></div><button class="btn" id="copy">คัดลอกสรุป</button></div></div>
+<script>
+const $=id=>document.getElementById(id);
+const KEY='torteum_counter_v1',T=4,FT=7;
+const ids=['L','H','D','eL','eR','oF','oB','oS','pw','pl','trL','sp','bar','bw','bh','anc','brS','pcov'];
+const chk=['backWall','inside'];
+let shape='L';
+const PRICE_KEYS=[['C','ตัว C (บาท/เส้น)'],['U','ตัว U (บาท/เส้น)'],['B','แผ่นผนัง (บาท/แผ่น)'],['TOP','ท็อป (บาท/แผ่น)'],['TR','คิ้วครอบขอบ (บาท/เส้น)'],['BR','ขาฉาก (บาท/ตัว)'],['ANC','พุก+สกรู (บาท/ชุด)'],['SCR','สกรูแผ่น (บาท/100 ตัว)'],['JNT','ยาแนว/โป๊ (บาท/หลอด)'],['PNT','สี (บาท/แกลลอน)'],['ETC','อื่น ๆ เช่น ปลั๊ก ลามิเนต (บาท)']];
+let price={};
+const n=v=>{const x=parseFloat(v);return isFinite(x)?x:0},r1=v=>Math.round(v*10)/10,fmt=v=>Math.round(v).toLocaleString('th-TH');
+const list=a=>a.map(x=>`<span class="pos">${x}</span>`).join(' ');
+function save(){try{const o={shape,price};ids.forEach(i=>o[i]=$(i).value);chk.forEach(i=>o[i]=$(i).checked);localStorage.setItem(KEY,JSON.stringify(o))}catch(e){}}
+function load(){try{const o=JSON.parse(localStorage.getItem(KEY));if(!o)return;shape=o.shape||shape;price=o.price||{};ids.forEach(i=>{if(o[i]!=null)$(i).value=o[i]});chk.forEach(i=>{if(o[i]!=null)$(i).checked=o[i]})}catch(e){}}
+
+/* ---------- แผงผนัง ---------- */
+function panels(v){
+ const P=[],ret=Math.max(10,v.D-FT),hasL=shape==='L'||shape==='U',hasR=shape==='R'||shape==='U';
+ const back=v.backWall?'wall':'free';
+ if(hasL)P.push({name:'ข้างซ้าย',len:ret,endL:back,endR:'cornerB'});
+ P.push({name:'ด้านหน้า',len:v.L,endL:hasL?'corner':v.eL,endR:hasR?'corner':v.eR});
+ if(hasR)P.push({name:'ข้างขวา',len:ret,endL:'cornerB',endR:back});
+ return P;
+}
+function layout(L,H,v,o){const colW=o==='h'?v.bh:v.bw,rowH=o==='h'?v.bw:v.bh;const rows=[];let b=0;
+ for(let k=0;k*rowH<H-3;k++){const y0=k*rowH,y1=Math.min(H,(k+1)*rowH),hr=y1-y0;const off=(o==='h'&&k%2)?Math.round(colW/2/v.sp)*v.sp:0;
+  const jx=[];for(let x=off||colW;x<L-5;x+=colW)if(x>5)jx.push(x);rows.push({y0,y1,joints:jx});b+=(L/colW)/Math.max(1,Math.floor(rowH/hr+0.001))}
+ return{o,rows,hJ:rows.slice(1).map(r=>r.y0),raw:b}}
+function panelDesign(p,v){
+ const L=p.len,H=v.H,R={p,L,H,vert:[],nogs:[],anc:[],wanc:[]};
+ const dbl=e=>e==='free'||e==='corner';
+ const add=(x,kind)=>R.vert.push({x:r1(x),kind,len:r1(H-1)});
+ add(T/2,dbl(p.endL)?'dbl':'end');if(dbl(p.endL))add(T*1.5,'dbl');
+ add(L-T/2,dbl(p.endR)?'dbl':'end');if(dbl(p.endR))add(L-T*1.5,'dbl');
+ const zl=dbl(p.endL)?2*T+8:T+8,zr=dbl(p.endR)?2*T+8:T+8;
+ for(let k=1;k*v.sp<L;k++){const x=k*v.sp;if(x>zl&&x<L-zr)add(x,'stud')}
+ R.vert.sort((a,b)=>a.x-b.x);
+ const lv=layout(L,H,v,'v'),lh=layout(L,H,v,'h');R.lay=lh.raw<lv.raw-0.01?lh:lv;
+ const rows=[...R.lay.hJ];const mid=Math.round(H/2);if(H>=70&&!rows.some(y=>Math.abs(y-mid)<20))rows.push(mid);
+ rows.forEach(y=>{const g=[];R.vert.map(q=>q.x).forEach(x=>{const l=g[g.length-1];if(l&&x-l[1]<=T+1)l[1]=x;else g.push([x,x])});
+  for(let i=0;i+1<g.length;i++){const a=g[i][1]+T/2,b=g[i+1][0]-T/2;if(b-a>5)R.nogs.push({x0:a,x1:b,y,len:r1(b-a)})}});
+ const nn=Math.max(1,Math.ceil((L-20)/v.anc));for(let k=0;k<=nn;k++)R.anc.push(r1(10+k*(L-20)/nn));
+ [['endL',T/2],['endR',L-T/2]].forEach(([k,x])=>{if(p[k]==='wall'){const m=Math.max(1,Math.ceil((H-30)/60));for(let j=0;j<=m;j++)R.wanc.push({x,y:r1(15+j*(H-30)/m)})}});
+ R.pieces=[...R.vert.map(q=>({t:'C',len:q.len,what:q.kind==='stud'?'เสา C':q.kind==='dbl'?'เสาคู่ (มุม/ปลายลอย)':'เสาปลายชนผนัง'})),...R.nogs.map(g=>({t:'C',len:g.len,what:'คานนอน'})),{t:'U',len:r1(L),what:'ราง U ล่าง'},{t:'U',len:r1(L),what:'ราง U บน (รับท็อป)'}];
+ return R;
+}
+function splitLong(p,bar){if(p.len<=bar)return[p];if(p.t==='C'){const k=Math.ceil((p.len-30)/(bar-30));return Array.from({length:k},()=>({...p,len:r1((p.len+30*(k-1))/k)}))}const k=Math.ceil(p.len/bar);return Array.from({length:k},()=>({...p,len:r1(p.len/k)}))}
+function pack(ps,bar){ps=ps.flatMap(p=>splitLong(p,bar)).sort((a,b)=>b.len-a.len);const bars=[];ps.forEach(p=>{let b=bars.find(b=>b.left>=p.len);if(!b){b={left:bar,items:[]};bars.push(b)}b.items.push(p);b.left=r1(b.left-p.len)});return bars}
+
+/* ---------- วาด ---------- */
+function planSVG(v,P,top){
+ const hasL=shape==='L'||shape==='U',hasR=shape==='R'||shape==='U';
+ const W=v.L,Dd=v.D>0&&shape!=='I'?v.D:FT;
+ const isI=shape==='I',ty0=(!isI&&v.backWall)?0:-v.oB;const m=40,mt=40+Math.max(0,-ty0),sx=x=>m+top.leftO+x,sy=y=>mt+y; // y=0 ผนังหลัง, y=Dd หน้าเคาน์เตอร์
+ const VW=W+top.leftO+top.rightO+2*m,VH=mt+Dd+v.oF+m+30;
+ const fs=Math.max(9,VW/42);
+ let g=`<svg viewBox="0 0 ${r1(VW)} ${r1(VH+fs*3)}" font-size="${r1(fs)}">`;
+ const wallBack=(v.backWall&&shape!=='I')||shape==='I';
+ if(wallBack)g+=`<rect x="0" y="${sy(-12)}" width="${VW}" height="12" fill="var(--line)"/><text x="${VW/2}" y="${sy(-16)}" text-anchor="middle" fill="var(--mute)" font-size="${r1(fs*.8)}">ผนังด้านหลัง (มีหน้าต่าง)</text>`;
+ if(shape==='I'||!hasL){if(v.eL==='wall'&&shape!=='L'&&shape!=='U')g+=`<rect x="${sx(-12)-top.leftO}" y="0" width="12" height="${sy(Dd+v.oF+20)}" fill="var(--line)"/>`}
+ if(!hasR&&v.eR==='wall')g+=`<rect x="${sx(W)+top.rightO}" y="0" width="12" height="${sy(Dd+v.oF+20)}" fill="var(--line)"/>`;
+ // ท็อป
+ const ty1=Dd+v.oF;
+ g+=`<rect x="${sx(-top.leftO)}" y="${sy(ty0)}" width="${top.len}" height="${ty1-ty0}" fill="var(--top)" opacity=".55" stroke="var(--top)"/>`;
+ // ผนังเบา
+ g+=`<rect x="${sx(0)}" y="${sy(Dd-FT)}" width="${W}" height="${FT}" fill="var(--steel)"/>`;
+ if(hasL)g+=`<rect x="${sx(0)}" y="${sy(0)}" width="${FT}" height="${Dd-FT}" fill="var(--steel)"/>`;
+ if(hasR)g+=`<rect x="${sx(W-FT)}" y="${sy(0)}" width="${FT}" height="${Dd-FT}" fill="var(--steel)"/>`;
+ // มุม/ปลายลอย
+ const dot=(x,y)=>`<rect x="${sx(x)-4}" y="${sy(y)-4}" width="8" height="8" fill="var(--acc)"/>`;
+ if(hasL)g+=dot(FT/2,Dd-FT/2);else if(v.eL==='free')g+=dot(FT/2,Dd-FT/2);
+ if(hasR)g+=dot(W-FT/2,Dd-FT/2);else if(v.eR==='free')g+=dot(W-FT/2,Dd-FT/2);
+ if(hasL&&!v.backWall)g+=dot(FT/2,FT/2);if(hasR&&!v.backWall)g+=dot(W-FT/2,FT/2);
+ // มิติ
+ const yd=sy(ty1)+fs*1.6;
+ g+=`<line x1="${sx(-top.leftO)}" y1="${yd}" x2="${sx(W+top.rightO)}" y2="${yd}" stroke="var(--acc)"/><text x="${sx(W/2)}" y="${yd+fs*1.2}" text-anchor="middle" fill="var(--acc)" font-weight="700">ท็อปยาว ${r1(top.len)} × ลึก ${r1(top.depth)} ซม.</text>`;
+ g+=`<text x="${sx(W/2)}" y="${sy(Dd-FT)-fs*.4}" text-anchor="middle" fill="var(--ink)" font-size="${r1(fs*.85)}">ด้านใน (พนักงาน)</text>`;
+ g+=`<text x="${sx(W/2)}" y="${sy(ty1)+fs*.1}" dy="-${fs*.2}" text-anchor="middle" fill="var(--ink)" font-size="${r1(fs*.85)}"> </text>`;
+ g+=`<text x="${sx(W/2)}" y="${yd+fs*2.6}" text-anchor="middle" fill="var(--mute)" font-size="${r1(fs*.85)}">↓ ด้านหน้า (ลูกค้า)</text>`;
+ return g+'</svg>';
+}
+function elevSVG(R,v,top,isFront){
+ const {L,H}=R;const fs=Math.max(6,Math.max(L,H)/30);let ml=fs*3,mr=fs*2;const mt=fs*3.2,mb=fs*5;
+ const lo=isFront?top.leftO:0,ro=isFront?top.rightO:0;
+ const Wn=L+lo+ro+ml+mr,Wm=Math.max(Wn,H*1.6,fs*16);ml+=(Wm-Wn)/2;const W=Wm,Ht=H+mt+mb;const X=x=>ml+lo+x,Y=y=>mt+H-y;
+ let g=`<svg viewBox="0 0 ${r1(W)} ${r1(Ht)}" font-size="${r1(fs)}">`;
+ g+=`<rect x="${X(0)}" y="${Y(H)}" width="${L}" height="${H}" fill="var(--card)"/>`;
+ R.nogs.forEach(q=>g+=`<rect x="${X(q.x0)}" y="${Y(q.y)-1}" width="${q.x1-q.x0}" height="2" fill="#94a3b8"/>`);
+ R.vert.forEach(q=>g+=`<rect x="${X(q.x-T/2)}" y="${Y(H)}" width="${T}" height="${H}" fill="${q.kind==='dbl'?'var(--acc)':'var(--steel)'}"/>`);
+ g+=`<rect x="${X(0)}" y="${Y(H)}" width="${L}" height="${T}" fill="var(--hdr)"/><rect x="${X(0)}" y="${Y(T)}" width="${L}" height="${T}" fill="var(--hdr)"/>`;
+ // ท็อป
+ g+=`<rect x="${X(-lo)}" y="${Y(H)-4}" width="${L+lo+ro}" height="4" fill="var(--top)"/>`;
+ if(isFront&&top.br>0)top.brX.forEach(x=>g+=`<path d="M${X(x)} ${Y(H)} l0 ${fs*1.6} l${fs*.9} -${fs*1.6}z" fill="var(--blue)" opacity=".8"/>`);
+ R.anc.forEach(x=>g+=`<circle cx="${X(x)}" cy="${Y(T/2)}" r="${fs/3.4}" fill="var(--blue)"/>`);
+ R.wanc.forEach(a=>g+=`<circle cx="${X(a.x)}" cy="${Y(a.y)}" r="${fs/3.4}" fill="var(--blue)"/>`);
+ g+=`<line x1="${X(-fs)}" y1="${Y(0)}" x2="${X(L+fs)}" y2="${Y(0)}" stroke="var(--mute)" stroke-width="${fs/6}"/>`;
+ [...new Set(R.vert.map(q=>q.x))].forEach(x=>g+=`<text transform="translate(${X(x)+fs*.3},${Y(0)+fs*.6}) rotate(90)" font-size="${r1(fs*.75)}" fill="var(--ink)">${x}</text>`);
+ g+=`<text x="${X(L/2)}" y="${Y(0)+fs*4.4}" text-anchor="middle" fill="var(--acc)" font-weight="700">${R.p.name} ยาว ${r1(L)} · สูง ${H} ซม.</text>`;
+ const ny=[...new Set(R.nogs.map(q=>q.y))];ny.forEach(y=>g+=`<text x="${X(0)-fs*.3}" y="${Y(y)+fs*.3}" text-anchor="end" font-size="${r1(fs*.7)}" fill="var(--mute)">${y}</text>`);
+ return g+'</svg>';
+}
+
+/* ---------- คำนวณทั้งหมด ---------- */
+let summary='',ITEMS=[],SUMHEAD='';
+function totals(){let t=0;ITEMS.forEach(([k,name,q])=>{const c=n(price[k])*q;t+=c;const el=$('c-'+k);if(el)el.textContent=fmt(c)});
+ $('bomTotal')&&($('bomTotal').textContent=fmt(t));$('grand').textContent=fmt(t)+' บาท';
+ summary=SUMHEAD+ITEMS.filter(x=>x[2]).map(([k,name,q,u])=>`- ${name}: ${q} ${u}${n(price[k])?` = ${fmt(n(price[k])*q)} บาท`:''}`).join('\n')+`\nรวม ${fmt(t)} บาท`;save()}
+function calc(){
+ const v={};ids.forEach(i=>v[i]=$(i).tagName==='SELECT'?$(i).value:n($(i).value));chk.forEach(i=>v[i]=$(i).checked);
+ if(v.sp<20)v.sp=40;if(v.bar<100)v.bar=400;if(v.bw<30)v.bw=120;if(v.bh<v.bw)v.bh=240;if(v.anc<20)v.anc=50;
+ const hasL=shape==='L'||shape==='U',hasR=shape==='R'||shape==='U',isI=shape==='I';
+ $('dBox').style.display=isI?'none':'';$('backBox').style.display=isI?'none':'';
+ $('eLBox').style.display=hasL?'none':'';$('eRBox').style.display=hasR?'none':'';
+ document.querySelectorAll('#shapes button').forEach(b=>b.classList.toggle('on',b.dataset.s===shape));
+ const msgs=[];
+ if(v.L<30||v.H<40){$('plan').innerHTML='';$('elev').innerHTML='';$('checks').innerHTML='<div class="msg w">ใส่ความยาวและความสูงก่อน</div>';return}
+ const P=panels(v),Rs=P.map(p=>panelDesign(p,v));
+ // ท็อป
+ const leftO=hasL?v.oS:(v.eL==='wall'?0:v.oS),rightO=hasR?v.oS:(v.eR==='wall'?0:v.oS);
+ const backO=(!isI&&v.backWall)?0:v.oB;
+ const depth=isI?FT+v.oF+v.oB:Math.max(v.D,FT)+v.oF+(v.backWall?0:v.oB);
+ const len=v.L+leftO+rightO;
+ const top={leftO,rightO,backO,len,depth};
+ top.rows=Math.ceil(depth/Math.max(5,v.pw));top.per=Math.ceil(len/Math.max(10,v.pl));top.sheets=top.rows*top.per;
+ const needF=v.oF>20,needB=(isI||!v.backWall)&&v.oB>20;
+ const nb=Math.max(2,Math.ceil(len/Math.max(20,v.brS))+1);
+ top.brX=Array.from({length:nb},(_,k)=>r1(-leftO+8+k*(len-16)/(nb-1)));
+ top.br=(needF?nb:0)+(needB?nb:0);
+ const trimM=len+(leftO>0||hasL?depth:0)+(rightO>0||hasR?depth:0)+(backO>0?len:0);
+ top.trim=Math.ceil(trimM/Math.max(50,v.trL));
+ if(needF||needB)msgs.push(['ok',`🔩 ท็อปยื่น${needF?`ด้านหน้า ${v.oF}`:''}${needF&&needB?' และ':''}${needB?`ด้านใน ${v.oB}`:''} ซม. เกิน 20 ซม. ใส่ขาฉากรองใต้ท็อป ${top.br} ตัว ห่างกันประมาณ ${r1((len-16)/(nb-1))} ซม. · ขาฉากควรยาวอย่างน้อย 2/3 ของระยะยื่น`]);
+ if(v.oF>40||v.oB>45)msgs.push(['w','ท็อปยื่นมากกว่า 40 ซม. ควรใช้ขาฉากเหล็กแบบมีค้ำเฉียง หรือทำขาตั้งรองรับเพิ่ม']);
+ if(v.H>120)msgs.push(['w','เคาน์เตอร์สูงเกิน 120 ซม. ทั่วไปสูง 100–110 ซม. สำหรับยืน หรือ 75 ซม. สำหรับนั่ง']);
+ if(!isI&&v.D<20)msgs.push(['w','ความลึกน้อยกว่า 20 ซม. ด้านข้างจะสั้นมาก อาจใช้แบบตรง (แผงเดียว) แทน']);
+ if(isI&&v.eL==='free'&&v.eR==='free')msgs.push(['w','แบบตรงที่ปลายลอยทั้งสองข้างจะโยกง่าย ควรให้อย่างน้อยหนึ่งข้างชนผนัง หรือเปลี่ยนเป็นตัว L/U']);
+ // แผ่นผนัง
+ const sides=v.inside?2:1;
+ const boardRaw=Rs.reduce((a,R)=>a+R.lay.raw*sides,0);
+ const boards=Math.ceil(boardRaw*1.1);
+ const area=Rs.reduce((a,R)=>a+R.L*R.H/10000,0)*sides;
+ // เหล็ก
+ const pcs=Rs.flatMap(R=>R.pieces);
+ const cBars=pack(pcs.filter(p=>p.t==='C'),v.bar),uBars=pack(pcs.filter(p=>p.t==='U'),v.bar);
+ const anc=Rs.reduce((a,R)=>a+R.anc.length+R.wanc.length,0);
+ const scr=Math.ceil(area*20/100);
+ const joint=Math.max(1,Math.ceil(area/5));
+ const paint=Math.max(1,Math.ceil(area/Math.max(5,v.pcov)));
+ msgs.push(['ok',`📐 แผ่นผนัง ${boards} แผ่น · ท็อป ${top.sheets} แผ่น (${top.rows} แถว × ${top.per} แผ่น) · เหล็ก C ${cBars.length} เส้น · U ${uBars.length} เส้น`]);
+ // วาด
+ $('plan').innerHTML=planSVG(v,P,top);
+ $('elev').innerHTML=Rs.map((R,i)=>`<div class="draw">${elevSVG(R,v,top,P[i].name==='ด้านหน้า')}</div>`).join('')+'<div class="cap">ด้านหน้าตรง ๆ ของแต่ละแผง: ตัวเลขใต้แบบ = ระยะจากปลายซ้ายถึงกึ่งกลางเสา · จุดน้ำเงิน = พุก · สามเหลี่ยมน้ำเงิน = ขาฉาก · แถบน้ำตาลบน = ท็อป</div>';
+ $('checks').innerHTML=msgs.map(m=>`<div class="msg ${m[0]}">${m[1]}</div>`).join('');
+ // ขั้นตอน
+ const st=[];
+ st.push(`<b>ตีเส้น</b> แนวเคาน์เตอร์บนพื้น ${isI?`ยาว ${v.L} ซม.`:`เป็นรูป${shape==='U'?'ตัว U':'ตัว L'} ด้านหน้ายาว ${v.L} ลึก ${v.D} ซม.`} ใช้ฉากเช็กมุม 90°`);
+ Rs.forEach(R=>{st.push(`<b>${R.p.name}</b> (ยาว ${r1(R.L)} ซม.)<br>• ราง U ล่าง ยึดพุกที่: ${list(R.anc)}<br>• ตั้งเสา C ยาว ${r1(v.H-1)} ซม. ที่: ${list([...new Set(R.vert.map(q=>q.x))])}${R.vert.some(q=>q.kind==='dbl')?' <i>(สีส้มในแบบ = เสาคู่ ประกบ 2 ต้น)</i>':''}${R.wanc.length?`<br>• ปลายที่ชนผนัง ยึดพุกกับผนังที่ความสูง: ${list([...new Set(R.wanc.map(a=>a.y))])}`:''}${R.nogs.length?`<br>• คานนอนที่ความสูง: ${list([...new Set(R.nogs.map(q=>q.y))])}`:''}<br>• ราง U บน ยาว ${r1(R.L)} ซม. สวมหัวเสา ย้ำทุกเสา (ตัวนี้คือคานรับท็อป)`)});
+ if(!isI)st.push(`<b>ต่อมุม</b> เสาคู่ของด้านหน้ากับเสาปลายของด้านข้าง ยึดเข้าหากันด้วยสกรูทุก 30 ซม. · ราง U บนของทุกแผงยึดถึงกันที่มุม`);
+ st.push(`<b>เช็กดิ่งและระดับ</b> ด้านบนต้องได้ระดับทั้งแนว เพราะท็อปจะวางบนราง U บน`);
+ st.push(`<b>เดินท่อสายไฟ</b> ถ้ามีปลั๊กสำหรับคอมพิวเตอร์ ติดบล็อกปลั๊กด้านในที่สูง ~30 ซม. หรือใต้ท็อป`);
+ st.push(`<b>ติดแผ่นผนัง</b> ด้านนอก${v.inside?'และด้านใน':''} สกรูทุก 20–30 ซม. ยกแผ่นห่างพื้น 0.5 ซม. · ${Rs[0].lay.o==='h'?'วางแผ่นแนวนอน':'วางแผ่นแนวตั้ง'} (ใช้แผ่นน้อยกว่า)`);
+ if(top.br)st.push(`<b>ติดขาฉาก</b> ${top.br} ตัว ใต้ท็อป ยึดสกรูเข้าเสา C หรือราง (ตำแหน่งตามสามเหลี่ยมในแบบ)`);
+ st.push(`<b>ติดท็อป</b> ยาว ${r1(len)} × ลึก ${r1(depth)} ซม. (ยื่นหน้า ${v.oF}${backO?` · ยื่นใน ${backO}`:''}${leftO?` · เลยซ้าย ${leftO}`:''}${rightO?` · เลยขวา ${rightO}`:''} ซม.) · ใช้ ${top.rows} แถว แถวละ ${top.per} แผ่น · ยิงสกรูจากใต้ราง U บนขึ้นไปยึดท็อปทุก 30 ซม. หัวสกรูจะไม่โผล่ด้านบน`);
+ st.push(`<b>ปิดขอบท็อป</b> ด้วยคิ้วครอบ ยาวรวม ~${r1(trimM/100)} ม. (${top.trim} เส้น) ยาแนวกาว/ซิลิโคนใต้คิ้ว`);
+ st.push(`<b>เก็บงาน</b> โป๊หัวสกรูและรอยต่อ ทาสี หรือปิดผิวด้วยแผ่น WPC/ลามิเนตให้เข้าชุดกับผนังข้าง ๆ`);
+ $('steps').innerHTML=st.map(x=>`<li>${x}</li>`).join('');
+ // BOM
+ const items=[['C',`ตัว C (เสา+คานนอน) ยาว ${v.bar/100} ม.`,cBars.length,'เส้น'],['U',`ตัว U (ราง) ยาว ${v.bar/100} ม.`,uBars.length,'เส้น'],['B',`แผ่นผนัง ${v.bw}×${v.bh} (เผื่อ 10%)`,boards,'แผ่น'],['TOP',`ท็อป ${v.pw}×${v.pl}`,top.sheets,'แผ่น'],['TR',`คิ้วครอบขอบ ${v.trL/100} ม.`,top.trim,'เส้น'],['BR','ขาฉากรองท็อป',top.br,'ตัว'],['ANC','พุก+สกรูยึดพื้น/ผนัง',anc,'ชุด'],['SCR','สกรูยึดแผ่น (100 ตัว)',scr,'ห่อ'],['JNT','ยาแนว/วัสดุโป๊',joint,'หลอด'],['PNT','สี',paint,'แกลลอน'],['ETC','อื่น ๆ',1,'']];
+ ITEMS=items;let total=0;
+ let h='<table><tr><th>รายการ</th><th class="n">จำนวน</th><th class="n">ราคา/หน่วย</th><th class="n">รวม</th></tr>';
+ items.forEach(([k,name,q,u])=>{if(!q&&k!=='ETC')return;const p=n(price[k]);const c=p*q;total+=c;
+  h+=`<tr><td>${name}</td><td class="n">${q} ${u}</td><td class="n"><input type="number" data-p="${k}" value="${price[k]??''}" placeholder="0"></td><td class="n" id="c-${k}">${fmt(c)}</td></tr>`});
+ h+=`<tr><td colspan="3"><b>รวม</b></td><td class="n"><b id="bomTotal">${fmt(total)}</b></td></tr></table><p class="note">ราคาที่กรอกจะจำไว้ในเครื่องนี้</p>`;
+ $('bom').innerHTML=h;
+ $('grand').textContent=fmt(total)+' บาท';$('sub').textContent=`${P.length} แผง · ท็อป ${r1(len)}×${r1(depth)} ซม.`;
+ // ตัดเหล็ก
+ const grp={};pcs.forEach(p=>{const k=p.what+'|'+p.len;grp[k]=grp[k]||{...p,q:0};grp[k].q++});
+ $('cut').innerHTML='<table><tr><th>ชิ้น</th><th class="n">ยาว (ซม.)</th><th class="n">จำนวน</th></tr>'+Object.values(grp).sort((a,b)=>a.t.localeCompare(b.t)||b.len-a.len).map(p=>`<tr><td>${p.what} (${p.t})</td><td class="n">${p.len}</td><td class="n">${p.q}</td></tr>`).join('')+'</table>'+
+  [['C',cBars],['U',uBars]].map(([t,b])=>`<p class="note" style="margin:8px 0 2px"><b>ตัว ${t}: ${b.length} เส้น</b></p>`+b.map((x,i)=>`<div class="note">เส้นที่ ${i+1}: ${x.items.map(p=>p.len).join(' + ')} · เศษ ${x.left}</div>`).join('')).join('');
+ SUMHEAD=`เคาน์เตอร์${isI?'ตรง':shape==='U'?'ตัว U':'ตัว L'} ยาว ${v.L} สูง ${v.H}${isI?'':` ลึก ${v.D}`} ซม.\nท็อป ${r1(len)}×${r1(depth)} ซม.\n`;
+ summary=`เคาน์เตอร์${isI?'ตรง':shape==='U'?'ตัว U':'ตัว L'} ยาว ${v.L} สูง ${v.H}${isI?'':` ลึก ${v.D}`} ซม.\nท็อป ${r1(len)}×${r1(depth)} ซม.\n`+items.filter(x=>x[2]).map(([k,name,q,u])=>`- ${name}: ${q} ${u}${n(price[k])?` = ${fmt(n(price[k])*q)} บาท`:''}`).join('\n')+`\nรวม ${fmt(total)} บาท`;
+ save();
+}
+document.addEventListener('input',e=>{const t=e.target;if(t.dataset.p){price[t.dataset.p]=t.value;totals();return}calc()});
+document.addEventListener('change',e=>{if(!e.target.dataset.p)calc()});
+document.addEventListener('click',e=>{const b=e.target.closest('#shapes button');if(b){shape=b.dataset.s;calc();return}
+ const d=e.target.closest('.draw');if(d)d.classList.toggle('zoom');
+ if(e.target.id==='copy'){(async()=>{let ok=false;try{await navigator.clipboard.writeText(summary);ok=true}catch(err){}e.target.textContent=ok?'คัดลอกแล้ว ✓':'คัดลอกไม่ได้';setTimeout(()=>e.target.textContent='คัดลอกสรุป',1500)})()}});
+load();calc();
+</script>
+</body>
+</html>

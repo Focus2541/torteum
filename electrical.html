@@ -45,6 +45,7 @@ ol.steps{padding-left:22px;margin:4px 0}ol.steps li{margin:6px 0}
 .total .in{max-width:820px;margin:auto;display:flex;justify-content:space-between;align-items:center;gap:10px}
 .total b{font-size:23px;color:var(--acc)}.total small{color:var(--mute);display:block;font-size:12px}
 svg text{font-family:Sarabun,sans-serif}
+h3.th{font-size:15.5px;margin:16px 0 6px;color:var(--acc)}
 </style>
 </head>
 <body>
@@ -69,13 +70,13 @@ svg text{font-family:Sarabun,sans-serif}
 <section class="card">
 <h2>แปลนจุดไฟฟ้า <button class="btn2" id="reset">ใช้จุดเริ่มต้น</button></h2>
 <div class="draw" id="plan"></div>
-<div class="legend"><span><i style="background:var(--li)"></i>วงจรไฟแสงสว่าง</span><span><i style="background:var(--ou)"></i>วงจรปลั๊ก</span><span><i style="background:var(--ac)"></i>วงจรแอร์</span><span><i style="background:var(--fe)"></i>สายจากตู้ไฟ</span></div>
+<div class="legend"><span><i style="background:var(--li);opacity:.6"></i>- - สายทราเวลเลอร์ สวิตช์ 2 ทาง</span><span><i style="background:var(--li)"></i>วงจรไฟแสงสว่าง</span><span><i style="background:var(--ou)"></i>วงจรปลั๊ก</span><span><i style="background:var(--ac)"></i>วงจรแอร์</span><span><i style="background:var(--fe)"></i>สายจากตู้ไฟ</span></div>
 <p class="note">มองจากด้านบน · ผนังเดิมอยู่ด้านบนของแปลน · ตัวเลขข้างจุด = ความสูงจากพื้น (ซม.) · ท่อเดินตามตงเพดาน แล้วทิ้งลงตามเสา C · แตะแปลนเพื่อขยาย</p>
 <div id="msgs"></div>
 </section>
 
 <section class="card">
-<h2>2. จุดไฟฟ้า <span><button class="add" data-add="light">+ โคม</button> <button class="add" data-add="sw">+ สวิตช์</button> <button class="add" data-add="out">+ ปลั๊ก</button></span></h2>
+<h2>2. จุดไฟฟ้า <span><button class="add" data-add="light">+ โคม</button> <button class="add" data-add="sw">+ สวิตช์</button> <button class="add" data-add="out">+ ปลั๊ก</button> <button class="add" data-add="sw2">+ สวิตช์ 2 ทาง</button></span></h2>
 <div class="note">ตำแหน่ง x = ระยะตามแนวยาวห้องจากหัวห้องด้านบน (0–780) · z = ระยะจากผนังเดิม (0–250) · ห้องเล็กเริ่มที่ x 520</div>
 <div id="pts"></div>
 </section>
@@ -83,6 +84,135 @@ svg text{font-family:Sarabun,sans-serif}
 <section class="card"><h2>รายการซื้อ + ราคา (กรอกเอง) <button class="btn2" id="copyList">คัดลอกรายการ</button></h2><div id="bom"></div>
 <p class="note">ราคาเริ่มต้น: สาย THW 2.5 คิดจากม้วน 30 ม. 525 บาท (HomePro) · ท่อ ½" 42 บาท/เส้น (HomePro) · ที่เหลือเป็นราคาประมาณ แก้ได้ · ซื้อสายแบ่งเมตรที่ร้านไฟฟ้าจะได้ตรงจำนวน</p>
 <button class="btn2" id="toBudget">⚡ ส่งยอดนี้ไปแผนซื้อตามงบ</button></section>
+
+<section class="card" id="teach">
+<h2>📘 สอน: สวิตช์ 2 ทาง + จุดต่อสาย</h2>
+<p class="note" style="margin-top:0">สวิตช์ 2 ทาง = เปิดปิดโคมเดียวกันได้จาก 2 จุด เช่น ที่ทางเข้า กับที่หัวนอน · กด "+ สวิตช์ 2 ทาง" ในข้อ 2 แล้วระบบจะคิดสายเพิ่มให้</p>
+
+<h3 class="th">1) ผังการต่อสวิตช์ 2 ทาง</h3>
+<div class="draw"><svg fill="var(--ink)" viewBox="0 0 660 330" font-size="15">
+ <defs><marker id="dot" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="5" markerHeight="5"><circle cx="5" cy="5" r="4" fill="var(--ink)"/></marker></defs>
+ <rect x="14" y="20" width="120" height="74" rx="8" fill="var(--card)" stroke="var(--ink)" stroke-width="2"/>
+ <text x="74" y="44" text-anchor="middle" font-weight="700">ตู้ไฟ</text><text x="74" y="64" text-anchor="middle" font-size="13">เบรกเกอร์ 10A</text>
+ <text x="142" y="52" font-size="13" fill="#92400e" font-weight="700">L</text><text x="142" y="86" font-size="13" fill="#2563eb" font-weight="700">N</text>
+ <!-- N ตรงไปโคม -->
+ <path d="M134 80 H590 V96" fill="none" stroke="#2563eb" stroke-width="4"/>
+ <!-- L ไป COM สวิตช์ A -->
+ <path d="M134 46 H170 V286 H210" fill="none" stroke="#92400e" stroke-width="4"/>
+ <!-- สวิตช์ A -->
+ <rect x="200" y="180" width="110" height="130" rx="10" fill="var(--card)" stroke="var(--ink)" stroke-width="2"/>
+ <text x="255" y="174" text-anchor="middle" font-weight="700">สวิตช์ A (ทางเข้า)</text>
+ <circle cx="220" cy="286" r="7" fill="#d4a017"/><text x="232" y="300" font-size="13">COM</text>
+ <circle cx="290" cy="210" r="7" fill="#d4a017"/><text x="268" y="200" font-size="13">L1</text>
+ <circle cx="290" cy="260" r="7" fill="#d4a017"/><text x="268" y="250" font-size="13">L2</text>
+ <line x1="220" y1="286" x2="285" y2="214" stroke="var(--ink)" stroke-width="3"/>
+ <!-- ทราเวลเลอร์ -->
+ <path d="M290 210 H460" fill="none" stroke="#111" stroke-width="4"/>
+ <path d="M290 260 H460" fill="none" stroke="#9ca3af" stroke-width="4"/>
+ <text x="375" y="200" text-anchor="middle" font-size="13" font-weight="700">สายทราเวลเลอร์ 2 เส้น</text>
+ <text x="375" y="248" text-anchor="middle" font-size="13" fill="var(--mute)">สีดำ + สีเทา</text>
+ <!-- สวิตช์ B -->
+ <rect x="450" y="180" width="110" height="130" rx="10" fill="var(--card)" stroke="var(--ink)" stroke-width="2"/>
+ <text x="505" y="174" text-anchor="middle" font-weight="700">สวิตช์ B (หัวนอน)</text>
+ <circle cx="460" cy="210" r="7" fill="#d4a017"/><text x="472" y="200" font-size="13">L1</text>
+ <circle cx="460" cy="260" r="7" fill="#d4a017"/><text x="472" y="250" font-size="13">L2</text>
+ <circle cx="540" cy="286" r="7" fill="#d4a017"/><text x="490" y="300" font-size="13">COM</text>
+ <line x1="540" y1="286" x2="465" y2="214" stroke="var(--ink)" stroke-width="3"/>
+ <!-- COM B ไปโคม -->
+ <path d="M547 286 H620 V120 H604" fill="none" stroke="#c2410c" stroke-width="4"/>
+ <text x="626" y="200" font-size="13" fill="#c2410c" transform="rotate(90 626 200)" text-anchor="middle">L หลังสวิตช์ → โคม</text>
+ <!-- โคม -->
+ <circle cx="590" cy="118" r="20" fill="#fef3c7" stroke="#f59e0b" stroke-width="3"/><path d="M576 104L604 132M604 104L576 132" stroke="#f59e0b" stroke-width="2.5"/>
+ <text x="590" y="160" text-anchor="middle" font-size="13">โคม</text>
+ <text x="330" y="40" text-anchor="middle" font-size="13" fill="var(--mute)">N (ฟ้า) ไม่ผ่านสวิตช์ · ตอนนี้ทั้งคู่อยู่ L1 → ไฟติด</text>
+</svg></div>
+<table style="margin:8px 0"><tr><th>สวิตช์ A</th><th>สวิตช์ B</th><th>โคม</th></tr>
+<tr><td>L1</td><td>L1</td><td>💡 ติด</td></tr><tr><td>L1</td><td>L2</td><td>ดับ</td></tr><tr><td>L2</td><td>L1</td><td>ดับ</td></tr><tr><td>L2</td><td>L2</td><td>💡 ติด</td></tr></table>
+<ol class="steps">
+<li><b>ใช้สวิตช์ "2 ทาง" ทั้งคู่</b> (มี 3 ขั้ว) สวิตช์ธรรมดามีแค่ 2 ขั้ว ใช้แทนไม่ได้</li>
+<li>สาย <b>L (น้ำตาล)</b> จากเบรกเกอร์ → ขั้ว <b>COM</b> ของสวิตช์ A</li>
+<li>ขั้ว <b>L1–L1</b> และ <b>L2–L2</b> ของสองตัวต่อถึงกันด้วยสาย 1.5 ตร.มม. 2 เส้น (ดำ, เทา) ในท่อเส้นเดียวกัน</li>
+<li>ขั้ว <b>COM</b> ของสวิตช์ B → สาย L ไปโคม · สาย <b>N (ฟ้า)</b> ไปโคมตรง ๆ ไม่ผ่านสวิตช์</li>
+<li>ถ้าคุมโคม 2 ดวง ให้ต่อโคมทั้งสองขนานกันหลังสวิตช์ B (L ไปทุกดวง N ไปทุกดวง)</li>
+</ol>
+
+<h3 class="th">2) หาขั้ว COM ถ้าสวิตช์ไม่ได้เขียนไว้</h3>
+<div class="draw"><svg fill="var(--ink)" viewBox="0 0 660 200" font-size="15">
+ <rect x="30" y="20" width="170" height="160" rx="12" fill="var(--card)" stroke="var(--ink)" stroke-width="2"/>
+ <text x="115" y="14" text-anchor="middle" font-size="13" fill="var(--mute)">ด้านหลังสวิตช์</text>
+ <circle cx="70" cy="140" r="12" fill="#d4a017" stroke="var(--ink)"/><text x="70" y="172" text-anchor="middle" font-size="13" font-weight="700">C / COM</text>
+ <circle cx="160" cy="60" r="12" fill="#d4a017" stroke="var(--ink)"/><text x="160" y="36" text-anchor="middle" font-size="13">1 (L1)</text>
+ <circle cx="160" cy="140" r="12" fill="#d4a017" stroke="var(--ink)"/><text x="160" y="172" text-anchor="middle" font-size="13">2 (L2)</text>
+ <rect x="250" y="40" width="110" height="130" rx="12" fill="#facc15" stroke="var(--ink)" stroke-width="2"/><rect x="268" y="56" width="74" height="40" rx="4" fill="#1f2937"/><text x="305" y="83" text-anchor="middle" fill="#a3e635" font-size="16">Ω 0.0</text>
+ <text x="305" y="130" text-anchor="middle" font-size="13" fill="#1f2937">มัลติมิเตอร์</text><text x="305" y="148" text-anchor="middle" font-size="13" fill="#1f2937">โหมดเสียง ปี๊บ</text>
+ <path d="M250 150 C200 170 120 175 82 146" fill="none" stroke="#dc2626" stroke-width="3"/><path d="M250 120 C220 100 200 70 172 62" fill="none" stroke="#111" stroke-width="3"/>
+ <text x="380" y="60" font-size="14">กดสวิตช์ขึ้น: วัดหาคู่ที่ปี๊บ</text>
+ <text x="380" y="85" font-size="14">กดสวิตช์ลง: วัดหาคู่ที่ปี๊บอีกครั้ง</text>
+ <text x="380" y="115" font-size="14" font-weight="700">ขั้วที่ปี๊บทั้ง 2 ครั้ง = COM</text>
+ <text x="380" y="145" font-size="13" fill="var(--mute)">ส่วนมากเขียน C, COM หรือ L ไว้</text>
+ <text x="380" y="165" font-size="13" fill="var(--mute)">หรือเป็นสกรูคนละสี</text>
+</svg></div>
+
+<h3 class="th">3) จุดต่อสายในกล่องพักสาย (บนตงเหนือสวิตช์)</h3>
+<div class="draw"><svg fill="var(--ink)" viewBox="0 0 660 300" font-size="14">
+ <rect x="170" y="30" width="300" height="200" rx="10" fill="var(--bg)" stroke="var(--ink)" stroke-width="2.5"/>
+ <text x="320" y="22" text-anchor="middle" font-weight="700">กล่องพักสาย 4×4</text>
+ <!-- ท่อเข้า ซ้าย -->
+ <rect x="130" y="110" width="40" height="40" fill="var(--line)"/><text x="60" y="105" text-anchor="middle" font-size="13">จากตู้ไฟ</text><text x="60" y="122" text-anchor="middle" font-size="13">(หรือโคมก่อนหน้า)</text>
+ <rect x="470" y="110" width="40" height="40" fill="var(--line)"/><text x="590" y="122" text-anchor="middle" font-size="13">ไปโคม</text>
+ <rect x="300" y="230" width="40" height="40" fill="var(--line)"/><text x="320" y="292" text-anchor="middle" font-size="13">ท่อลงสวิตช์</text>
+ <!-- N บน -->
+ <rect x="275" y="52" width="90" height="32" rx="5" fill="#dbeafe" stroke="var(--ink)"/><text x="320" y="73" text-anchor="middle" font-size="13" fill="#1d4ed8">N ต่อผ่าน</text>
+ <path d="M170 118 C220 118 240 68 275 68" fill="none" stroke="#2563eb" stroke-width="4"/><path d="M365 68 C400 68 420 118 470 118" fill="none" stroke="#2563eb" stroke-width="4"/>
+ <!-- G กลาง -->
+ <rect x="275" y="112" width="90" height="32" rx="5" fill="#dcfce7" stroke="var(--ink)"/><text x="320" y="133" text-anchor="middle" font-size="13" fill="#15803d">G ต่อผ่าน</text>
+ <path d="M170 130 H275" stroke="#16a34a" stroke-width="4"/><path d="M170 130 H275" stroke="#eab308" stroke-width="4" stroke-dasharray="6 6"/>
+ <path d="M365 130 H470" stroke="#16a34a" stroke-width="4"/><path d="M365 130 H470" stroke="#eab308" stroke-width="4" stroke-dasharray="6 6"/>
+ <!-- L -->
+ <path d="M170 142 C250 142 300 170 308 230" fill="none" stroke="#92400e" stroke-width="4"/>
+ <path d="M332 230 C340 170 390 142 470 142" fill="none" stroke="#c2410c" stroke-width="4"/>
+ <text x="292" y="215" font-size="13" fill="#92400e" font-weight="700" text-anchor="end">L จากตู้ → ลงสวิตช์</text>
+ <text x="348" y="215" font-size="13" fill="#c2410c" font-weight="700">L กลับ → ไปโคม</text>
+</svg></div>
+<ol class="steps">
+<li><b>ต่อสายได้เฉพาะในกล่อง</b> (กล่องพักสาย บล็อกสวิตช์ บล็อกปลั๊ก หรือฝาโคม) ห้ามต่อกลางท่อหรือพันเทปทิ้งไว้บนตง</li>
+<li><b>ต่อสีเดียวกันเข้าด้วยกัน</b>: น้ำตาลกับน้ำตาล ฟ้ากับฟ้า เขียวเหลืองกับเขียวเหลือง · สายที่ลงไปสวิตช์คือ L (น้ำตาล) อย่างเดียว ส่วน N ต่อผ่านไปโคม ไม่ต้องลงสวิตช์</li>
+<li><b>เผื่อสายในกล่อง 15–20 ซม.</b> ทุกเส้น เผื่อไว้ปอกใหม่ได้</li>
+<li>ปลายสายที่ L กลับจากสวิตช์ ให้พันเทปสีหรือทำเครื่องหมาย จะได้ไม่สับสนกับ L ที่มาจากตู้</li>
+</ol>
+
+<h3 class="th">4) วิธีต่อสาย 2 แบบ (เลือกแบบไหนก็ได้)</h3>
+<div class="draw"><svg fill="var(--ink)" viewBox="0 0 660 230" font-size="14">
+ <text x="160" y="22" text-anchor="middle" font-weight="700">ก. ตัวต่อแบบก้านโยก (แนะนำมือใหม่)</text>
+ <rect x="90" y="60" width="140" height="70" rx="8" fill="#e5e7eb" stroke="var(--ink)" stroke-width="2"/>
+ <rect x="100" y="42" width="34" height="26" rx="4" fill="#f97316"/><rect x="143" y="42" width="34" height="26" rx="4" fill="#f97316"/><rect x="186" y="42" width="34" height="26" rx="4" fill="#f97316"/>
+ <path d="M20 95 H92" stroke="#92400e" stroke-width="6"/><path d="M20 95 H55" stroke="#92400e" stroke-width="10"/>
+ <path d="M228 95 H300" stroke="#92400e" stroke-width="6"/><path d="M265 95 H300" stroke="#92400e" stroke-width="10"/>
+ <path d="M55 95 H92" stroke="#d4a017" stroke-width="5"/><path d="M228 95 H265" stroke="#d4a017" stroke-width="5"/>
+ <text x="72" y="122" text-anchor="middle" font-size="12">ทองแดง 11 มม.</text>
+ <text x="160" y="160" text-anchor="middle" font-size="13">ปอก 11 มม. → ยกก้าน → เสียบให้สุด → กดก้านลง</text>
+ <text x="160" y="180" text-anchor="middle" font-size="13">ใช้ได้ทั้งสาย 1.5 และ 2.5 ตร.มม.</text>
+ <text x="160" y="200" text-anchor="middle" font-size="13" fill="var(--mute)">มี 2, 3, 5 ช่อง · ราคาอันละ 10–25 บาท</text>
+ <line x1="330" y1="20" x2="330" y2="210" stroke="var(--line)"/>
+ <text x="495" y="22" text-anchor="middle" font-weight="700">ข. บิดเกลียว + ฝาครอบหมุน</text>
+ <path d="M370 70 H440" stroke="#2563eb" stroke-width="10"/><path d="M370 110 H440" stroke="#2563eb" stroke-width="10"/>
+ <path d="M440 70 C470 72 470 108 440 110" fill="none" stroke="#d4a017" stroke-width="5"/>
+ <path d="M440 70 C455 80 455 100 440 110" fill="none" stroke="#d4a017" stroke-width="3"/>
+ <path d="M462 90 L520 90" stroke="#d4a017" stroke-width="6"/>
+ <path d="M510 68 L580 76 L580 104 L510 112 Z" fill="#3b82f6" opacity=".85"/>
+ <text x="560" y="135" text-anchor="middle" font-size="12">ฝาครอบ</text>
+ <text x="495" y="160" text-anchor="middle" font-size="13">ปอก 15 มม. → จับปลายตรงกัน บิดตามเข็มนาฬิกา</text>
+ <text x="495" y="180" text-anchor="middle" font-size="13">→ หมุนฝาครอบจนแน่น ไม่เห็นทองแดง</text>
+ <text x="495" y="200" text-anchor="middle" font-size="13" fill="var(--mute)">ห้ามบิดแล้วพันเทปอย่างเดียว</text>
+</svg></div>
+<ol class="steps">
+<li><b>ดึงทดสอบทุกจุด</b> จับสายแต่ละเส้นดึงแรง ๆ ถ้าหลุดให้ทำใหม่</li>
+<li><b>เข้าขั้วสวิตช์ ปลั๊ก</b>: ปอก 10 มม. เสียบให้สุด ขันสกรูให้แน่น ต้องไม่เห็นทองแดงโผล่นอกขั้ว และไม่มีทองแดงเส้นฝอยแตกออกมา</li>
+<li>ถ้าขั้วเป็นแบบสกรูกด ให้งอปลายสายเป็นตะขอ คล้องตามเข็มนาฬิกา (ทางเดียวกับทิศขันสกรู)</li>
+<li>ห้ามต่อสาย 2.5 ของวงจรปลั๊ก เข้ากับสาย 1.5 ของวงจรไฟ เพราะเป็นคนละวงจรและใช้เบรกเกอร์คนละตัว</li>
+<li>ต่อเสร็จ พับสายเข้ากล่องเป็นรูปตัว Z ไม่บีบอัดแน่น แล้วปิดฝากล่องทุกใบ</li>
+</ol>
+</section>
 
 <section class="card"><h2>ขั้นตอนเดินสาย</h2><ol class="steps" id="steps"></ol></section>
 </main>
@@ -105,19 +235,19 @@ const DEF_PTS=()=>[
  {t:'out',x:700,z:250,y:30,n:'ปลั๊ก ห้องเล็ก',s:''},
  {t:'acp',x:700,z:0,y:170,n:'แอร์',s:''}];
 let pts=DEF_PTS();
-const DEFP={W15:12,W25:17.5,W4:30,C16:42,C20:36,CPL:5,BOX:25,CLIP:2,GLUE:60,CONN:3,OUT:140,SW:85,LED:250,MCB:150,RCBO:600,ACB:350,ACI:250,ROD:650,CU:1500,MISC:450};
+const DEFP={W15:12,W25:17.5,W4:30,C16:42,C20:36,CPL:5,BOX:25,CLIP:2,GLUE:60,CONN:3,OUT:140,SW:85,LED:250,MCB:150,RCBO:600,ACB:350,ACI:250,ROD:650,CU:1500,MISC:350,SW2:120,WAGO:12};
 let price={...DEFP};
 const n=v=>{const x=parseFloat(v);return isFinite(x)?x:0},r1=v=>Math.round(v*10)/10,fmt=v=>Math.round(v).toLocaleString('th-TH');
 function save(extra){try{const o={pts,price};['feed','H','waste','cd'].forEach(i=>o[i]=$(i).value);['lg','ac','rod','cu'].forEach(i=>o[i]=$(i).checked);localStorage.setItem(KEY,JSON.stringify(o));if(extra!=null)localStorage.setItem('torteum_elec_total',String(extra))}catch(e){}}
 function load(){try{const o=JSON.parse(localStorage.getItem(KEY));if(!o)return;if(o.pts)pts=o.pts;price={...DEFP,...(o.price||{})};['feed','H','waste','cd'].forEach(i=>{if(o[i]!=null)$(i).value=o[i]});['lg','ac','rod','cu'].forEach(i=>{if(o[i]!=null)$(i).checked=o[i]})}catch(e){}}
-const ICON={light:'💡',sw:'🔘',out:'🔌',acp:'❄️'};
+const ICON={light:'💡',sw:'🔘',out:'🔌',acp:'❄️',sw2:'🔁'};
 function renderPts(){
  const sws=pts.filter(p=>p.t==='sw').map(p=>p.n);
  $('pts').innerHTML=pts.map((p,i)=>{if(p.t==='acp'&&!$('ac').checked)return'';return`<div class="pt" data-i="${i}"><span class="ic">${ICON[p.t]}</span>
  <div><label>ชื่อ</label><input data-k="n" value="${p.n}"></div>
  <div><label>x</label><input type="number" data-k="x" value="${p.x}"></div>
  <div><label>z</label><input type="number" data-k="z" value="${p.z}"></div>
- ${p.t==='light'?`<div><label>สวิตช์</label><select data-k="s">${sws.map(s=>`<option ${s===p.s?'selected':''}>${s}</option>`).join('')}</select></div>`:`<div><label>สูง (ซม.)</label><input type="number" data-k="y" value="${p.y}"></div>`}
+ ${p.t==='sw2'?`<div><label>คู่กับ</label><select data-k="s">${sws.map(s=>`<option ${s===p.s?'selected':''}>${s}</option>`).join('')}</select></div>`:p.t==='light'?`<div><label>สวิตช์</label><select data-k="s">${sws.map(s=>`<option ${s===p.s?'selected':''}>${s}</option>`).join('')}</select></div>`:`<div><label>สูง (ซม.)</label><input type="number" data-k="y" value="${p.y}"></div>`}
  ${p.t==='acp'?'<span></span>':`<button class="del" data-del="${i}">×</button>`}</div>`}).join('');
 }
 /* ---------- เส้นทาง: เดินตามตง (มุมฉาก) เรียงจุดใกล้สุดก่อน ---------- */
@@ -131,8 +261,13 @@ function calc(){
  // วงจรไฟ: สวิตช์ + โคม
  const lNodes=chain([...sws,...lights],J);let lh=0,ldrop=0,prev=J;const lPath=[J];
  lNodes.forEach(p=>{lh+=man(prev,p);lPath.push(p);prev=p;if(p.t==='sw')ldrop+=H-p.y});
- const lConduit=(lh+ldrop)/100*wf;
- const L15=(lh+ldrop*2)/100*wf+feed, N15=lh/100*wf+feed, G15=$('lg').checked?lh/100*wf+feed:0;
+ // สวิตช์ 2 ทาง: ทราเวลเลอร์ 2 เส้น A↔B, L หลังสวิตช์ย้ายไปออกที่ B
+ const sw2s=pts.filter(p=>p.t==='sw2'),twPaths=[],paired=new Set();let trav=0,brownX=0,twC=0;
+ sw2s.forEach(p=>{const a=sws.find(q=>q.n===p.s);if(!a){msgs.push(['e',`${p.n}: เลือกก่อนว่าคู่กับสวิตช์ตัวไหน`]);return}
+  const h=man(a,p),d1=H-a.y,d2=H-p.y;trav+=2*(d1+h+d2);brownX+=h+d2-d1;twC+=h+d2;twPaths.push([a,p]);paired.add(a.n)});
+ const nTw=twPaths.length;
+ const lConduit=(lh+ldrop+twC)/100*wf;
+ const L15=(lh+ldrop*2+brownX)/100*wf+feed, N15=lh/100*wf+feed, G15=$('lg').checked?lh/100*wf+feed:0;
  // วงจรปลั๊ก
  const oNodes=chain(outs,J);let oh=0,odrop=0;prev=J;const oPath=[J];
  oNodes.forEach((p,i)=>{oh+=man(prev,p);oPath.push(p);prev=p;odrop+=(H-p.y)*(i<oNodes.length-1?2:1)});
@@ -142,18 +277,19 @@ function calc(){
  let acLen=0,acC=0;if(ac&&acp){acLen=(man(J,acp)+(H-acp.y))/100*wf+feed;acC=(man(J,acp)+(H-acp.y))/100*wf}
  // ท่อ
  const inRoom=lConduit+oConduit+acC;const cIn=Math.ceil(inRoom/2.92),cFeed=Math.ceil(feed*wf/2.92);
- const boxes=Math.max(2,Math.ceil((lNodes.length+oNodes.length)/2))+1;
+ const boxes=Math.max(2,Math.ceil((lNodes.length+oNodes.length)/2))+1+nTw;
  const clips=Math.ceil((inRoom+feed)/0.8),cpl=cIn+cFeed;
- const conn=2*(sws.length+outs.length+lights.length+boxes)+(ac?2:0);
+ const conn=2*(sws.length+nTw+outs.length+lights.length+boxes)+(ac?2:0);
  // ตรวจ
  if(feed>25)msgs.push(['w',`สายจากตู้ไฟยาว ${feed} ม. แรงดันอาจตก ถ้าเกิน 30 ม. ควรเพิ่มขนาดสาย หรือติดตู้ย่อยในห้อง`]);
  outs.forEach(p=>{if(p.x<10&&p.y<60)msgs.push(['w',`${p.n}: อยู่ผนังหัวห้องด้านฝนสาด ควรย้ายหรือใช้ปลั๊กมีฝาปิด`]);if(p.y<30)msgs.push(['w',`${p.n}: ต่ำกว่า 30 ซม. ใต้ถุนชื้น ควรสูง 30 ซม. ขึ้นไป`])});
  outs.forEach(p=>{if(p.z>=245&&p.x>275&&p.x<505)msgs.push(['w',`${p.n}: อยู่หลังตู้เสื้อผ้า (ช่องเสา 2) ใช้ไม่สะดวก`])});
  lights.forEach(p=>{if(!sws.find(s=>s.n===p.s))msgs.push(['e',`${p.n}: ยังไม่ได้เลือกสวิตช์`])});
+ if(nTw)msgs.push(['ok',`🔁 สวิตช์ 2 ทาง ${nTw} คู่ (${twPaths.map(([a,b])=>a.n+'↔'+b.n).join(', ')}) · สายทราเวลเลอร์รวม ${r1(trav/100*wf)} ม. · วิธีต่อดูหัวข้อ “สอน” ด้านล่าง`]);
  if(outs.length>8)msgs.push(['w','ปลั๊กเกิน 8 จุดในวงจรเดียว ควรแยกเป็น 2 วงจร']);
  msgs.push(['ok',`📏 สายจากตู้ไฟ ${feed} ม. · ในห้อง: ท่อวงจรไฟ ${r1(lConduit)} ม. · ท่อวงจรปลั๊ก ${r1(oConduit)} ม.${ac?` · ท่อแอร์ ${r1(acC)} ม.`:''}`]);
  $('msgs').innerHTML=msgs.map(m=>`<div class="msg ${m[0]}">${m[1]}</div>`).join('');
- $('plan').innerHTML=draw(lPath,oPath,ac&&acp?[J,acp]:null,feed);
+ $('plan').innerHTML=draw(lPath,oPath,ac&&acp?[J,acp]:null,feed,twPaths);
  // BOM
  const cKey=$('cd').value==='20'?'C20':'C16';
  const items=[
@@ -163,15 +299,16 @@ function calc(){
   ['สายไฟ','W15',`THW 1.5 ตร.มม. สีน้ำตาล (L) ไฟ`,Math.ceil(L15),'ม.'],
   ['สายไฟ','W15',`THW 1.5 ตร.มม. สีฟ้า (N) ไฟ`,Math.ceil(N15),'ม.'],
   ['สายไฟ','W15',`THW 1.5 ตร.มม. เขียวคาดเหลือง (G) โคม`,Math.ceil(G15),'ม.'],
+  ['สายไฟ','W15',`THW 1.5 ตร.มม. สีดำ + สีเทา (ทราเวลเลอร์ สวิตช์ 2 ทาง) รวม 2 สี`,Math.ceil(trav/100*wf),'ม.'],
   ['สายไฟ','W4',`THW 4 ตร.มม. L/N/G แอร์ (3 เส้น)`,ac?Math.ceil(acLen)*3:0,'ม.'],
   ['ท่อ','C20','ท่อ PVC 20 มม. 2.92 ม. (จากตู้ไฟ)',cFeed,'เส้น'],
   ['ท่อ',cKey,`ท่อ PVC ${$('cd').value==='20'?'20 มม.':'½ นิ้ว'} 2.92 ม. (ในห้อง)`,cIn,'เส้น'],
   ['ท่อ','CPL','ข้อต่อตรง + ข้องอ',cpl,'ตัว'],['ท่อ','CONN','ข้อต่อเข้ากล่อง',conn,'ตัว'],['ท่อ','CLIP','กิ๊บจับท่อ',clips,'ตัว'],['ท่อ','BOX','กล่องพักสาย 4×4',boxes,'ใบ'],['ท่อ','GLUE','กาวทาท่อ',1,'กระป๋อง'],
-  ['อุปกรณ์','OUT','ปลั๊กคู่มีกราวด์ + บล็อก + หน้ากาก',outs.length,'ชุด'],['อุปกรณ์','SW','สวิตช์ + บล็อก + หน้ากาก',sws.length,'ชุด'],['อุปกรณ์','LED','โคม LED ติดเพดานแบบบาง',lights.length,'ดวง'],
+  ['อุปกรณ์','OUT','ปลั๊กคู่มีกราวด์ + บล็อก + หน้ากาก',outs.length,'ชุด'],['อุปกรณ์','SW','สวิตช์ทางเดียว + บล็อก + หน้ากาก',sws.length-paired.size,'ชุด'],['อุปกรณ์','SW2','สวิตช์ 2 ทาง + บล็อก + หน้ากาก',paired.size+nTw,'ชุด'],['อุปกรณ์','WAGO','ตัวต่อสายแบบก้านโยก 3 ช่อง',boxes*3+lights.length,'ตัว'],['อุปกรณ์','LED','โคม LED ติดเพดานแบบบาง',lights.length,'ดวง'],
   ['อุปกรณ์','ACI','เบรกเกอร์ตัดตอนข้างแอร์',ac?1:0,'ตัว'],
   ['ตู้ไฟ','MCB','เบรกเกอร์ 10A (วงจรไฟ)',1,'ตัว'],['ตู้ไฟ','RCBO','RCBO กันดูด 16A 30mA (วงจรปลั๊ก)',1,'ตัว'],['ตู้ไฟ','ACB','เบรกเกอร์ 20A (แอร์)',ac?1:0,'ตัว'],
   ['ตู้ไฟ','CU','ตู้ย่อย 4 ช่อง + เมนกันดูด',$('cu').checked?1:0,'ตู้'],['ตู้ไฟ','ROD','หลักดิน 2.4 ม. + ข้อต่อ + สาย',$('rod').checked?1:0,'ชุด'],
-  ['อื่น ๆ','MISC','ตัวต่อสาย เทป ลวดร้อยสาย ปลั๊กเทสเตอร์',1,'ชุด']].filter(x=>x[3]>0);
+  ['อื่น ๆ','MISC','เทปพันสาย ลวดร้อยสาย ปลั๊กเทสเตอร์ ไขควงวัดไฟ',1,'ชุด']].filter(x=>x[3]>0);
  let total=0,last='';
  let h='<table><tr><th>รายการ</th><th class="n">จำนวน</th><th class="n">ราคา/หน่วย</th><th class="n">รวม</th></tr>';
  items.forEach(([g,k,name,q,u],i)=>{const c=n(price[k])*q;total+=c;if(g!==last){h+=`<tr class="sec"><td colspan="4">${g}</td></tr>`;last=g}
@@ -188,6 +325,7 @@ function calc(){
  st.push(`<b>ทุกรูที่ท่อ/สายลอดเสาเหล็ก</b> ใส่ยางกันบาด · ต่อสายในกล่องพักสายเท่านั้น`);
  st.push(`<b>ร้อยสาย</b> ด้วยลวดร้อยสาย: ไฟ = 1.5 ตร.มม. (น้ำตาล L, ฟ้า N)${$('lg').checked?' + เขียวคาดเหลือง':''} · ปลั๊ก = 2.5 ตร.มม. (น้ำตาล L, ฟ้า N, เขียวคาดเหลือง G)${ac?' · แอร์ = 4 ตร.มม. 3 เส้น ท่อแยก':''}`);
  st.push(`<b>สวิตช์</b> ตัดสาย L (น้ำตาล) เท่านั้น ห้ามตัดสาย N · ${sws.map(s=>`${s.n} คุม ${lights.filter(l=>l.s===s.n).map(l=>l.n).join(', ')||'-'}`).join(' · ')}`);
+ if(nTw)st.push(`<b>สวิตช์ 2 ทาง</b> ${twPaths.map(([a,b])=>a.n+' ↔ '+b.n).join(', ')}: L จากตู้เข้า COM ตัวแรก · L1–L1, L2–L2 ด้วยสายดำ/เทา · COM ตัวที่สองออกไปโคม (ดูรูปในหัวข้อ “สอน”)`);
  st.push(`<b>ปลั๊ก</b> มองหน้าปลั๊ก: รูขวา = L, รูซ้าย = N, รูกลมล่าง = G · ติดสูง ${outs.map(o=>o.y).join('/')} ซม. ตามแปลน`);
  st.push(`<b>ต่อเข้าตู้</b>${$('cu').checked?' (ตู้ย่อย)':''}: วงจรไฟ → เบรกเกอร์ 10A · วงจรปลั๊ก → RCBO 16A 30mA${ac?' · แอร์ → เบรกเกอร์ 20A':''} · <i>ถ้าไม่มั่นใจ ให้ช่างไฟต่อเฉพาะขั้นนี้</i>`);
  st.push(`<b>ทดสอบ</b> ก่อนจ่ายไฟ: มัลติมิเตอร์วัด L–N, L–G, N–G ต้องไม่ลัดวงจร และไม่ลงโครงเหล็ก · จ่ายไฟแล้ว: ปลั๊กเทสเตอร์ทุกจุด · กดปุ่ม TEST ที่ RCBO ต้องตัด`);
@@ -195,7 +333,7 @@ function calc(){
  window._sum=`⚡ งานไฟฟ้า ห้องใต้ถุน\n`+items.map(([g,k,name,q,u])=>`☐ ${name}: ${q} ${u} = ${fmt(n(price[k])*q)} บาท`).join('\n')+`\nรวม ${fmt(total)} บาท`;
  save(total);
 }
-function draw(lPath,oPath,acPath,feed){
+function draw(lPath,oPath,acPath,feed,twPaths=[]){
  const s=1,ml=40,mt=70,W=RL+ml+50,Hh=RW+mt+80;const X=x=>ml+x,Y=z=>mt+z;
  let g=`<svg viewBox="0 0 ${W} ${Hh}" font-size="20">`;
  // ห้อง
@@ -212,12 +350,14 @@ function draw(lPath,oPath,acPath,feed){
  // เส้นทาง
  const poly=(path,col,off)=>{let d='';path.forEach((p,i)=>{const x=X(p.x)+off,y=Y(p.z)+off;if(i===0)d+=`M${x} ${y}`;else{const q=path[i-1];d+=` L${X(p.x)+off} ${Y(q.z)+off} L${x} ${y}`}});return `<path d="${d}" fill="none" stroke="${col}" stroke-width="3" stroke-linejoin="round" opacity=".85"/>`};
  g+=`<line x1="${X(J.x)}" y1="${Y(J.z)}" x2="${X(J.x)}" y2="${Y(-50)}" stroke="var(--fe)" stroke-width="4" stroke-dasharray="7 4"/><text x="${X(J.x)+8}" y="${Y(-40)}" fill="var(--fe)" font-weight="700">ไปตู้ไฟ ${feed} ม.</text>`;
+ twPaths.forEach(([a,b])=>{g+=`<path d="M${X(a.x)} ${Y(a.z)} L${X(b.x)} ${Y(a.z)} L${X(b.x)} ${Y(b.z)}" fill="none" stroke="var(--li)" stroke-width="3" stroke-dasharray="8 5"/>`});
  g+=poly(lPath,'var(--li)',-3);g+=poly(oPath,'var(--ou)',3);if(acPath)g+=poly(acPath,'var(--ac)',7);
  g+=`<rect x="${X(J.x)-8}" y="${Y(J.z)-8}" width="16" height="16" fill="var(--card)" stroke="var(--ink)" stroke-width="2"/>`;
  // จุด
  pts.forEach(p=>{if(p.t==='acp'&&!acPath)return;const x=X(p.x),y=Y(p.z);
   if(p.t==='light')g+=`<circle cx="${x}" cy="${y}" r="15" fill="#fef3c7" stroke="var(--li)" stroke-width="2.5"/><path d="M${x-7} ${y-7}L${x+7} ${y+7}M${x+7} ${y-7}L${x-7} ${y+7}" stroke="var(--li)" stroke-width="2"/><text x="${x}" y="${y+26}" text-anchor="middle" font-size="16" fill="var(--li)">${p.s}</text>`;
   else if(p.t==='sw')g+=`<circle cx="${x}" cy="${y}" r="14" fill="var(--card)" stroke="var(--ink)" stroke-width="2"/><text x="${x}" y="${y+4}" text-anchor="middle" font-size="16" font-weight="700">${p.n}</text><text x="${x+14}" y="${y+16}" font-size="16" fill="var(--mute)">${p.y}</text>`;
+  else if(p.t==='sw2')g+=`<circle cx="${x}" cy="${y}" r="15" fill="var(--card)" stroke="var(--li)" stroke-width="2.5"/><text x="${x}" y="${y+5}" text-anchor="middle" font-size="15" font-weight="700">${p.s}'</text><text x="${x+14}" y="${y-14}" font-size="16" fill="var(--mute)">${p.y}</text>`;
   else if(p.t==='out')g+=`<rect x="${x-12}" y="${y-12}" width="24" height="24" rx="4" fill="#dbeafe" stroke="var(--ou)" stroke-width="2"/><circle cx="${x-3}" cy="${y-1}" r="1.8" fill="var(--ou)"/><circle cx="${x+3}" cy="${y-1}" r="1.8" fill="var(--ou)"/><text x="${x+12}" y="${y+(p.z>200?-10:20)}" font-size="16" fill="var(--ou)">${p.y}</text>`;
   else g+=`<rect x="${x-14}" y="${y-8}" width="28" height="16" rx="3" fill="#f3e8ff" stroke="var(--ac)" stroke-width="2"/><text x="${x}" y="${y+4}" text-anchor="middle" font-size="16" fill="var(--ac)">แอร์</text>`});
  g+=`<text x="${X(RL/2)}" y="${Y(RW)+40}" text-anchor="middle" fill="var(--acc)" font-weight="700">7.8 × 2.5 ม. · ผนังใหม่ด้านล่าง · เสาบ้าน ■</text>`;
@@ -233,7 +373,7 @@ document.addEventListener('change',e=>{const t=e.target;if(t.dataset.p)return;if
 document.addEventListener('click',e=>{const t=e.target;
  if(t.dataset.del!=null){pts.splice(+t.dataset.del,1);renderPts();calc();return}
  if(t.dataset.add){const k=t.dataset.add;const swn='S'+(pts.filter(p=>p.t==='sw').length+1);const sw1=(pts.find(p=>p.t==='sw')||{}).n||'';
-  pts.push(k==='light'?{t:'light',x:260,z:125,y:185,n:'โคม '+(pts.filter(p=>p.t==='light').length+1),s:sw1}:k==='sw'?{t:'sw',x:300,z:0,y:120,n:swn,s:''}:{t:'out',x:200,z:0,y:30,n:'ปลั๊ก '+(pts.filter(p=>p.t==='out').length+1),s:''});renderPts();calc();return}
+  pts.push(k==='light'?{t:'light',x:260,z:125,y:185,n:'โคม '+(pts.filter(p=>p.t==='light').length+1),s:sw1}:k==='sw'?{t:'sw',x:300,z:0,y:120,n:swn,s:''}:k==='sw2'?{t:'sw2',x:240,z:250,y:120,n:'สวิตช์ 2 ทาง หัวนอน',s:sw1}:{t:'out',x:200,z:0,y:30,n:'ปลั๊ก '+(pts.filter(p=>p.t==='out').length+1),s:''});renderPts();calc();return}
  if(t.id==='reset'){pts=DEF_PTS();renderPts();calc();return}
  const d=t.closest('.draw');if(d){d.classList.toggle('zoom');return}
  if(t.id==='toBudget'){save(n($('bt').textContent.replace(/,/g,'')));t.textContent='ส่งแล้ว ✓ เปิดหน้าคำนวณ → แผนซื้อ แล้วกด "⚡ ดึงยอดงานไฟฟ้า"';return}

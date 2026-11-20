@@ -178,7 +178,7 @@ details summary{cursor:pointer;font-weight:600}
 <div class="bar2"><i id="bBar"></i></div>
 <div id="bSum" class="note"></div>
 <table id="bTbl"><thead><tr><th></th><th>รายการ</th><th class="n">บาท</th><th class="n">สะสม</th></tr></thead><tbody></tbody></table>
-<p style="margin-top:10px"><button class="btn2" id="copyShop">คัดลอกรายการที่ต้องซื้อรอบนี้</button></p>
+<p style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn2" id="copyShop">คัดลอกรายการที่ต้องซื้อรอบนี้</button><button class="btn2" id="elec">⚡ ดึงยอดงานไฟฟ้า</button></p>
 </section>
 </main>
 
@@ -251,7 +251,7 @@ function preset(){
  [['pAnc',3],['pScr',60],['pGlue',90],['pPrim',450],['pPaint',550],['pPolyAcc',30]].forEach(([k,v])=>{if(!num($(k).value))set(k,v)});
  doors=[{w:0.8,h:1.75,q:1,p:1990,f:720,hw:350}];
  wins=[];
- exts=[{n:'เครื่องมือ (คีมย้ำ กรรไกร ดอกสว่าน)',q:1,p:800,tier:1},{n:'ผนังกั้นใน 2.5 ม. (สมาร์ทบอร์ด 4 + เหล็ก 6 เส้น)',q:1,p:1250,tier:1},{n:'คันปูนกันน้ำ หัวห้อง 2 ด้าน (ฝนสาด)',q:1,p:600,tier:1},{n:'น้ำยากันปลวก',q:1,p:400,tier:1},{n:'ทุบผนังเดิมทำทางเข้าหลัก + คิ้วเก็บขอบช่อง',q:1,p:500,tier:1},{n:'งานไฟฟ้า (สาย ท่อ ปลั๊ก RCBO)',q:1,p:3000,tier:2},{n:'พื้น SPC 19.5 ตร.ม.',q:1,p:5850,tier:3}];
+ exts=[{n:'เครื่องมือ (คีมย้ำ กรรไกร ดอกสว่าน)',q:1,p:800,tier:1},{n:'ผนังกั้นใน 2.5 ม. (สมาร์ทบอร์ด 4 + เหล็ก 6 เส้น)',q:1,p:1250,tier:1},{n:'คันปูนกันน้ำ หัวห้อง 2 ด้าน (ฝนสาด)',q:1,p:600,tier:1},{n:'น้ำยากันปลวก',q:1,p:400,tier:1},{n:'ทุบผนังเดิมทำทางเข้าหลัก + คิ้วเก็บขอบช่อง',q:1,p:500,tier:1},{n:'งานไฟฟ้า (สาย ท่อ ปลั๊ก RCBO)',q:1,p:(()=>{try{return Math.round(+localStorage.getItem('torteum_elec_total'))||3000}catch(e){return 3000}})(),tier:2},{n:'พื้น SPC 19.5 ตร.ม.',q:1,p:5850,tier:3}];
  render();calc();
  const ts=$('toast');ts.textContent='ใส่ข้อมูลแล้ว · ราคาที่ไม่ได้สำรวจเป็นตัวเลขประมาณ แก้ได้';ts.classList.add('show');setTimeout(()=>ts.classList.remove('show'),2600);
  $('plan').scrollIntoView({behavior:'smooth'});
@@ -343,6 +343,9 @@ document.addEventListener('click',e=>{const t=e.target;
  if(t.dataset.add==='door'){doors.push({w:0.8,h:2,q:1,p:0,f:0,hw:0});render();calc()}
  if(t.dataset.add==='win'){wins.push({w:1.2,h:1.1,q:1,p:0,hw:0});render();calc()}
  if(t.id==='preset'){preset();return}
+ if(t.id==='elec'){let v=0;try{v=+localStorage.getItem('torteum_elec_total')||0}catch(err){}const ts=$('toast');
+  if(!v){ts.textContent='ยังไม่มียอด เปิดหน้า "งานไฟฟ้า" ก่อน';}else{const e=exts.find(x=>/งานไฟฟ้า/.test(x.n));if(e){e.p=Math.round(v);e.n='งานไฟฟ้า (จากหน้างานไฟฟ้า)'}else exts.push({n:'งานไฟฟ้า (จากหน้างานไฟฟ้า)',q:1,p:Math.round(v),tier:1});render();calc();ts.textContent='ใส่ยอดงานไฟฟ้า '+Math.round(v).toLocaleString('th-TH')+' บาท แล้ว'}
+  ts.classList.add('show');setTimeout(()=>ts.classList.remove('show'),2200);return}
  if(t.id==='copyShop'){(async()=>{let ok=false;try{await navigator.clipboard.writeText(shopText);ok=true}catch(err){}const ts=$('toast');ts.textContent=ok?'คัดลอกรายการแล้ว':'คัดลอกไม่ได้ในหน้านี้';ts.classList.add('show');setTimeout(()=>ts.classList.remove('show'),1600)})();return}
  if(t.dataset.add==='ext'){exts.push({n:'',q:1,p:0,tier:2});render();calc()}
  if(t.dataset.del){A[t.dataset.del]().splice(+t.dataset.i,1);render();calc()}

@@ -29,8 +29,9 @@ input:focus,select:focus{outline:2px solid var(--acc);border-color:transparent}
 .legend{display:flex;flex-wrap:wrap;gap:10px;font-size:13px;color:var(--mute);margin:8px 2px}
 .legend i{display:inline-block;width:16px;height:4px;border-radius:2px;margin-right:4px;vertical-align:middle}
 .pt{display:grid;grid-template-columns:30px 1.4fr 1fr 1fr 1fr 30px;gap:6px;align-items:end;border-bottom:1px dashed var(--line);padding:6px 0}
+.dr{display:grid;grid-template-columns:1.3fr 1.3fr .8fr .8fr 30px;gap:6px;align-items:end;border-bottom:1px dashed var(--line);padding:6px 0}.dr input,.dr select{font-size:14px;padding:6px}
 .pt .ic{font-size:20px;text-align:center;padding-bottom:6px}.pt input,.pt select{font-size:14px;padding:6px}
-.pt .del{border:none;background:none;color:var(--mute);font-size:20px;cursor:pointer;padding-bottom:6px}
+.pt .del,.dr .del{border:none;background:none;color:var(--mute);font-size:20px;cursor:pointer;padding-bottom:6px}
 .add{font:inherit;font-size:14px;border:1px solid var(--acc);color:var(--acc);background:var(--acc2);border-radius:9px;padding:6px 10px;cursor:pointer}
 .btn{font:inherit;background:var(--acc);color:#fff;border:none;border-radius:10px;padding:10px 14px;cursor:pointer}
 .btn2{font:inherit;font-size:14px;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:7px 12px;cursor:pointer}
@@ -73,6 +74,12 @@ h3.th{font-size:15.5px;margin:16px 0 6px;color:var(--acc)}
 <div class="legend"><span><i style="background:var(--li);opacity:.6"></i>- - สายทราเวลเลอร์ สวิตช์ 2 ทาง</span><span><i style="background:var(--li)"></i>วงจรไฟแสงสว่าง</span><span><i style="background:var(--ou)"></i>วงจรปลั๊ก</span><span><i style="background:var(--ac)"></i>วงจรแอร์</span><span><i style="background:var(--fe)"></i>สายจากตู้ไฟ</span></div>
 <p class="note">มองจากด้านบน · ผนังเดิมอยู่ด้านบนของแปลน · ตัวเลขข้างจุด = ความสูงจากพื้น (ซม.) · ท่อเดินตามตงเพดาน แล้วทิ้งลงตามเสา C · แตะแปลนเพื่อขยาย</p>
 <div id="msgs"></div>
+</section>
+
+<section class="card">
+<h2>ประตู / ทางเข้า <span><button class="add" id="addDoor">+ ประตู</button> <button class="btn2" id="resetDoor">ค่าเริ่มต้น</button></span></h2>
+<div class="note">เลือกผนัง แล้วใส่ "เริ่มที่" = ระยะจากมุมห้อง (ซม.) · ผนังยาว วัดจากหัวห้องด้านบน (x 0–780) · ผนังสั้น/ผนังกั้น วัดจากผนังเดิม (0–250) · กด × เพื่อลบ</div>
+<div id="doors"></div>
 </section>
 
 <section class="card">
@@ -220,8 +227,27 @@ h3.th{font-size:15.5px;margin:16px 0 6px;color:var(--acc)}
 <script>
 const $=id=>document.getElementById(id);
 const KEY='torteum_elec_v1';
-const RL=780,RW=250,PX=520,DOOR=[20,100],ENTRY=[300,400];
-const J={x:350,z:0}; // จุดรับสายจากตู้ไฟ (บนตง เหนือทางเข้า)
+const RL=780,RW=250,PX=520;
+const WALLS={old:'ผนังเดิม (ด้านยาว)',new:'ผนังใหม่ (ด้านยาว)',top:'หัวห้อง ด้านบน',bot:'หัวห้อง ด้านล่าง',part:'ผนังกั้นห้องเล็ก'};
+const WLEN={old:RL,new:RL,top:RW,bot:RW,part:RW};
+const DEF_DOORS=()=>[{n:'ทางเข้าหลัก (ทุบผนัง)',w:'old',p:300,d:100},{n:'ประตูห้องเล็ก',w:'part',p:20,d:80}];
+let doors=DEF_DOORS();
+let J={x:350,z:0}; // จุดรับสายจากตู้ไฟ (บนตง เหนือทางเข้า)
+function setJ(){const d=doors.find(d=>d.w==='old');J={x:d?Math.round(d.p+d.d/2):350,z:0}}
+function renderDoors(){$('doors').innerHTML=doors.length?doors.map((d,i)=>`<div class="dr" data-d="${i}">
+ <div><label>ชื่อ</label><input data-k="n" value="${d.n}"></div>
+ <div><label>ผนัง</label><select data-k="w">${Object.entries(WALLS).map(([k,v])=>`<option value="${k}" ${k===d.w?'selected':''}>${v}</option>`).join('')}</select></div>
+ <div><label>เริ่มที่</label><input type="number" data-k="p" value="${d.p}"></div>
+ <div><label>กว้าง</label><input type="number" data-k="d" value="${d.d}"></div>
+ <button class="del" data-deld="${i}">×</button></div>`).join(''):'<div class="note">ยังไม่มีประตู</div>'}
+function doorMsgs(msgs){
+ doors.forEach(d=>{const L=WLEN[d.w];if(d.p<0||d.p+d.d>L)msgs.push(['e',`${d.n}: เกินความยาวผนัง (ผนังนี้ยาว ${L} ซม.)`]);
+  if(d.w!=='old'&&d.d>90)msgs.push(['w',`${d.n}: กว้าง ${d.d} ซม. เกินประตูมาตรฐาน (70–90 ซม.)`]);
+  if((d.w==='top'||d.w==='bot'))msgs.push(['w',`${d.n}: ผนังหัวห้องโดนฝนสาด ต้องทำกันสาด/ธรณีกันน้ำ`]);
+  if(d.w==='new'||d.w==='old'){[0,260,520,780].forEach(x=>{if(d.w==='new'&&x>d.p&&x<d.p+d.d)msgs.push(['e',`${d.n}: ทับเสาบ้านที่ x ${x} ย้ายให้อยู่ระหว่างเสา`])});
+   if(d.p<PX&&d.p+d.d>PX)msgs.push(['e',`${d.n}: คร่อมแนวผนังกั้น x ${PX}`])}
+  pts.forEach(p=>{const on=(d.w==='old'&&p.z<=5&&p.x>=d.p&&p.x<=d.p+d.d)||(d.w==='new'&&p.z>=RW-5&&p.x>=d.p&&p.x<=d.p+d.d)||(d.w==='top'&&p.x<=5&&p.z>=d.p&&p.z<=d.p+d.d)||(d.w==='bot'&&p.x>=RL-5&&p.z>=d.p&&p.z<=d.p+d.d)||(d.w==='part'&&Math.abs(p.x-PX)<=10&&p.z>=d.p&&p.z<=d.p+d.d);
+   if(on&&p.t!=='light')msgs.push(['w',`${p.n}: อยู่ในช่องประตู "${d.n}" ย้ายไปข้าง ๆ`])})})}
 const DEF_PTS=()=>[
  {t:'light',x:130,z:125,y:185,n:'โคม ห้องใหญ่ 1',s:'S1'},
  {t:'light',x:390,z:125,y:185,n:'โคม ห้องใหญ่ 2',s:'S1'},
@@ -238,8 +264,8 @@ let pts=DEF_PTS();
 const DEFP={W15:12,W25:17.5,W4:30,C16:42,C20:36,CPL:5,BOX:25,CLIP:2,GLUE:60,CONN:3,OUT:140,SW:85,LED:250,MCB:150,RCBO:600,ACB:350,ACI:250,ROD:650,CU:1500,MISC:350,SW2:120,WAGO:12};
 let price={...DEFP};
 const n=v=>{const x=parseFloat(v);return isFinite(x)?x:0},r1=v=>Math.round(v*10)/10,fmt=v=>Math.round(v).toLocaleString('th-TH');
-function save(extra){try{const o={pts,price};['feed','H','waste','cd'].forEach(i=>o[i]=$(i).value);['lg','ac','rod','cu'].forEach(i=>o[i]=$(i).checked);localStorage.setItem(KEY,JSON.stringify(o));if(extra!=null)localStorage.setItem('torteum_elec_total',String(extra))}catch(e){}}
-function load(){try{const o=JSON.parse(localStorage.getItem(KEY));if(!o)return;if(o.pts)pts=o.pts;price={...DEFP,...(o.price||{})};['feed','H','waste','cd'].forEach(i=>{if(o[i]!=null)$(i).value=o[i]});['lg','ac','rod','cu'].forEach(i=>{if(o[i]!=null)$(i).checked=o[i]})}catch(e){}}
+function save(extra){try{const o={pts,price,doors};['feed','H','waste','cd'].forEach(i=>o[i]=$(i).value);['lg','ac','rod','cu'].forEach(i=>o[i]=$(i).checked);localStorage.setItem(KEY,JSON.stringify(o));if(extra!=null)localStorage.setItem('torteum_elec_total',String(extra))}catch(e){}}
+function load(){try{const o=JSON.parse(localStorage.getItem(KEY));if(!o)return;if(o.pts)pts=o.pts;if(Array.isArray(o.doors))doors=o.doors;price={...DEFP,...(o.price||{})};['feed','H','waste','cd'].forEach(i=>{if(o[i]!=null)$(i).value=o[i]});['lg','ac','rod','cu'].forEach(i=>{if(o[i]!=null)$(i).checked=o[i]})}catch(e){}}
 const ICON={light:'💡',sw:'🔘',out:'🔌',acp:'❄️',sw2:'🔁'};
 function renderPts(){
  const sws=pts.filter(p=>p.t==='sw').map(p=>p.n);
@@ -255,9 +281,10 @@ const man=(a,b)=>Math.abs(a.x-b.x)+Math.abs(a.z-b.z);
 function chain(nodes,start){const left=[...nodes],ord=[];let cur=start;while(left.length){let bi=0;left.forEach((p,i)=>{if(man(cur,p)<man(cur,left[bi]))bi=i});cur=left.splice(bi,1)[0];ord.push(cur)}return ord}
 function crossesPartition(a,b){return (a.x<PX)!==(b.x<PX)}
 function calc(){
+ setJ();
  const H=n($('H').value)||185,feed=n($('feed').value),wf=1+n($('waste').value)/100,ac=$('ac').checked;
  const lights=pts.filter(p=>p.t==='light'),sws=pts.filter(p=>p.t==='sw'),outs=pts.filter(p=>p.t==='out'),acp=pts.find(p=>p.t==='acp');
- const msgs=[];
+ const msgs=[];doorMsgs(msgs);
  // วงจรไฟ: สวิตช์ + โคม
  const lNodes=chain([...sws,...lights],J);let lh=0,ldrop=0,prev=J;const lPath=[J];
  lNodes.forEach(p=>{lh+=man(prev,p);lPath.push(p);prev=p;if(p.t==='sw')ldrop+=H-p.y});
@@ -338,18 +365,24 @@ function draw(lPath,oPath,acPath,feed,twPaths=[]){
  let g=`<svg viewBox="0 0 ${W} ${Hh}" font-size="20">`;
  // ห้อง
  g+=`<rect x="${X(0)}" y="${Y(0)}" width="${RL}" height="${RW}" fill="var(--card)"/>`;
- g+=`<rect x="${X(-8)}" y="${Y(-14)}" width="${ENTRY[0]+8}" height="14" fill="var(--mute)" opacity=".55"/><rect x="${X(ENTRY[1])}" y="${Y(-14)}" width="${RL-ENTRY[1]+8}" height="14" fill="var(--mute)" opacity=".55"/>`;
- g+=`<text x="${X((ENTRY[0]+ENTRY[1])/2)}" y="${Y(-20)}" text-anchor="middle" fill="var(--acc)" font-weight="700">ทางเข้า</text><text x="${X(160)}" y="${Y(-20)}" text-anchor="middle" fill="var(--mute)">ผนังเดิม</text>`;
- g+=`<rect x="${X(-8)}" y="${Y(0)}" width="8" height="${RW}" fill="var(--line)"/><rect x="${X(RL)}" y="${Y(0)}" width="8" height="${RW}" fill="var(--line)"/><rect x="${X(0)}" y="${Y(RW)}" width="${RL}" height="8" fill="var(--line)"/>`;
+ // ผนัง + ช่องประตู
+ const wallG={old:{h:1,z0:-14,t:14,fill:'var(--mute)',op:.55,a0:-8,a1:RL+8},new:{h:1,z0:RW,t:8,fill:'var(--line)',a0:0,a1:RL},top:{h:0,x0:-8,t:8,fill:'var(--line)',a0:0,a1:RW},bot:{h:0,x0:RL,t:8,fill:'var(--line)',a0:0,a1:RW},part:{h:0,x0:PX-4,t:8,fill:'var(--line)',a0:0,a1:RW}};
+ const DIR={old:1,new:-1,top:1,bot:-1,part:-1},LINE={old:0,new:RW,top:0,bot:RL,part:PX};
+ Object.entries(wallG).forEach(([k,w])=>{const gaps=doors.filter(d=>d.w===k).map(d=>[Math.max(w.a0,d.p),Math.min(w.a1,d.p+d.d)]).sort((a,b)=>a[0]-b[0]);
+  let cur=w.a0;const segs=[];gaps.forEach(([p,q])=>{if(p>cur)segs.push([cur,p]);cur=Math.max(cur,q)});if(cur<w.a1)segs.push([cur,w.a1]);
+  segs.forEach(([p,q])=>{g+=w.h?`<rect x="${X(p)}" y="${Y(w.z0)}" width="${q-p}" height="${w.t}" fill="${w.fill}" opacity="${w.op||1}"/>`:`<rect x="${X(w.x0)}" y="${Y(p)}" width="${w.t}" height="${q-p}" fill="${w.fill}"/>`})});
+ doors.forEach(d=>{const dir=DIR[d.w],L0=LINE[d.w],p=d.p,q=d.p+d.d,r=d.d;
+  if(d.w==='old'){g+=`<text x="${X((p+q)/2)}" y="${Y(-20)}" text-anchor="middle" fill="var(--acc)" font-weight="700">${d.n.length>14?'ทางเข้า':d.n}</text>`;return}
+  if(d.w==='new'){const hx=X(p),hy=Y(L0),ex=X(p),ey=Y(L0+dir*r);g+=`<line x1="${hx}" y1="${hy}" x2="${ex}" y2="${ey}" stroke="var(--acc)" stroke-width="3"/><path d="M${X(q)} ${hy} A${r} ${r} 0 0 ${dir>0?1:0} ${ex} ${ey}" fill="none" stroke="var(--mute)" stroke-dasharray="3 3"/>`}
+  else{const hx=X(L0),hy=Y(q),ex=X(L0+dir*r),ey=Y(q);g+=`<line x1="${hx}" y1="${hy}" x2="${ex}" y2="${ey}" stroke="var(--acc)" stroke-width="3"/><path d="M${hx} ${Y(p)} A${r} ${r} 0 0 ${dir>0?1:0} ${ex} ${ey}" fill="none" stroke="var(--mute)" stroke-dasharray="3 3"/>`}});
+ g+=`<text x="${X(doors.some(d=>d.w==='old'&&d.p<220)?560:160)}" y="${Y(-20)}" text-anchor="middle" fill="var(--mute)">ผนังเดิม</text>`;
  [0,260,520,780].forEach(x=>g+=`<rect x="${X(x)-7}" y="${Y(RW)-3}" width="14" height="14" fill="#8a6440"/>`);
- g+=`<rect x="${X(PX)-4}" y="${Y(0)}" width="8" height="${DOOR[0]}" fill="var(--line)"/><rect x="${X(PX)-4}" y="${Y(DOOR[1])}" width="8" height="${RW-DOOR[1]}" fill="var(--line)"/>`;
- g+=`<path d="M${X(PX)} ${Y(DOOR[1])} A80 80 0 0 0 ${X(PX-80)} ${Y(DOOR[0])}" fill="none" stroke="var(--mute)" stroke-dasharray="3 3"/>`;
  g+=`<rect x="${X(277)}" y="${Y(190)}" width="225" height="60" fill="none" stroke="var(--mute)" stroke-dasharray="4 3"/><text x="${X(390)}" y="${Y(225)}" text-anchor="middle" fill="var(--mute)">ตู้เสื้อผ้า</text>`;
  g+=`<rect x="${X(80)}" y="${Y(205)}" width="100" height="45" fill="none" stroke="var(--mute)" stroke-dasharray="4 3"/><text x="${X(130)}" y="${Y(232)}" text-anchor="middle" fill="var(--mute)" font-size="16">โต๊ะแป้ง</text>`;
  g+=`<text x="${X(260)}" y="${Y(160)}" text-anchor="middle" fill="var(--mute)" font-size="24" opacity=".7">ห้องใหญ่</text><text x="${X(650)}" y="${Y(200)}" text-anchor="middle" fill="var(--mute)" font-size="24" opacity=".7">ห้องเล็ก</text>`;
  // เส้นทาง
  const poly=(path,col,off)=>{let d='';path.forEach((p,i)=>{const x=X(p.x)+off,y=Y(p.z)+off;if(i===0)d+=`M${x} ${y}`;else{const q=path[i-1];d+=` L${X(p.x)+off} ${Y(q.z)+off} L${x} ${y}`}});return `<path d="${d}" fill="none" stroke="${col}" stroke-width="3" stroke-linejoin="round" opacity=".85"/>`};
- g+=`<line x1="${X(J.x)}" y1="${Y(J.z)}" x2="${X(J.x)}" y2="${Y(-50)}" stroke="var(--fe)" stroke-width="4" stroke-dasharray="7 4"/><text x="${X(J.x)+8}" y="${Y(-40)}" fill="var(--fe)" font-weight="700">ไปตู้ไฟ ${feed} ม.</text>`;
+ g+=`<line x1="${X(J.x)}" y1="${Y(J.z)}" x2="${X(J.x)}" y2="${Y(-50)}" stroke="var(--fe)" stroke-width="4" stroke-dasharray="7 4"/><text x="${X(J.x)+8}" y="${Y(-48)}" fill="var(--fe)" font-weight="700">ไปตู้ไฟ ${feed} ม.</text>`;
  twPaths.forEach(([a,b])=>{g+=`<path d="M${X(a.x)} ${Y(a.z)} L${X(b.x)} ${Y(a.z)} L${X(b.x)} ${Y(b.z)}" fill="none" stroke="var(--li)" stroke-width="3" stroke-dasharray="8 5"/>`});
  g+=poly(lPath,'var(--li)',-3);g+=poly(oPath,'var(--ou)',3);if(acPath)g+=poly(acPath,'var(--ac)',7);
  g+=`<rect x="${X(J.x)-8}" y="${Y(J.z)-8}" width="16" height="16" fill="var(--card)" stroke="var(--ink)" stroke-width="2"/>`;
@@ -366,6 +399,7 @@ function draw(lPath,oPath,acPath,feed,twPaths=[]){
 document.addEventListener('input',e=>{const t=e.target;
  if(t.dataset.p){price[t.dataset.p]=n(t.value);let tot=0;window._items.forEach(([g,k,name,q],i)=>{const c=n(price[k])*q;tot+=c;const el=document.querySelector(`[data-c="${i}"]`);if(el)el.textContent=fmt(c)});
   document.querySelectorAll(`[data-p="${t.dataset.p}"]`).forEach(x=>{if(x!==t)x.value=t.value});$('bt').textContent=fmt(tot);$('grand').textContent=fmt(tot)+' บาท';save(tot);return}
+ const dr=t.closest('.dr');if(dr){const d=doors[+dr.dataset.d],k=t.dataset.k;d[k]=k==='p'||k==='d'?n(t.value):t.value;calc();return}
  const row=t.closest('.pt');if(row){const p=pts[+row.dataset.i],k=t.dataset.k;p[k]=k==='x'||k==='z'||k==='y'?n(t.value):t.value;
   if(p.t==='sw'&&k==='n'){/* อัปเดตชื่อสวิตช์ในโคม */}}
  calc()});
@@ -374,12 +408,15 @@ document.addEventListener('click',e=>{const t=e.target;
  if(t.dataset.del!=null){pts.splice(+t.dataset.del,1);renderPts();calc();return}
  if(t.dataset.add){const k=t.dataset.add;const swn='S'+(pts.filter(p=>p.t==='sw').length+1);const sw1=(pts.find(p=>p.t==='sw')||{}).n||'';
   pts.push(k==='light'?{t:'light',x:260,z:125,y:185,n:'โคม '+(pts.filter(p=>p.t==='light').length+1),s:sw1}:k==='sw'?{t:'sw',x:300,z:0,y:120,n:swn,s:''}:k==='sw2'?{t:'sw2',x:240,z:250,y:120,n:'สวิตช์ 2 ทาง หัวนอน',s:sw1}:{t:'out',x:200,z:0,y:30,n:'ปลั๊ก '+(pts.filter(p=>p.t==='out').length+1),s:''});renderPts();calc();return}
+ if(t.dataset.deld!=null){doors.splice(+t.dataset.deld,1);renderDoors();calc();return}
+ if(t.id==='addDoor'){doors.push({n:'ประตู '+(doors.length+1),w:'new',p:60,d:80});renderDoors();calc();return}
+ if(t.id==='resetDoor'){doors=DEF_DOORS();renderDoors();calc();return}
  if(t.id==='reset'){pts=DEF_PTS();renderPts();calc();return}
  const d=t.closest('.draw');if(d){d.classList.toggle('zoom');return}
  if(t.id==='toBudget'){save(n($('bt').textContent.replace(/,/g,'')));t.textContent='ส่งแล้ว ✓ เปิดหน้าคำนวณ → แผนซื้อ แล้วกด "⚡ ดึงยอดงานไฟฟ้า"';return}
  if(t.id==='copyAll'||t.id==='copyList'){(async()=>{let ok=false;try{await navigator.clipboard.writeText(window._sum);ok=true}catch(err){}const o=t.textContent;t.textContent=ok?'คัดลอกแล้ว ✓':'คัดลอกไม่ได้';setTimeout(()=>t.textContent=o,1500)})()}
 });
-load();renderPts();calc();
+load();renderDoors();renderPts();calc();
 </script>
 </body>
 </html>

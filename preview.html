@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#c2410c">
+<title>ภาพห้องเสร็จ 3D</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#1f2328;--mute:#6b6f76;--acc:#c2410c;--card:rgba(255,255,255,.92);--line:#e3e0d8}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden;font-family:Sarabun,system-ui,sans-serif;background:#e9e5dc;color:var(--ink)}
+#c{position:fixed;inset:0;touch-action:none}
+.bar{position:fixed;left:0;right:0;top:0;padding:8px 10px calc(8px);display:flex;align-items:center;gap:8px;background:linear-gradient(#e9e5dcf2,#e9e5dc00)}
+.bar a{color:var(--acc);text-decoration:none;font-size:14px;white-space:nowrap}
+.bar h1{font-size:16px;margin:0;flex:1}
+.views{position:fixed;left:0;right:0;bottom:0;padding:8px 8px calc(10px + env(safe-area-inset-bottom));background:linear-gradient(#e9e5dc00,#e9e5dcf5 30%)}
+.row{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;scrollbar-width:none}
+.row button{flex:none;font:inherit;font-size:14px;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:99px;padding:7px 13px;cursor:pointer}
+.row button.on{background:var(--acc);border-color:var(--acc);color:#fff}
+.tip{position:fixed;top:44px;left:10px;right:10px;background:var(--card);border-radius:12px;padding:8px 12px;font-size:13.5px;line-height:1.45;box-shadow:0 2px 10px #0001;transition:opacity .4s}
+.tip b{color:var(--acc)}
+.legend{font-size:12px;color:var(--mute);margin-top:4px;display:flex;flex-wrap:wrap;gap:8px}
+.legend i{display:inline-block;width:12px;height:10px;border-radius:2px;margin-right:3px;vertical-align:middle}
+#err{position:fixed;inset:0;display:none;place-items:center;text-align:center;padding:30px;background:#e9e5dc}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div class="bar"><a href="./">← หน้าหลัก</a><h1>ภาพห้องเสร็จ 3D</h1><a href="furniture.html">ตู้/โต๊ะ</a></div>
+<div class="tip" id="tip"></div>
+<div class="views">
+ <div class="row" id="views">
+  <button data-v="all" class="on">🏠 มุมรวม</button>
+  <button data-v="out">🌳 ด้านนอก</button>
+  <button data-v="ward">👕 ตู้เสื้อผ้า</button>
+  <button data-v="dress">🪞 โต๊ะเครื่องแป้ง</button>
+  <button data-v="small">🚪 ห้องเล็ก</button>
+  <button data-v="entry">⬅ ทางเข้า</button>
+ </div>
+ <div class="row">
+  <button id="tCur">ม่าน: ปิด</button>
+  <button id="tX">มองทะลุผนัง (เห็นโครง)</button>
+  <button id="tCeil">แสดงเพดาน</button>
+  <button id="tSpin">หมุนอัตโนมัติ</button>
+ </div>
+</div>
+<div id="err">ไม่สามารถแสดงภาพ 3D บนเครื่องนี้ได้ (WebGL ใช้ไม่ได้)</div>
+<script src="vendor/three.min.js"></script>
+<script src="vendor/OrbitControls.js"></script>
+<script>
+/* หน่วย = ซม. · x ตามแนวยาวห้อง 0→780 · z จากผนังเดิม (0) → ผนังใหม่ (250) · y สูง */
+const TIPS={
+ all:'<b>ห้องใต้ถุน 2.5 × 7.8 ม. สูง 1.85 ม.</b> ผนังเดิมด้านหลัง · ผนังเบาใหม่ด้านหน้า + หัวห้อง 2 ด้าน · ผนังกั้นห้องเล็กพร้อมประตู · ลากนิ้วหมุน ถ่างนิ้วซูม',
+ out:'<b>มองจากลาน</b> ผนังเบาสมาร์ทบอร์ด · ช่วงบนโพลีคาร์บอเนต (สีฟ้า) เฉพาะหัวห้องด้านบน + ช่วงเสาที่ติดกัน · ที่เหลือทึบ · คันปูนกันฝนที่หัวห้อง',
+ ward:'<b>ตู้โครงเหล็ก 225 × 182 × 60</b> ในช่องเสา 230 ซม. ราวแขวนสูง 167 ซม. ปิดด้วยผ้าม่าน · กด "ม่าน" เพื่อเปิด/ปิด',
+ dress:'<b>โต๊ะเครื่องแป้งกล่อง 100 × 45 × 75</b> ใต้ช่วงแสงโพลีคาร์บอเนต กระจกติดผนัง ลิ้นชักพลาสติกใต้โต๊ะ',
+ small:'<b>ห้องเล็ก 2.6 × 2.5 ม.</b> ผนังกั้นยาว 1.5 ม. + ประตู 80 × 175 ซม. ห่างผนังเดิม 20 ซม.',
+ entry:'<b>ทางเข้าหลัก</b> ทุบผนังเดิมออก 1 ช่อง (ตำแหน่งในภาพเป็นตำแหน่งสมมติ) เก็บขอบด้วยคิ้ว'
+};
+let renderer;
+try{renderer=new THREE.WebGLRenderer({canvas:document.getElementById('c'),antialias:true});}catch(e){document.getElementById('err').style.display='grid';throw e}
+renderer.setPixelRatio(Math.min(2,window.devicePixelRatio));renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+renderer.outputEncoding=THREE.sRGBEncoding;
+const scene=new THREE.Scene();scene.background=new THREE.Color(0xe9e5dc);scene.fog=new THREE.Fog(0xe9e5dc,1400,3200);
+const camera=new THREE.PerspectiveCamera(50,1,5,6000);
+const controls=new THREE.OrbitControls(camera,renderer.domElement);controls.enableDamping=true;controls.target.set(390,80,125);controls.maxPolarAngle=Math.PI*0.495;controls.minDistance=60;controls.maxDistance=1800;
+scene.add(new THREE.HemisphereLight(0xffffff,0xb9a98f,0.75));
+const sun=new THREE.DirectionalLight(0xfff3dd,0.75);sun.position.set(-300,900,900);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);
+Object.assign(sun.shadow.camera,{left:-700,right:700,top:700,bottom:-700,near:100,far:3000});sun.target.position.set(390,0,125);scene.add(sun,sun.target);
+const inLight=new THREE.PointLight(0xfff1d6,0.35,700);inLight.position.set(260,170,125);scene.add(inLight);
+const M=(c,o={})=>new THREE.MeshStandardMaterial({color:c,roughness:o.r??0.85,metalness:o.m??0,transparent:o.t!=null,opacity:o.t??1,side:o.ds?THREE.DoubleSide:THREE.FrontSide});
+const MAT={board:M(0xe7e3da),boardX:M(0xe7e3da,{t:.18}),poly:M(0x9fd3ff,{t:.42,r:.2,ds:true}),wood:M(0x8a6440),wood2:M(0xb48a5e),floor:M(0xb8b4ab,{r:1}),ground:M(0xa9b08a,{r:1}),
+ old:M(0xf1ede4),steel:M(0x6b7280,{m:.5,r:.45}),track:M(0x0f766e,{m:.4,r:.5}),cur:M(0xe9d5b7,{ds:true}),top:M(0xc89f72),mirror:M(0xcfe6ff,{m:.15,r:.15}),curb:M(0x9ca3af),door:M(0x9a6b42),chrome:M(0xd1d5db,{m:1,r:.25})};
+const G={};const grp=n=>G[n]||(G[n]=Object.assign(new THREE.Group(),{name:n}),scene.add(G[n]),G[n]);
+function box(g,x0,x1,y0,y1,z0,z1,mat,cast=true){const m=new THREE.Mesh(new THREE.BoxGeometry(Math.max(.1,x1-x0),Math.max(.1,y1-y0),Math.max(.1,z1-z0)),mat);m.position.set((x0+x1)/2,(y0+y1)/2,(z0+z1)/2);m.castShadow=cast;m.receiveShadow=true;grp(g).add(m);return m}
+const H=185,BAND=125,TW=7.5; // ความสูงห้อง, ขอบล่างช่วงบน, ความหนาผนังเบา
+/* พื้น */
+box('base',-600,1400,-3,0,-300,900,MAT.ground,false);box('base',-20,800,0,1,-12,262,MAT.floor,false);
+/* ผนังเดิม z<0 พร้อมช่องทางเข้า x 300–400 */
+box('old',-20,300,0,H+15,-15,0,MAT.old);box('old',400,800,0,H+15,-15,0,MAT.old);box('old',300,400,180,H+15,-15,0,MAT.old);
+box('old',296,300,0,180,-17,1,MAT.wood2);box('old',400,404,0,180,-17,1,MAT.wood2);box('old',296,404,180,183,-17,1,MAT.wood2);
+/* เสาบ้าน */
+[0,260,520,780].forEach(x=>box('posts',x-8,x+8,0,H+15,250-8,250+8,MAT.wood));
+/* ตง + พื้นชั้นบน (ซ่อนได้) */
+for(let x=-10;x<=790;x+=50)box('ceil',x-3,x+3,H,H+15,-15,268,MAT.wood);box('ceil',-20,800,H+15,H+18,-15,268,MAT.wood2);
+/* ผนังเบาใหม่: ด้านยาว z=250 แบ่ง 3 ช่องเสา · หัวห้อง x=0 (ด้านบน) และ x=780 */
+function wall(name,axis,a0,a1,fixed,polyTop,inward){ // axis 'x' = ผนังวิ่งตามแนว x ที่ z=fixed
+ const w=grp(name);
+ const seg=(y0,y1,mat)=> axis==='x'?box(name,a0,a1,y0,y1,fixed,fixed+TW,mat):box(name,fixed-TW,fixed,y0,y1,a0,a1,mat);
+ const curb=axis==='x'?null:box(name,fixed-TW-3,fixed+3,0,12,a0,a1,MAT.curb);
+ seg(0,BAND,MAT.board);seg(BAND,H,polyTop?MAT.poly:MAT.board);
+ if(polyTop){/* ร่องลูกฟูก */for(let a=a0+6;a<a1;a+=6){axis==='x'?box(name,a,a+.3,BAND,H,fixed+TW-.5,fixed+TW+.2,MAT.poly,false):box(name,fixed-TW-.2,fixed-TW+.5,BAND,H,a,a+.3,MAT.poly,false)}}
+ // โครงเหล็กในผนัง (มองทะลุ)
+ for(let a=a0+2;a<=a1-2;a+=60){axis==='x'?box('studs',a-2,a+2,0,H,fixed+1.5,fixed+TW-1.5,MAT.steel,false):box('studs',fixed-TW+1.5,fixed-1.5,0,H,a-2,a+2,MAT.steel,false)}
+ axis==='x'?box('studs',a0,a1,BAND-2,BAND+2,fixed+1.5,fixed+TW-1.5,MAT.track,false):box('studs',fixed-TW+1.5,fixed-1.5,BAND-2,BAND+2,a0,a1,MAT.track,false);
+}
+wall('walls','x',8,252,250,true);wall('walls','x',268,512,250,false);wall('walls','x',528,772,250,false);
+wall('walls','z',0,242,0,true);wall('walls','z',0,242,780+TW,false);
+G.studs&&(G.studs.visible=false);
+/* ผนังกั้นห้องเล็ก x=520 ประตูที่ z 20–100 */
+box('part',516,523.5,0,H,0,20,MAT.board);box('part',516,523.5,0,H,100,242,MAT.board);box('part',516,523.5,176,H,20,100,MAT.board);
+box('part',515,524.5,0,176,19,21,MAT.wood2);box('part',515,524.5,0,176,99,101,MAT.wood2);box('part',515,524.5,175,177,19,101,MAT.wood2);
+const doorPivot=new THREE.Group();doorPivot.position.set(520,0,100);scene.add(doorPivot);
+const door=new THREE.Mesh(new THREE.BoxGeometry(3.5,174,79),MAT.door);door.position.set(0,87,-39.5);door.castShadow=true;doorPivot.add(door);
+const knob=new THREE.Mesh(new THREE.SphereGeometry(2.2,12,8),MAT.chrome);knob.position.set(-3,95,-72);doorPivot.add(knob);
+doorPivot.rotation.y=-1.0;
+/* ตู้โครงเหล็ก ในช่องเสา 2: x 277.5–502.5 z 190–250 */
+const WX0=277.5,WX1=502.5,WZ0=190,WZ1=249,WH=182,S=4;
+[WX0,(WX0+WX1)/2,WX1].forEach(x=>{box('ward',x-S/2,x+S/2,0,WH,WZ0,WZ0+S,MAT.steel);box('ward',x-S/2,x+S/2,0,WH,WZ1-S,WZ1,MAT.steel)});
+[0,WH-S].forEach(y=>{box('ward',WX0,WX1,y,y+S,WZ0,WZ0+S,MAT.track);box('ward',WX0,WX1,y,y+S,WZ1-S,WZ1,MAT.track);box('ward',WX0-S/2,WX0+S/2,y,y+S,WZ0,WZ1,MAT.track);box('ward',WX1-S/2,WX1+S/2,y,y+S,WZ0,WZ1,MAT.track)});
+box('ward',(WX0+WX1)/2-S/2,(WX0+WX1)/2+S/2,WH-S,WH,WZ0,WZ1,MAT.track);
+box('ward',WX0-2,WX1+2,WH,WH+1.6,WZ0-1,WZ1,MAT.top);
+const rail=new THREE.Mesh(new THREE.CylinderGeometry(1.3,1.3,WX1-WX0-4,16),MAT.chrome);rail.rotation.z=Math.PI/2;rail.position.set((WX0+WX1)/2,167,219);grp('ward').add(rail);
+const cols=[0x60a5fa,0xf87171,0x34d399,0xfbbf24,0xa78bfa,0xf472b6,0x94a3b8,0xffffff,0x1f2937];
+for(let x=WX0+8,i=0;x<WX1-6;x+=6.5,i++){const len=[95,110,70,150,100,80][i%6];const mat=M(cols[(i*7)%cols.length]);
+ const hanger=box('ward',x-.4,x+.4,162,167,205,233,MAT.chrome,false);box('ward',x-1.6,x+1.6,162-len,162,200,238,mat)}
+for(let x=WX0+10;x<WX1-10;x+=40)box('ward',x,x+30,0,14,WZ0+8,WZ1-8,M(0xf8fafc,{t:.85}));
+/* ผ้าม่าน */
+const curG=grp('curtain');let curOpen=false;
+function buildCurtain(){curG.clear();const x0=WX0-3,x1=curOpen?WX0+38:WX1+3,n=Math.max(6,Math.round((x1-x0)/(curOpen?4:7)));
+ const w=(x1-x0)/n;for(let i=0;i<n;i++){const m=new THREE.Mesh(new THREE.BoxGeometry(w*1.05,WH-8,1.2),MAT.cur);m.position.set(x0+w*(i+.5),(WH-8)/2+4,WZ0-4+(i%2?2.4:0));m.castShadow=true;curG.add(m)}
+ const tr=new THREE.Mesh(new THREE.BoxGeometry(WX1-WX0+8,1.5,2),MAT.steel);tr.position.set((WX0+WX1)/2,WH-1,WZ0-3);curG.add(tr)}
+buildCurtain();
+/* โต๊ะเครื่องแป้ง ช่อง 1 ใต้ช่วงโพลี: x 80–180 z 205–250 */
+const TX0=80,TX1=180,TZ0=204,TZ1=249.5;
+box('dress',TX0,TX1,73.4,75,TZ0,TZ1,MAT.top);box('dress',TX0,TX0+1.6,0,73.4,TZ0,TZ1,MAT.top);box('dress',TX1-1.6,TX1,0,73.4,TZ0,TZ1,MAT.top);
+box('dress',TX0+1.6,TX1-1.6,63.4,73.4,TZ1-1.6,TZ1,MAT.top);box('dress',TX0+1.6,TX1-1.6,10,11.6,TZ0+1,TZ1-1,MAT.top);
+box('dress',TX0+6,TX0+46,11.6,40,TZ0+5,TZ1-4,M(0xf8fafc,{t:.9}));box('dress',TX0+6,TX0+46,40.5,69,TZ0+5,TZ1-4,M(0xf8fafc,{t:.9}));
+box('dress',100,160,85,165,249,250,MAT.mirror);box('dress',99,161,84,166,249.6,250.2,MAT.wood2);
+const stool=new THREE.Mesh(new THREE.CylinderGeometry(17,15,45,24),M(0xd6c3a5));stool.position.set(130,22.5,170);stool.castShadow=true;grp('dress').add(stool);
+[[95,76,215,0xf9a8d4],[108,76,220,0xfde68a],[150,76,215,0xa7f3d0]].forEach(([x,y,z,c])=>{const b=new THREE.Mesh(new THREE.CylinderGeometry(2.2,2.2,10,12),M(c));b.position.set(x,y+5,z);grp('dress').add(b)});
+/* ป้ายห้อง (สติกเกอร์บนพื้น) */
+function label(text,x,z,size=26){const cv=document.createElement('canvas');cv.width=512;cv.height=128;const c=cv.getContext('2d');c.fillStyle='rgba(255,255,255,.0)';c.fillRect(0,0,512,128);c.font='700 64px Sarabun, sans-serif';c.fillStyle='#c2410c';c.textAlign='center';c.textBaseline='middle';c.fillText(text,256,64);
+ const tex=new THREE.CanvasTexture(cv);const m=new THREE.Mesh(new THREE.PlaneGeometry(size*4,size),new THREE.MeshBasicMaterial({map:tex,transparent:true}));m.rotation.set(-Math.PI/2,0,-Math.PI/2);m.position.set(x,1.5,z);scene.add(m)}
+label('ห้องใหญ่ 5.2 × 2.5 ม.',200,110,24);label('ห้องเล็ก',650,125,24);label('ทางเข้า',350,40,16);
+/* มุมกล้อง */
+const VIEWS={all:{p:[-330,620,560],t:[420,0,125]},out:{p:[-260,230,1000],t:[390,80,250]},ward:{p:[110,165,40],t:[390,95,215]},dress:{p:[300,130,70],t:[130,85,240]},small:{p:[610,360,40],t:[660,30,150]},entry:{p:[350,150,-300],t:[350,80,80]}};
+let anim=null;
+function go(v){const V=VIEWS[v];const p0=camera.position.clone(),t0=controls.target.clone(),p1=new THREE.Vector3(...V.p),t1=new THREE.Vector3(...V.t);const st=performance.now();
+ anim=now=>{const k=Math.min(1,(now-st)/900),e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;camera.position.lerpVectors(p0,p1,e);controls.target.lerpVectors(t0,t1,e);if(k>=1)anim=null};
+ document.querySelectorAll('#views button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));tip(TIPS[v]);
+ G.ceil.visible=ceilOn;
+ if(v==='ward'&&!curOpen){curOpen=true;buildCurtain();btnCur()}
+}
+let tipT;function tip(h){const el=document.getElementById('tip');el.innerHTML=h+'<div class="legend"><span><i style="background:#e7e3da;border:1px solid #ccc"></i>สมาร์ทบอร์ด</span><span><i style="background:#9fd3ff"></i>โพลีคาร์บอเนต</span><span><i style="background:#8a6440"></i>เสา/ตงไม้เดิม</span><span><i style="background:#6b7280"></i>โครงเหล็ก</span></div>';el.style.opacity=1;clearTimeout(tipT);tipT=setTimeout(()=>el.style.opacity=.0,7000)}
+/* ปุ่ม */
+let ceilOn=false,xray=false,spin=false;G.ceil.visible=false;
+const btnCur=()=>document.getElementById('tCur').textContent='ม่าน: '+(curOpen?'เปิด':'ปิด');
+document.getElementById('views').onclick=e=>{const b=e.target.closest('[data-v]');if(b)go(b.dataset.v)};
+document.getElementById('tCur').onclick=()=>{curOpen=!curOpen;buildCurtain();btnCur()};
+document.getElementById('tX').onclick=e=>{xray=!xray;G.studs.visible=xray;G.walls.children.forEach(m=>{if(m.material===MAT.board||m.material===MAT.boardX)m.material=xray?MAT.boardX:MAT.board});G.part.children.forEach(m=>{if(m.material===MAT.board||m.material===MAT.boardX)m.material=xray?MAT.boardX:MAT.board});e.target.classList.toggle('on',xray)};
+document.getElementById('tCeil').onclick=e=>{ceilOn=!ceilOn;G.ceil.visible=ceilOn;e.target.classList.toggle('on',ceilOn)};
+document.getElementById('tSpin').onclick=e=>{spin=!spin;controls.autoRotate=spin;controls.autoRotateSpeed=1.2;e.target.classList.toggle('on',spin)};
+document.getElementById('tip').onclick=e=>e.currentTarget.style.opacity=0;
+/* วนเรนเดอร์ */
+function resize(){const w=innerWidth,h=innerHeight;renderer.setSize(w,h,false);camera.aspect=w/h;camera.fov=w<h?62:50;camera.updateProjectionMatrix()}
+addEventListener('resize',resize);resize();
+camera.position.set(...VIEWS.all.p);controls.target.set(...VIEWS.all.t);tip(TIPS.all);
+renderer.setAnimationLoop(now=>{if(anim)anim(now);controls.update();renderer.render(scene,camera)});
+</script>
+</body>
+</html>

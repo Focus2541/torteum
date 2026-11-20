@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#c2410c">
+<title>ตู้โครงเหล็ก + โต๊ะเครื่องแป้ง</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f6f4ef;--card:#fff;--ink:#1f2328;--mute:#6b6f76;--line:#e3e0d8;--acc:#c2410c;--acc2:#fff3ea;--steel:#475569;--teal:#0f766e;--wood:#c89f72;--woodD:#8a6440;--cur:#e9d5b7;--warn:#fef3c7;--warnI:#92400e}
+@media (prefers-color-scheme:dark){:root{--bg:#16181b;--card:#202327;--ink:#eceae5;--mute:#9a9ea5;--line:#33373d;--acc:#fb923c;--acc2:#2c2219;--steel:#94a3b8;--teal:#2dd4bf;--wood:#8f6d48;--woodD:#c8a27a;--cur:#5b4a33;--warn:#3a2f12;--warnI:#fcd34d}}
+*{box-sizing:border-box}
+body{margin:0;font-family:Sarabun,system-ui,sans-serif;background:var(--bg);color:var(--ink);font-size:16px;line-height:1.5}
+.top{max-width:820px;margin:auto;padding:10px 16px 0;font-size:14px}.top a{color:var(--acc);text-decoration:none}
+header{max-width:820px;margin:auto;padding:6px 16px 4px}h1{font-size:22px;margin:0}header p{margin:4px 0 0;color:var(--mute);font-size:14px}
+main{max-width:820px;margin:auto;padding:4px 12px 110px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin:12px 0}
+.card h2{font-size:17px;margin:0 0 10px;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+label{display:block;font-size:13px;color:var(--mute)}
+input,select{width:100%;font:inherit;font-size:16px;padding:8px 9px;border:1px solid var(--line);border-radius:9px;background:var(--bg);color:var(--ink);margin-top:3px}
+input:focus,select:focus{outline:2px solid var(--acc);border-color:transparent}
+.tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0 4px}
+.tabs button{font:inherit;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:12px;padding:10px;cursor:pointer;font-weight:600}
+.tabs button.on{border-color:var(--acc);background:var(--acc2);color:var(--acc)}
+.sw{display:flex;align-items:center;gap:8px;font-size:14px;margin:8px 0 0}.sw input{width:20px;height:20px;margin:0}
+.draw{background:var(--bg);border-radius:12px;padding:6px;overflow-x:auto;cursor:zoom-in;margin-bottom:6px}
+.draw svg{width:100%;height:auto;display:block}.draw.zoom{cursor:zoom-out}.draw.zoom svg{width:1000px;max-width:none}
+.two{display:grid;grid-template-columns:3fr 1fr;gap:6px;align-items:start}
+.cap{font-size:13px;color:var(--mute);margin:2px 2px 10px}
+.msg{padding:8px 12px;border-radius:8px;margin:6px 0;font-size:14.5px}.msg.w{background:var(--warn);color:var(--warnI)}.msg.ok{background:var(--acc2)}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{border-bottom:1px solid var(--line);padding:6px 4px;text-align:left;vertical-align:top}th{color:var(--mute);font-weight:600}
+td.n{text-align:right;white-space:nowrap}td input{padding:5px 6px;font-size:15px;margin:0;width:88px;text-align:right}
+ol.steps{padding-left:22px;margin:4px 0}ol.steps li{margin:6px 0}
+.note{font-size:13px;color:var(--mute)}
+.btn{font:inherit;background:var(--acc);color:#fff;border:none;border-radius:10px;padding:10px 14px;cursor:pointer}
+.btn2{font:inherit;font-size:14px;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:7px 12px;cursor:pointer}
+.total{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);padding:10px 16px calc(10px + env(safe-area-inset-bottom))}
+.total .in{max-width:820px;margin:auto;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.total b{font-size:23px;color:var(--acc)}.total small{color:var(--mute);display:block;font-size:12px}
+svg text{font-family:Sarabun,sans-serif}
+.hide{display:none}
+</style>
+</head>
+<body>
+<div class="top"><a href="./">← หน้าหลัก</a> · <a href="preview.html">ดูภาพห้องเสร็จ 3D</a> · <a href="wardrobe.html">ตู้แผ่นไม้แบบมีช่อง</a></div>
+<header><h1>ตู้โครงเหล็ก + โต๊ะเครื่องแป้ง</h1><p>ตู้แขวนเสื้อแบบโครงสี่เหลี่ยม ปิดหน้าด้วยผ้าม่าน และโต๊ะเครื่องแป้งแบบกล่อง ทำเองด้วยเครื่องมือชุดเดิม</p></header>
+<main>
+<div class="tabs"><button data-t="wr" class="on">👕 ตู้โครงเหล็ก</button><button data-t="dt">🪞 โต๊ะเครื่องแป้ง</button></div>
+
+<!-- ตู้ -->
+<div id="wr">
+<section class="card">
+<h2>1. ขนาดตู้ (ซม.) <button class="btn2" id="myBay">ช่องเสาของฉัน 230</button></h2>
+<div class="grid">
+ <div><label>ช่องที่จะวาง กว้าง</label><input type="number" id="bay" value="230"></div>
+ <div><label>เพดานสูง</label><input type="number" id="ceil" value="185"></div>
+ <div><label>ลึก</label><input type="number" id="D" value="60"></div>
+ <div><label>เว้นข้างละ</label><input type="number" step="0.5" id="gapS" value="2.5"></div>
+ <div><label>เว้นใต้เพดาน</label><input type="number" step="0.5" id="gapT" value="3"></div>
+ <div><label>ผ้าม่าน</label><select id="cur"><option value="front">ปิดหน้าอย่างเดียว</option><option value="u">ปิดหน้า + 2 ข้าง (ราง U)</option><option value="none">ไม่มีม่าน</option></select></div>
+</div>
+<label class="sw"><input type="checkbox" id="topB" checked>มีแผ่นท็อป (ช่วยให้โครงแข็ง + กันฝุ่น)</label>
+<label class="sw"><input type="checkbox" id="botB">มีแผ่นพื้นในตู้ (วางกล่อง/รองเท้า)</label>
+<label class="sw"><input type="checkbox" id="showCur" checked>แสดงผ้าม่านในแบบ</label>
+</section>
+<section class="card">
+<h2>แบบตู้</h2>
+<div class="two"><div class="draw" id="wFront"></div><div class="draw" id="wSide"></div></div>
+<div class="cap">ซ้าย: ด้านหน้า · ขวา: ด้านข้าง · ตัวเลข = ระยะ ซม. · แตะเพื่อขยาย</div>
+<div id="wMsg"></div>
+</section>
+<section class="card"><h2>รายการตัด</h2><div id="wCut"></div></section>
+<section class="card"><h2>ขั้นตอนทำ</h2><ol class="steps" id="wSteps"></ol></section>
+</div>
+
+<!-- โต๊ะ -->
+<div id="dt" class="hide">
+<section class="card">
+<h2>1. ขนาดโต๊ะ (ซม.)</h2>
+<div class="grid">
+ <div><label>กว้าง</label><input type="number" id="tW" value="100"></div>
+ <div><label>ลึก</label><input type="number" id="tD" value="45"></div>
+ <div><label>สูง (รวมท็อป)</label><input type="number" id="tH" value="75"></div>
+ <div><label>ความหนาแผ่น (มม.)</label><select id="tT"><option selected>16</option><option>18</option><option>19</option></select></div>
+ <div><label>กระจกเงา กว้าง</label><input type="number" id="mW" value="60"></div>
+ <div><label>กระจกเงา สูง</label><input type="number" id="mH" value="80"></div>
+</div>
+<label class="sw"><input type="checkbox" id="shelf" checked>มีชั้นล่างวางของ</label>
+</section>
+<section class="card"><h2>แบบโต๊ะ</h2><div class="draw" id="tFront"></div><div class="cap">ด้านหน้า · กระจกติดผนังเหนือโต๊ะ · ใต้โต๊ะวางลิ้นชักพลาสติกได้</div><div id="tMsg"></div></section>
+<section class="card"><h2>รายการตัดแผ่น (ส่งร้าน)</h2><div id="tCut"></div></section>
+<section class="card"><h2>ขั้นตอนทำ</h2><ol class="steps" id="tSteps"></ol></section>
+</div>
+
+<section class="card"><h2>ของที่ต้องซื้อ + ราคา (กรอกเอง) <button class="btn2" id="copyList">คัดลอกรายการ</button></h2><div id="bom"></div>
+<p class="note">ราคาเริ่มต้นที่ใส่ไว้: เหล็ก 55 บาท/เส้น (ราคาที่สำรวจ) · ปาร์ติเกิล 669 บาท/แผ่น (HomePro) · ที่เหลือเป็นราคาประมาณ แก้ได้</p></section>
+</main>
+<div class="total"><div class="in"><div><small>รวม ตู้ + โต๊ะ</small><b id="grand">0 บาท</b><small id="sub"></small></div><button class="btn" id="copyAll">คัดลอกสรุป</button></div></div>
+<script>
+const $=id=>document.getElementById(id);
+const KEY='torteum_furniture_v1',T=4;
+const ids=['bay','ceil','D','gapS','gapT','cur','tW','tD','tH','tT','mW','mH'];const chk=['topB','botB','showCur','shelf'];
+const DEF={C:55,U:55,PB:669,RAIL:150,RSUP:60,TRK:100,FAB:120,SCR:80,LEG:15,EDGE:10,MIR:350,CUT:20};
+let price={...DEF},tab='wr';
+const n=v=>{const x=parseFloat(v);return isFinite(x)?x:0},r1=v=>Math.round(v*10)/10,fmt=v=>Math.round(v).toLocaleString('th-TH');
+const list=a=>a.map(x=>`<span style="font-family:ui-monospace,monospace;font-size:13px;background:var(--bg);padding:1px 5px;border-radius:5px">${x}</span>`).join(' ');
+function save(){try{const o={price,tab};ids.forEach(i=>o[i]=$(i).value);chk.forEach(i=>o[i]=$(i).checked);localStorage.setItem(KEY,JSON.stringify(o))}catch(e){}}
+function load(){try{const o=JSON.parse(localStorage.getItem(KEY));if(!o)return;price={...DEF,...(o.price||{})};tab=o.tab||'wr';ids.forEach(i=>{if(o[i]!=null)$(i).value=o[i]});chk.forEach(i=>{if(o[i]!=null)$(i).checked=o[i]})}catch(e){}}
+function pack(ps,bar){ps=[...ps].sort((a,b)=>b-a);const bars=[];ps.forEach(p=>{let b=bars.find(b=>b.left>=p);if(!b){b={left:bar,items:[]};bars.push(b)}b.items.push(p);b.left=r1(b.left-p)});return bars}
+
+/* ---------- ตู้โครงเหล็ก ---------- */
+function wardrobe(){
+ const bay=n($('bay').value),ceil=n($('ceil').value),D=n($('D').value),gS=n($('gapS').value),gT=n($('gapT').value),cur=$('cur').value;
+ const W=r1(bay-2*gS),H=r1(ceil-gT),msgs=[];
+ if(W<50||H<80||D<30)return{bad:true};
+ const bays=Math.max(1,Math.ceil(W/120));const bw=W/bays;
+ const xs=[];for(let i=0;i<=bays;i++)xs.push(r1(i===0?T/2:i===bays?W-T/2:i*bw));
+ const posts=xs.length*2;                                   // หน้า + หลัง
+ const railH=Math.min(170,H-15),railZ=30;
+ const C=Array(posts).fill(r1(H-1));
+ const U=[W,W,W,W,...Array(2).fill(D-0.5),...Array(2).fill(D-0.5),...Array(bays-1).fill(D-0.5)].map(r1); // บน/ล่าง หน้า-หลัง, ข้างบน/ล่าง, คานขวางกลางบน
+ // ล่าง: ขวางกลางด้วยถ้ามีแผ่นพื้น
+ if($('botB').checked)for(let i=1;i<bays;i++)U.push(r1(D-0.5));
+ const railLen=r1(W-1),railSup=bays+1;
+ const trk=cur==='none'?0:cur==='u'?r1(W+2*D):W,fab=r1(trk*1.8/100);
+ const boards=[];if($('topB').checked)boards.push({name:'แผ่นท็อปตู้',a:W,b:D});if($('botB').checked)boards.push({name:'แผ่นพื้นในตู้',a:r1(W-2*T),b:r1(D-2*T)});
+ const sheets=boards.length?Math.ceil(boards.length/2):0; // 2 ชิ้นยาว ≤ 240 ลึก ≤ 60 ต่อแผ่น 120×240
+ if(W>240&&boards.length)msgs.push(['w',`ตู้กว้าง ${W} ซม. เกินความยาวแผ่น 240 ซม. ต้องต่อแผ่นท็อป 2 ชิ้นบนคานขวางกลาง`]);
+ if(H-railH<15)msgs.push(['w','เหนือราวเหลือน้อยกว่า 15 ซม. ยกไม้แขวนเข้าออกลำบาก']);
+ if(D<55)msgs.push(['w','ลึกน้อยกว่า 55 ซม. ไม้แขวนเสื้อ (~45 ซม.) จะเบียดผ้าม่าน']);
+ if(!$('topB').checked)msgs.push(['w','ไม่มีแผ่นท็อป โครงจะโยกง่าย ควรใส่เหล็กเฉียงที่ด้านหลังตู้ หรือยึดตู้กับผนังให้แน่น']);
+ msgs.push(['ok',`👕 แขวนได้ยาว ~${r1(railH-5)} ซม. (เดรสยาว/เสื้อโค้ทได้) · ราวยาว ${railLen} ซม. มีตัวรับ ${railSup} จุด · แขวนได้ประมาณ ${Math.round(W/3)} ตัว`]);
+ const cb=pack(C,400),ub=pack(U.flatMap(l=>l>400?[l/2,l/2]:[l]),400);
+ return{W,H,D,bays,xs,posts,railH,railZ,railLen,railSup,trk,fab,boards,sheets,C,U,cb,ub,msgs,cur};
+}
+function wDraw(w){
+ const {W,H,xs}=w;const fs=Math.max(6,Math.max(W,H)/32);const ml=fs*2,mr=fs*4,mt=fs*3,mb=fs*3.4;const X=x=>ml+x,Y=y=>mt+H-y;
+ let g=`<svg viewBox="0 0 ${r1(W+ml+mr)} ${r1(H+mt+mb)}" font-size="${r1(fs)}">`;
+ g+=`<rect x="0" y="${Y(H)-6}" width="${W+ml+mr}" height="4" fill="var(--line)"/><line x1="0" y1="${Y(0)}" x2="${W+ml+mr}" y2="${Y(0)}" stroke="var(--mute)" stroke-width="${fs/6}"/>`;
+ if($('topB').checked)g+=`<rect x="${X(0)}" y="${Y(H)-1.6}" width="${W}" height="1.6" fill="var(--wood)" stroke="var(--woodD)" stroke-width=".3"/>`;
+ g+=`<rect x="${X(0)}" y="${Y(H)}" width="${W}" height="${T}" fill="var(--teal)"/><rect x="${X(0)}" y="${Y(T)}" width="${W}" height="${T}" fill="var(--teal)"/>`;
+ xs.forEach(x=>g+=`<rect x="${X(x-T/2)}" y="${Y(H)}" width="${T}" height="${H}" fill="var(--steel)"/>`);
+ if($('botB').checked)g+=`<rect x="${X(T)}" y="${Y(T+1.6)}" width="${W-2*T}" height="1.6" fill="var(--wood)"/>`;
+ const ry=w.railH;g+=`<line x1="${X(T)}" y1="${Y(ry)}" x2="${X(W-T)}" y2="${Y(ry)}" stroke="var(--ink)" stroke-width="1.8"/>`;
+ xs.forEach(x=>g+=`<circle cx="${X(Math.min(Math.max(x,T+2),W-T-2))}" cy="${Y(ry)}" r="2.4" fill="var(--acc)"/>`);
+ for(let x=12;x<W-8;x+=9){const c=['#93c5fd','#fca5a5','#a7f3d0','#fde68a','#c4b5fd'][Math.floor(x/9)%5];const len=x%27<9?95:x%27<18?120:70;
+  g+=`<path d="M${X(x)} ${Y(ry)} l-4 5 h8 z" fill="none" stroke="var(--mute)" stroke-width=".5"/><rect x="${X(x)-3.5}" y="${Y(ry)+5}" width="7" height="${len}" fill="${c}" opacity=".55"/>`}
+ if($('showCur').checked&&w.cur!=='none'){for(let x=0;x<W;x+=8)g+=`<path d="M${X(x)} ${Y(H)+T} q4 ${H/2} 0 ${H-T-2}" fill="none" stroke="var(--cur)" stroke-width="6" opacity=".55"/>`}
+ g+=`<text x="${X(W)+fs*.4}" y="${Y(ry)+fs*.35}" font-size="${r1(fs*.8)}" fill="var(--acc)">ราว ${ry}</text><text x="${X(W)+fs*.4}" y="${Y(H)+fs*.35}" font-size="${r1(fs*.8)}" fill="var(--mute)">${H}</text>`;
+ xs.forEach((x,i)=>g+=`<text x="${X(x)}" y="${Y(0)+fs*1.2}" text-anchor="middle" font-size="${r1(fs*.75)}">${r1(x)}</text>`);
+ g+=`<text x="${X(W/2)}" y="${Y(0)+fs*2.6}" text-anchor="middle" fill="var(--acc)" font-weight="700">กว้าง ${W} · สูง ${H} ซม.</text>`;
+ return g+'</svg>';
+}
+function wSide(w){
+ const {D,H}=w;const fs=Math.max(6,H/22);const ml=fs*2.6,mr=fs*1.5,mt=fs*3,mb=fs*3.4;const X=x=>ml+x,Y=y=>mt+H-y;
+ let g=`<svg viewBox="0 0 ${r1(D+ml+mr)} ${r1(H+mt+mb)}" font-size="${r1(fs)}">`;
+ g+=`<rect x="0" y="${Y(H)}" width="${ml-2}" height="${H}" fill="var(--line)"/><text transform="translate(${ml/2-1},${Y(H/2)}) rotate(-90)" text-anchor="middle" font-size="${r1(fs*.8)}" fill="var(--mute)">ผนัง</text>`;
+ g+=`<line x1="0" y1="${Y(0)}" x2="${D+ml+mr}" y2="${Y(0)}" stroke="var(--mute)" stroke-width="${fs/6}"/>`;
+ g+=`<rect x="${X(0)}" y="${Y(H)}" width="${T}" height="${H}" fill="var(--steel)"/><rect x="${X(D-T)}" y="${Y(H)}" width="${T}" height="${H}" fill="var(--steel)"/>`;
+ g+=`<rect x="${X(0)}" y="${Y(H)}" width="${D}" height="${T}" fill="var(--teal)"/><rect x="${X(0)}" y="${Y(T)}" width="${D}" height="${T}" fill="var(--teal)"/>`;
+ g+=`<circle cx="${X(w.railZ)}" cy="${Y(w.railH)}" r="2.6" fill="var(--ink)"/><path d="M${X(w.railZ-22)} ${Y(w.railH)+4} L${X(w.railZ)} ${Y(w.railH)} L${X(w.railZ+22)} ${Y(w.railH)+4}" fill="none" stroke="var(--ink)"/>`;
+ if(w.cur!=='none')g+=`<rect x="${X(D)+1}" y="${Y(H)+T}" width="2" height="${H-T-2}" fill="var(--cur)"/>`;
+ g+=`<text x="${X(w.railZ)}" y="${Y(w.railH)-fs*.6}" text-anchor="middle" font-size="${r1(fs*.75)}" fill="var(--acc)">${w.railZ}</text>`;
+ g+=`<text x="${X(D/2)}" y="${Y(0)+fs*2}" text-anchor="middle" fill="var(--acc)" font-weight="700">ลึก ${D}</text>`;
+ return g+'</svg>';
+}
+/* ---------- โต๊ะ ---------- */
+function table(){
+ const W=n($('tW').value),D=n($('tD').value),H=n($('tH').value),t=n($('tT').value)/10;const msgs=[];
+ if(W<40||D<25||H<40)return{bad:true};
+ const legH=r1(H-t),apron=r1(W-2*t);
+ const P=[{name:'ท็อป',a:W,b:D,q:1},{name:'ขาข้าง',a:legH,b:D,q:2},{name:'คานหลังกันโยก',a:apron,b:10,q:1}];
+ if($('shelf').checked)P.push({name:'ชั้นล่าง (สูงจากพื้น 10 ซม.)',a:apron,b:r1(D-2),q:1});
+ // พื้นที่: ตรวจพอ 1 แผ่น 120×240 แบบง่าย (แถบกว้าง = D)
+ const strips=Math.floor(120/(D+0.4)),stripLen=240;let need=0;P.forEach(p=>need+=(p.b<=D?p.a:0)*p.q);
+ const sheetsOK=need<=strips*stripLen; const sheets=sheetsOK?1:2;
+ if(W>100)msgs.push(['w','โต๊ะกว้างเกิน 100 ซม. ท็อป 16 มม. อาจแอ่นกลาง ควรเพิ่มคานหน้าใต้ท็อป หรือใช้แผ่น 18–19 มม.']);
+ if(H<70||H>80)msgs.push(['w','โต๊ะเครื่องแป้งแบบนั่งทั่วไปสูง 72–77 ซม.']);
+ msgs.push(['ok',`🪞 ใช้แผ่น ${sheets} แผ่น · กระจกติดผนังให้ขอบล่างสูงจากท็อป ~10 ซม. (สูงจากพื้น ~${H+10} ซม.) กึ่งกลางกระจกอยู่ระดับสายตาตอนนั่ง`]);
+ const edge=r1((W+2*D)/100+ (2*legH)/100*1+ apron/100*($('shelf').checked?2:1));
+ return{W,D,H,t,legH,apron,P,sheets,msgs,edge};
+}
+function tDraw(o){
+ const {W,H,t}=o;const mW=n($('mW').value),mH=n($('mH').value);const TH=H+10+mH+10;
+ const fs=Math.max(6,Math.max(W,TH)/30);const ml=fs*2,mr=fs*4,mt=fs*2,mb=fs*3;const X=x=>ml+x,Y=y=>mt+TH-y;
+ let g=`<svg viewBox="0 0 ${r1(W+ml+mr)} ${r1(TH+mt+mb)}" font-size="${r1(fs)}">`;
+ g+=`<rect x="0" y="${Y(TH)}" width="${W+ml+mr}" height="${TH}" fill="var(--card)"/><line x1="0" y1="${Y(0)}" x2="${W+ml+mr}" y2="${Y(0)}" stroke="var(--mute)" stroke-width="${fs/6}"/>`;
+ const mx=(W-mW)/2;g+=`<rect x="${X(mx)}" y="${Y(H+10+mH)}" width="${mW}" height="${mH}" rx="3" fill="#dbeafe" stroke="var(--mute)"/><path d="M${X(mx+8)} ${Y(H+10+mH-8)} l14 14 M${X(mx+8)} ${Y(H+10+mH-22)} l24 24" stroke="#fff" stroke-width="2"/>`;
+ g+=`<rect x="${X(0)}" y="${Y(H)}" width="${W}" height="${t}" fill="var(--wood)" stroke="var(--woodD)" stroke-width=".4"/>`;
+ g+=`<rect x="${X(0)}" y="${Y(o.legH)}" width="${t}" height="${o.legH}" fill="var(--wood)" stroke="var(--woodD)" stroke-width=".4"/><rect x="${X(W-t)}" y="${Y(o.legH)}" width="${t}" height="${o.legH}" fill="var(--wood)" stroke="var(--woodD)" stroke-width=".4"/>`;
+ g+=`<rect x="${X(t)}" y="${Y(o.legH)}" width="${o.apron}" height="10" fill="var(--woodD)" opacity=".45"/>`;
+ if($('shelf').checked)g+=`<rect x="${X(t)}" y="${Y(10+t)}" width="${o.apron}" height="${t}" fill="var(--wood)" stroke="var(--woodD)" stroke-width=".4"/>`;
+ const bx=t+4,bw=Math.min(40,o.apron/2-6);g+=`<rect x="${X(bx)}" y="${Y((($('shelf').checked)?10+t:0)+45)}" width="${bw}" height="45" fill="none" stroke="var(--teal)" stroke-dasharray="3 2"/><text x="${X(bx+bw/2)}" y="${Y((($('shelf').checked)?10+t:0)+22)}" text-anchor="middle" font-size="${r1(fs*.75)}" fill="var(--teal)">ลิ้นชัก</text>`;
+ g+=`<text x="${X(W)+fs*.4}" y="${Y(H)+fs*.35}" font-size="${r1(fs*.8)}" fill="var(--acc)">${H}</text><text x="${X(W)+fs*.4}" y="${Y(H+10)+fs*.35}" font-size="${r1(fs*.8)}" fill="var(--mute)">${H+10}</text>`;
+ g+=`<text x="${X(W/2)}" y="${Y(0)+fs*1.8}" text-anchor="middle" fill="var(--acc)" font-weight="700">กว้าง ${W} · ลึก ${o.D} · สูง ${H} ซม.</text>`;
+ return g+'</svg>';
+}
+/* ---------- รวม ---------- */
+let ITEMS=[],SUM='';
+function bomRender(items){
+ ITEMS=items.filter(x=>x.q>0);
+ $('bom').innerHTML='<table><tr><th>รายการ</th><th class="n">จำนวน</th><th class="n">ราคา/หน่วย</th><th class="n">รวม</th></tr>'+ITEMS.map(it=>`<tr><td>${it.g} · ${it.name}</td><td class="n">${it.q} ${it.u}</td><td class="n"><input type="number" data-p="${it.k}" value="${price[it.k]??''}"></td><td class="n" id="c-${it.k}-${it.g}">0</td></tr>`).join('')+'<tr><td colspan="3"><b>รวม</b></td><td class="n"><b id="bt">0</b></td></tr></table>';
+ totals();
+}
+function totals(){let t=0,tw=0,tt=0;ITEMS.forEach(it=>{const c=n(price[it.k])*it.q;t+=c;if(it.g==='ตู้')tw+=c;else tt+=c;const el=$(`c-${it.k}-${it.g}`);if(el)el.textContent=fmt(c)});
+ $('bt')&&($('bt').textContent=fmt(t));$('grand').textContent=fmt(t)+' บาท';$('sub').textContent=`ตู้ ${fmt(tw)} · โต๊ะ ${fmt(tt)}`;
+ SUM='🛒 ตู้โครงเหล็ก + โต๊ะเครื่องแป้ง\n'+ITEMS.map(it=>`☐ ${it.g}: ${it.name} ${it.q} ${it.u}${n(price[it.k])?` = ${fmt(n(price[it.k])*it.q)} บาท`:''}`).join('\n')+`\nรวม ${fmt(t)} บาท`;save()}
+function calc(){
+ document.querySelectorAll('.tabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===tab));$('wr').classList.toggle('hide',tab!=='wr');$('dt').classList.toggle('hide',tab!=='dt');
+ const w=wardrobe(),o=table();const items=[];
+ if(!w.bad){
+  $('wFront').innerHTML=wDraw(w);$('wSide').innerHTML=wSide(w);$('wMsg').innerHTML=w.msgs.map(m=>`<div class="msg ${m[0]}">${m[1]}</div>`).join('');
+  const gC={},gU={};w.C.forEach(l=>gC[l]=(gC[l]||0)+1);w.U.forEach(l=>gU[l]=(gU[l]||0)+1);
+  $('wCut').innerHTML=`<table><tr><th>ชิ้น</th><th>ชนิด</th><th class="n">ยาว (ซม.)</th><th class="n">จำนวน</th></tr>`+
+   Object.entries(gC).map(([l,q])=>`<tr><td>เสาตั้ง</td><td>ตัว C</td><td class="n">${l}</td><td class="n">${q}</td></tr>`).join('')+
+   `<tr><td>กรอบบน/ล่าง หน้า-หลัง</td><td>ตัว U</td><td class="n">${w.W}</td><td class="n">4</td></tr><tr><td>กรอบข้าง + คานขวางกลาง</td><td>ตัว U</td><td class="n">${r1(w.D-0.5)}</td><td class="n">${w.U.length-4}</td></tr>`+
+   w.boards.map(b=>`<tr><td>${b.name}</td><td>ปาร์ติเกิล</td><td class="n">${b.a} × ${b.b}</td><td class="n">1</td></tr>`).join('')+
+   `<tr><td>ราวแขวน</td><td>ท่อสแตนเลส</td><td class="n">${w.railLen}</td><td class="n">1</td></tr></table>`+
+   `<p class="note">ตัว C: ${w.cb.length} เส้น (${w.cb.map(b=>b.items.join('+')).join(' / ')}) · ตัว U: ${w.ub.length} เส้น (${w.ub.map(b=>b.items.join('+')).join(' / ')})</p>`;
+  const st=[];
+  st.push(`<b>ประกอบกรอบล่าง</b> ราง U หน้า-หลังยาว ${w.W} + ข้างยาว ${r1(w.D-0.5)} ซม. ต่อมุมด้วยการย้ำ/สกรู วัดทแยงมุม 2 เส้นให้เท่ากัน`);
+  st.push(`<b>ตั้งเสา C ${w.posts} ต้น</b> ยาว ${r1(w.H-1)} ซม. ที่ระยะจากซ้าย: ${list(w.xs)} ซม. (หน้าและหลังตรงกัน) ย้ำยึดกับกรอบล่าง`);
+  st.push(`<b>สวมกรอบบน</b> แบบเดียวกับกรอบล่าง${w.bays>1?` + คานขวางกลาง ${w.bays-1} ชิ้นเชื่อมเสากลางหน้า-หลัง`:''} · เช็กดิ่งทุกเสา`);
+  st.push(`<b>ติดราวแขวน</b> ยาว ${w.railLen} ซม. สูง ${w.railH} ซม. ห่างด้านหลัง ${w.railZ} ซม. ยึดหัวท้ายกับกรอบข้าง${w.bays>1?` และกลางกับเสา/คานขวาง (${w.railSup} จุด)`:''}`);
+  if(w.boards.length)st.push(`<b>วางแผ่น</b> ${w.boards.map(b=>b.name+' '+b.a+'×'+b.b).join(' · ')} ยิงสกรูจากใต้กรอบขึ้นไปยึดแผ่น ทาสี/ปิดขอบกันชื้น`);
+  st.push(`<b>ยกเข้าช่อง</b> ใส่ขารองกันชื้นใต้มุม ยึดเสาหลังกับผนังหรือเสาบ้าน 2–3 จุด (กันล้ม)`);
+  if(w.cur!=='none')st.push(`<b>ติดรางม่าน</b> ${w.cur==='u'?'รูปตัว U ':''}ยาว ${w.trk} ซม. ใต้กรอบบนด้านหน้า · ผ้าม่านกว้างประมาณ ${w.fab} ม. (1.8 เท่าของราง)`);
+  $('wSteps').innerHTML=st.map(x=>`<li>${x}</li>`).join('');
+  items.push({g:'ตู้',k:'C',name:'เหล็กตัว C 4 ม.',q:w.cb.length,u:'เส้น'},{g:'ตู้',k:'U',name:'เหล็กตัว U 4 ม.',q:w.ub.length,u:'เส้น'},{g:'ตู้',k:'PB',name:'ปาร์ติเกิล 120×240',q:w.sheets,u:'แผ่น'},{g:'ตู้',k:'RAIL',name:`ท่อราวแขวน (ต่อเมตร)`,q:Math.ceil(w.railLen/10)/10,u:'ม.'},{g:'ตู้',k:'RSUP',name:'ตัวยึดราว',q:w.railSup,u:'ตัว'},{g:'ตู้',k:'TRK',name:'รางม่าน (ต่อเมตร)',q:Math.ceil(w.trk/10)/10,u:'ม.'},{g:'ตู้',k:'FAB',name:'ผ้าม่าน (ต่อเมตร)',q:Math.ceil(w.fab*10)/10,u:'ม.'},{g:'ตู้',k:'LEG',name:'ขารองกันชื้น',q:w.xs.length*2,u:'ตัว'},{g:'ตู้',k:'SCR',name:'สกรู/พุก',q:1,u:'ชุด'});
+ }
+ if(!o.bad){
+  $('tFront').innerHTML=tDraw(o);$('tMsg').innerHTML=o.msgs.map(m=>`<div class="msg ${m[0]}">${m[1]}</div>`).join('');
+  $('tCut').innerHTML='<table><tr><th>ชิ้น</th><th class="n">ยาว × กว้าง (ซม.)</th><th class="n">จำนวน</th></tr>'+o.P.map(p=>`<tr><td>${p.name}</td><td class="n">${p.a} × ${p.b}</td><td class="n">${p.q}</td></tr>`).join('')+`</table><p class="note">ปิดขอบด้านหน้าทุกชิ้น + รอบท็อป · ใช้แผ่น ${o.sheets} แผ่น</p>`;
+  const st=[];
+  st.push(`<b>สั่งตัดแผ่น</b> ตามตาราง แผ่นหนา ${o.t*10} มม. ขอปิดขอบด้านหน้าทุกชิ้นและรอบท็อป`);
+  st.push(`<b>ประกอบขา + คานหลัง</b> ตั้งขาข้าง 2 แผ่น ยึดคานหลังกว้าง 10 ซม. ที่ด้านบนด้านหลัง ยิงสกรูจากด้านนอกขาเข้าขอบคาน 2 ตัวต่อข้าง (เจาะนำก่อน)`);
+  if($('shelf').checked)st.push(`<b>ใส่ชั้นล่าง</b> สูงจากพื้น 10 ซม. ยิงสกรูจากด้านนอกขาข้าง 3 ตัวต่อข้าง`);
+  st.push(`<b>วางท็อป</b> ให้ขอบเสมอขาทั้งสองข้าง ยิงสกรูจากด้านบนลงขอบขา 3 ตัวต่อข้าง แล้วปิดหัวสกรูด้วยฝาครอบ · วัดทแยงมุมให้ได้ฉาก`);
+  st.push(`<b>ติดกระจก</b> ${n($('mW').value)}×${n($('mH').value)} ซม. บนผนังเหนือโต๊ะ ขอบล่างสูงจากพื้น ~${o.H+10} ซม. ใช้กาวติดกระจก + ขาหนีบกระจก (ผนังเบา: ยิงเข้าเสา C)`);
+  st.push(`<b>กันชื้น</b> ติดปุ่มยางรองใต้ขา ทาสีหรือติดเทปขอบด้านล่างขาที่สัมผัสพื้น`);
+  $('tSteps').innerHTML=st.map(x=>`<li>${x}</li>`).join('');
+  items.push({g:'โต๊ะ',k:'PB',name:'ปาร์ติเกิล 120×240',q:o.sheets,u:'แผ่น'},{g:'โต๊ะ',k:'CUT',name:'ค่าตัด (ต่อชิ้น)',q:o.P.reduce((a,p)=>a+p.q,0),u:'ชิ้น'},{g:'โต๊ะ',k:'EDGE',name:'ปิดขอบ (ต่อเมตร)',q:Math.ceil(o.edge),u:'ม.'},{g:'โต๊ะ',k:'MIR',name:'กระจกเงา + กาว/ขาหนีบ',q:1,u:'ชุด'},{g:'โต๊ะ',k:'SCR',name:'สกรู + ฝาครอบ + ปุ่มยาง',q:1,u:'ชุด'});
+ }
+ bomRender(items);
+}
+document.addEventListener('input',e=>{const t=e.target;if(t.dataset.p){price[t.dataset.p]=t.value;document.querySelectorAll(`[data-p="${t.dataset.p}"]`).forEach(x=>{if(x!==t)x.value=t.value});totals();return}calc()});
+document.addEventListener('change',e=>{if(!e.target.dataset.p)calc()});
+document.addEventListener('click',e=>{const t=e.target;
+ if(t.dataset.t){tab=t.dataset.t;calc();return}
+ if(t.id==='myBay'){$('bay').value=230;$('ceil').value=185;$('D').value=60;calc();return}
+ const d=t.closest('.draw');if(d){d.classList.toggle('zoom');return}
+ if(t.id==='copyAll'||t.id==='copyList'){(async()=>{let ok=false;try{await navigator.clipboard.writeText(SUM);ok=true}catch(err){}const o=t.textContent;t.textContent=ok?'คัดลอกแล้ว ✓':'คัดลอกไม่ได้';setTimeout(()=>t.textContent=o,1500)})()}
+});
+load();calc();
+</script>
+</body>
+</html>

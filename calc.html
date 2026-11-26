@@ -168,6 +168,12 @@ details summary{cursor:pointer;font-weight:600}
 </details>
 </section>
 
+<section class="card" id="cmp">
+<h2>📐 เทียบสูตรช่าง (เฟอร์ริ่งไลน์ / ตราช้าง)</h2>
+<p class="note" style="margin-top:0">สูตรต่อพื้นที่ผนัง 1 ตร.ม. เผื่อเสีย 5% แล้ว · แผ่น 0.74 (ปิด 2 ด้าน แผ่น 1.2×2.4) · C 0.61 เส้น · U 0.28 เส้น (เส้นละ 3 ม.) · สกรูยิงโครง 1.45 · พุก 1.22 · สกรูยิงแผ่น 26.25 (2 ด้าน) · เทปผ้า 0.11 ม้วน · ปูนฉาบ 0.04 ถุง</p>
+<div id="cmpBox"></div>
+</section>
+
 <section class="card" id="plan">
 <h2>🛒 แผนซื้อตามงบ</h2>
 <div class="grid">
@@ -295,6 +301,21 @@ function calc(){
  const prim=Math.ceil(bdArea/(num($('primCov').value)||30));
  const paint=Math.ceil(bdArea/(num($('paintCov').value)||15));
 
+ // เทียบสูตรช่าง
+ {const A=net,Ab=Math.max(0,net-bandArea),k=2.88/bArea,cl=cLen||3;
+  const f={b:Math.ceil(Ab*0.37*k*sides),c:Math.ceil(A*0.61*3/cl),u:Math.ceil(A*0.28*3/cl),fs:Math.ceil(A*1.45),an:Math.ceil(A*1.22),bs:Math.ceil(Ab*13.125*sides),tp:Math.ceil(Ab*0.055*sides),cm:Math.ceil(Ab*0.02*sides*10)/10};
+  const r=(n,a,b,u,note='')=>{const d=b-a,cls=b===''||Math.abs(d)<=Math.max(1,a*0.15)?'':' style="color:var(--acc);font-weight:700"';return `<tr><td>${n}${note?`<br><span class="note">${note}</span>`:''}</td><td class="n">${fmt2(a)} ${u}</td><td class="n"${cls}>${b===''?'-':fmt2(b)+' '+u}</td></tr>`};
+  $('cmpBox').innerHTML=`<p class="note">ผนังสุทธิ ${fmt2(A)} ตร.ม. (แผ่น ${fmt2(Ab)} ตร.ม. × ${sides} ด้าน) · ความยาวโครง ${cl} ม./เส้น · แผ่น ${fmt2(bArea)} ตร.ม.</p>
+  <table><tr><th>รายการ</th><th class="n">สูตรช่าง</th><th class="n">แอปนี้</th></tr>
+  ${r('แผ่นผนัง',f.b,boards,'แผ่น')}
+  ${r('โครงตัว C',f.c,cPcs,'เส้น','แอปนับเสาจริงทุกช่อง + เสาคู่ข้างประตู + คานนอน')}
+  ${r('รางตัว U',f.u,uPcs,'เส้น','ผนังเตี้ย 1.85 ม. ใช้รางต่อ ตร.ม. มากกว่าสูตร (สูตรคิดผนังสูงทั่วไป)')}
+  ${r('สกรูยิงโครง',f.fs,'','ตัว')}
+  ${r('พุกเหล็ก/พุก+สกรูยึดราง',f.an,anc,'ตัว')}
+  ${r('สกรูยิงแผ่น',f.bs,scr,'ตัว')}
+  ${r('เทปผ้า (ถ้าฉาบเรียบ)',f.tp,'','ม้วน')}
+  ${r('ปูนฉาบรอยต่อ (ถ้าฉาบเรียบ)',f.cm,'','ถุง')}</table>
+  <p class="note">ตัวเลขสีส้ม = ต่างจากสูตรเกิน 15% · สูตรช่างเหมาะคิดเร็ว ๆ งานพื้นที่ใหญ่ ส่วนแอปนับจากแบบจริงทีละผนัง (ช่องประตู แถบโพลีฯ ความสูงห้อง) จึงแม่นกว่าสำหรับห้องเล็ก · สมาร์ทบอร์ดไม่ใช้เทปผ้า/ปูนฉาบยิปซัม ใช้ยาแนว/วัสดุอุดรอยต่อของไฟเบอร์ซีเมนต์แทน</p>`}
  const rows=[];let total=0;
  const add=(sec,name,qty,unit,price,key,tier=2)=>{const c=qty*price;total+=c;rows.push({sec,name,qty,unit,c,price,key:key||sec+name,tier:tierOv[key||sec+name]||tier})};
  add('โครงซีลาย',`ตัว C (เสา ${studs} ต้น + คานเสริม) ≈ ${fmt2(cM)} ม.`,cPcs,'เส้น',num($('pC').value),'C',1);

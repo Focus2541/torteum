@@ -95,6 +95,22 @@ th{font-weight:600}
 <span><b style="background:repeating-linear-gradient(90deg,var(--G) 0 7px,var(--Y) 7px 12px)"></b>G สายดิน (เขียวแถบเหลือง)</span>
 </div>
 
+<div class="card" id="myroom">
+<h2>ห้องของฉัน: ต่อสายตามแบบทีละขั้น</h2>
+<p class="note">ห้อง 2.5 × 7.5 ม. + ใต้ถุนด้านซ้าย · เส้นส้ม = วงจรไฟ (สาย 1.5 ตร.มม.) · เส้นเขียวประ = วงจรปลั๊ก (สาย 2.5 ตร.มม. 3 เส้น) · ทำครบ 7 ขั้นแล้วเปิดเบรกเกอร์ลองกดสวิตช์ได้</p>
+<div class="fig"><svg id="svgM2" viewBox="0 0 380 410" role="img" aria-label="แปลนต่อสายห้อง"></svg></div>
+<div class="stepbar"><button id="rmPrev">ก่อนหน้า</button><b id="rmNo"></b><button id="rmNext">ถัดไป</button></div>
+<div class="stepbox"><h3 id="rmTitle"></h3><p id="rmBody"></p></div>
+<p class="grp">เบรกเกอร์และสวิตช์</p>
+<div class="ctrls" id="rmSw"></div>
+<p class="grp">เสียบปลั๊ก</p>
+<div class="ctrls" id="rmPl"></div>
+<div class="loadrow"><span>วงจรปลั๊กใช้ไฟ <b id="rmW">0</b> W</span><span>RCBO 16 A ≈ 3,680 W</span></div>
+<div class="meter"><i id="rmMt" style="width:0"></i></div>
+<div class="msg" id="rmMsg"></div>
+<p class="note">ตำแหน่งวัดจากภาพร่างคร่าวๆ ใช้ดูลำดับการต่อ ไม่ใช่แบบก่อสร้าง · ชื่อสวิตช์: S-A (แผง A), SB1–SB3 (แผง B), S-C (ห้องเล็ก)</p>
+</div>
+
 <div class="card" id="easy">
 <h2>แบบจำง่าย: ไม่ต้องอ่านวงจร</h2>
 <p class="note">สำหรับคนที่ดูผังไม่เป็น จำแค่ "สีไหนเข้าช่องไหน" ก็ต่อได้ถูก</p>
@@ -660,6 +676,83 @@ function draw(){
 function act(t){if(t==='main')P.main=!P.main;else if(t[0]==='c')P.cb[+t[1]]=!P.cb[+t[1]];else if(t[0]==='l')P.ld[+t[1]]=!P.ld[+t[1]];draw()}
 const C={L:'var(--L)',N:'var(--N)'};
 ['svgP','pCtrls'].forEach(id=>$(id).addEventListener('click',e=>{const el=e.target.closest('[data-p]');if(el)act(el.dataset.p)}));
+draw();
+}
+{
+const $=id=>document.getElementById(id);
+const LC='#c27a1a',PC='#0F6E56';
+const SEG={
+ l0:{d:'M58 184H212V71',c:'l',s:1},lA:{d:'M205 64H160V165',c:'l',s:2},lA2:{d:'M160 179V269',c:'l',s:2},
+ lB0:{d:'M221 64H264V101',c:'l',s:3},lB1:{d:'M264 115V181',c:'l',s:3},lB2:{d:'M264 195V257',c:'l',s:3},
+ lB3:{d:'M264 271V304H265',c:'l',s:4},lT:{d:'M279 304H320V292',c:'l',s:4},
+ p0:{d:'M58 214H198V66H203',c:'p',s:5},p1:{d:'M221 58H268V45',c:'p',s:5},p2:{d:'M268 45V52H308V196H315',c:'p',s:5},
+ p3:{d:'M315 202H300V264H274',c:'p',s:6},p4:{d:'M254 268H236V340H239',c:'p',s:6}};
+const LAMP={A1:[160,172,['l0','lA']],A2:[160,276,['l0','lA','lA2']],B1:[264,108,['l0','lB0']],B2:[264,188,['l0','lB0','lB1']],B3:[272,304,['l0','lB0','lB1','lB2','lB3','lT']]};
+const PLUG=[{n:'ปลั๊กแผง A',d:'พัดลม',w:60,x:230,y:78,need:['p0']},{n:'ปลั๊กบน',d:'ชาร์จมือถือ',w:20,x:268,y:40,need:['p0','p1']},{n:'ปลั๊กขวา',d:'ทีวี',w:120,x:320,y:196,need:['p0','p1','p2']},{n:'ปลั๊กแผง B',d:'ไดร์เป่าผม',w:1200,x:264,y:280,need:['p0','p1','p2','p3']},{n:'ปลั๊กห้องเล็ก',d:'กาต้มน้ำ',w:1800,x:244,y:340,need:['p0','p1','p2','p3','p4']}];
+const ST=[
+['เตรียมก่อนลงมือ','ปิดเมนที่ตู้ ใส่ลูกย่อยใหม่ 2 ลูก: MCB 10A (ไฟ) และ RCBO 16A 30mA (ปลั๊ก) ในตำแหน่ง OFF · ติดกล่องพักสาย บล็อก และท่อตามตงให้ครบก่อนร้อยสาย'],
+['ตู้ → แผง A (วงจรไฟ)','ร้อยสาย 1.5 น้ำตาล + ฟ้า จากลูกย่อย MCB 10A ในท่อตามตง ไปกล่องพักสายเหนือแผง A · ที่ตู้: น้ำตาลเข้าขั้วล่างของ MCB · ฟ้าเข้าบาร์ N'],
+['แผง A → หลอด A1, A2 (ใต้ถุน)','ที่กล่องพัก: น้ำตาลหย่อนลงขั้ว 1 ของ S-A · ขั้ว 2 ส่งน้ำตาลกลับขึ้นไปโคม A1 แล้วพ่วงไป A2 · ฟ้าต่อตรงไป A1 และ A2 ไม่ผ่านสวิตช์ · ใต้ถุนโดนฝน ใช้โคมกันน้ำ'],
+['เข้าห้อง → B1 → B2 → แผง B','เดินน้ำตาล + ฟ้าต่อจากกล่องพักเข้าห้อง ผ่านกล่องที่ B1, B2 ลงแผง B · ในแผง B: น้ำตาลเข้าขั้ว 1 ของ SB1 แล้วจั๊มป์ไปขั้ว 1 ของ SB2 และขั้ว COM ของ SB3 · ขั้ว 2 ของ SB1, SB2 ส่งสาย L กลับขึ้นไป B1, B2 (พันเทปสีไว้ที่ปลายเพื่อแยกจาก L ที่มาจากตู้) · ฟ้าต่อเข้าโคม B1, B2'],
+['แผง B → B3 → สวิตช์ S-C','SB3 ขั้ว 1 และ 2 ส่งสายวิ่ง 2 เส้นผ่านกล่องที่ B3 ไปขั้ว 1 และ 2 ของ S-C · ขั้ว COM ของ S-C ส่งสาย L กลับมาเข้าโคม B3 · ช่วง B3 ถึง S-C จึงมี 3 เส้นในท่อ · ฟ้าจากกล่อง B2 เดินไปเข้าโคม B3'],
+['วงจรปลั๊ก: ตู้ → แผง A → ปลั๊กบน → ปลั๊กขวา','สาย 2.5 สามเส้น (น้ำตาล ฟ้า เขียวเหลือง) จาก RCBO 16A เข้าปลั๊กแผง A แล้วพ่วงไปปลั๊กบน และปลั๊กขวา · ใช้รูที่สองของแต่ละขั้วพ่วงต่อ · สายดินต้องต่อไปถึงบาร์ G ที่ตู้'],
+['ปลั๊กแผง B → ปลั๊กห้องเล็ก แล้วทดสอบ','พ่วงสายสามเส้นต่อไปปลั๊กแผง B และปลั๊กห้องเล็ก · ตรวจขั้วแน่น ปิดฝากล่องทุกใบ แล้วเปิดเบรกเกอร์ · ลองกดสวิตช์ทุกตัว ใช้ไขควงวัดไฟเช็กรู L ของปลั๊กทุกจุด และกดปุ่ม TEST ของ RCBO'] ];
+const DONE=ST.length-1;
+const R={s:0,mcb:false,rcbo:false,SA:false,SB1:false,SB2:false,SB3:0,SC:1,pl:[false,false,false,false,false],warn:''};
+const has=id=>SEG[id].s<=R.s;
+function state(){
+  const lOn=R.mcb, pOn=R.rcbo;
+  const sw={A1:R.SA,A2:R.SA,B1:R.SB1,B2:R.SB2,B3:R.SB3===R.SC};
+  const lit={};Object.keys(LAMP).forEach(k=>lit[k]=lOn&&sw[k]&&LAMP[k][2].every(has));
+  const run=PLUG.map((p,i)=>pOn&&R.pl[i]&&p.need.every(has));
+  const fl={l0:Object.values(lit).some(Boolean),lA:lit.A1||lit.A2,lA2:lit.A2,lB0:lit.B1||lit.B2||lit.B3,lB1:lit.B2||lit.B3,lB2:lit.B3,lB3:lit.B3,lT:lit.B3};
+  ['p0','p1','p2','p3','p4'].forEach((id,k)=>fl[id]=run.slice(k).some(Boolean));
+  return {lit,run,fl,W:PLUG.reduce((t,p,i)=>t+(run[i]?p.w:0),0)};
+}
+function draw(){
+  const {lit,run,fl,W}=state();
+  let s='';
+  s+=`<path d="M120 40H220" fill="none" stroke="var(--mute)" stroke-dasharray="4 3"/><rect x="220" y="40" width="100" height="300" fill="none" stroke="var(--ink)" stroke-width="1.5"/><path d="M220 272H280M296 272H320" stroke="var(--ink)" stroke-width="1.5"/>`;
+  s+=`<text x="270" y="360" font-size="11" text-anchor="middle">ห้อง 2.5 × 7.5 ม.</text><text x="160" y="360" font-size="11" text-anchor="middle" style="fill:var(--mute)">ใต้ถุน</text><text x="288" y="268" font-size="10" text-anchor="middle" style="fill:var(--mute)">ประตู</text>`;
+  Object.entries(SEG).forEach(([id,g])=>{if(g.s>R.s)return;const now=g.s===R.s&&R.s<DONE,col=g.c==='l'?LC:PC;
+    s+=`<g class="${now?'now':''}"><path d="${g.d}" fill="none" stroke="${col}" stroke-width="${now?6:3.5}" stroke-linecap="round" stroke-linejoin="round" ${g.c==='p'?'stroke-dasharray="7 4"':''}/></g>`;
+    if(fl[id])s+=`<path d="${g.d}" class="flow"/>`});
+  s+=`<rect x="12" y="162" width="52" height="76" rx="6" style="fill:var(--panel)" stroke="var(--ink)"/>`;
+  s+=`<rect x="19" y="170" width="38" height="26" rx="4" fill="${R.mcb?'var(--ok)':'var(--mute)'}"/><text x="38" y="187" font-size="11" text-anchor="middle" style="fill:#fff;font-weight:700">ไฟ</text>`;
+  s+=`<rect x="19" y="201" width="38" height="26" rx="4" fill="${R.rcbo?'var(--ok)':'var(--mute)'}"/><text x="38" y="218" font-size="11" text-anchor="middle" style="fill:#fff;font-weight:700">ปลั๊ก</text>`;
+  s+=`<text x="38" y="254" font-size="11" text-anchor="middle">ตู้ไฟ</text><rect class="tap" data-r="mcb" x="19" y="170" width="38" height="26"/><rect class="tap" data-r="rcbo" x="19" y="201" width="38" height="26"/>`;
+  Object.entries(LAMP).forEach(([k,[x,y]])=>{s+=(lit[k]?`<circle cx="${x}" cy="${y}" r="17" fill="var(--glow)" opacity=".45"/>`:'')+`<circle cx="${x}" cy="${y}" r="7" fill="${lit[k]?'var(--glow)':'var(--panel)'}" stroke="var(--ink)" stroke-width="1.5"/>`});
+  s+=`<text x="171" y="176" font-size="11">A1</text><text x="171" y="280" font-size="11">A2</text><text x="252" y="112" font-size="11" text-anchor="end">B1</text><text x="252" y="192" font-size="11" text-anchor="end">B2</text><text x="276" y="324" font-size="11">B3</text>`;
+  s+=`<rect x="203" y="56" width="18" height="16" rx="3" fill="#2e7d46"/><text x="212" y="32" font-size="11" text-anchor="middle">แผง A</text><rect class="tap" data-r="SA" x="196" y="50" width="32" height="28"/>`;
+  s+=`<rect x="254" y="257" width="20" height="14" rx="3" fill="#2e7d46"/><text x="248" y="252" font-size="11" text-anchor="end">แผง B</text>`;
+  s+=`<rect x="315" y="284" width="10" height="10" rx="2" fill="#2e7d46"/><text x="330" y="293" font-size="11">S-C</text><rect class="tap" data-r="SC" x="308" y="278" width="40" height="24"/>`;
+  PLUG.forEach((p,i)=>{s+=`<rect x="${p.x-5}" y="${p.y-5}" width="10" height="10" rx="2" fill="${run[i]?'var(--ok)':'var(--panel)'}" stroke="${PC}" stroke-width="2"/><rect class="tap" data-r="p${i}" x="${p.x-12}" y="${p.y-12}" width="24" height="24"/>`});
+  s+=`<line x1="40" y1="388" x2="64" y2="388" stroke="${LC}" stroke-width="3.5"/><text x="70" y="392" font-size="11">วงจรไฟ</text><line x1="160" y1="388" x2="184" y2="388" stroke="${PC}" stroke-width="3.5" stroke-dasharray="7 4"/><text x="190" y="392" font-size="11">วงจรปลั๊ก</text>`;
+  $('svgM2').innerHTML=s;
+  $('rmNo').textContent=`ขั้นที่ ${R.s+1} / ${ST.length}`;$('rmTitle').textContent=ST[R.s][0];$('rmBody').textContent=ST[R.s][1];
+  $('rmPrev').disabled=R.s===0;$('rmNext').disabled=R.s===DONE;
+  const SW=[['mcb','MCB ไฟ 10A',R.mcb],['rcbo','RCBO ปลั๊ก 16A',R.rcbo],['SA','S-A (A1+A2)',R.SA],['SB1','SB1 (B1)',R.SB1],['SB2','SB2 (B2)',R.SB2],['SB3','SB3 2 ทาง (แผง B)',!!R.SB3],['SC','S-C 2 ทาง (ห้องเล็ก)',!!R.SC]];
+  $('rmSw').innerHTML=SW.map(([k,t,v])=>`<button data-r="${k}" aria-pressed="${v}">${t}</button>`).join('');
+  $('rmPl').innerHTML=PLUG.map((p,i)=>`<button data-r="p${i}" aria-pressed="${R.pl[i]}">${p.n}: ${p.d}</button>`).join('');
+  $('rmW').textContent=W.toLocaleString();$('rmMt').style.width=Math.min(100,W/3680*100)+'%';
+  let m,c='';
+  if(R.warn){m=R.warn;c='bad'}
+  else if(R.s<DONE){m='กำลังเดินสาย เบรกเกอร์ทั้งสองลูกต้องปิดไว้ · เส้นหนากะพริบคือสายที่ร้อยในขั้นนี้';c='info'}
+  else if(!R.mcb&&!R.rcbo){m='ต่อครบแล้ว แตะเบรกเกอร์ที่ตู้ไฟ หรือกดปุ่มด้านบนเพื่อจ่ายไฟ';c='info'}
+  else{const on=Object.keys(lit).filter(k=>lit[k]);m=`หลอดที่ติด: ${on.length?on.join(', '):'ไม่มี'} · B3 ติดเมื่อ SB3 กับ S-C ชี้สายวิ่งเส้นเดียวกัน กดตัวไหนก็สลับได้ · ปลั๊กใช้ไฟรวม ${W.toLocaleString()} W`}
+  $('rmMsg').className='msg '+c;$('rmMsg').textContent=m;
+}
+function act(t){
+  R.warn='';
+  if(t==='mcb'||t==='rcbo'){if(!R[t]&&R.s<DONE)R.warn='ยังห้ามเปิด! ต่อสายยังไม่เสร็จ ไปให้ถึงขั้นสุดท้ายก่อน';else R[t]=!R[t]}
+  else if(t==='SB3'||t==='SC')R[t]^=1;
+  else if(t[0]==='p')R.pl[+t[1]]=!R.pl[+t[1]];
+  else R[t]=!R[t];
+  draw();
+}
+['svgM2','rmSw','rmPl'].forEach(id=>$(id).addEventListener('click',e=>{const el=e.target.closest('[data-r]');if(el)act(el.dataset.r)}));
+$('rmPrev').onclick=()=>{R.s=Math.max(0,R.s-1);R.mcb=R.rcbo=false;R.warn='';draw()};
+$('rmNext').onclick=()=>{R.s=Math.min(DONE,R.s+1);R.warn='';draw()};
 draw();
 }
 {

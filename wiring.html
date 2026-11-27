@@ -716,9 +716,9 @@ function state(){
   const fl={l0:Object.values(lit).some(Boolean),lA:lit.A1||lit.A2,lA2:lit.A2,lB0:lit.B1||lit.B2||lit.B3,lB1:lit.B2||lit.B3,lB2:lit.B3,lB3:lit.B3};
   ['p0','p1','p2','p3','p4'].forEach((id,k)=>fl[id]=run.slice(k).some(Boolean));
   const aB=lit.B1||lit.B2||lit.B3,b3=lit.B3;
-  const W3={l0:[['L',fl.l0],['N',fl.l0],['G',0]],lA:[['S',fl.lA],['N',fl.lA],['G',0]],lA2:[['S',lit.A2],['N',lit.A2],['G',0]],
-   lB0:[['L',aB],['N',aB],['G',0]],lB1:[['L',aB],['S',lit.B1],['N',lit.B2||b3],['G',0]],lB2:[['L',aB],['S',lit.B1],['S',lit.B2],['N',b3],['G',0]],
-   lB3:[['S',b3],['N',b3],['G',0]]};
+  const W3={l0:[['L',fl.l0],['N',fl.l0]],lA:[['S',fl.lA],['N',fl.lA]],lA2:[['S',lit.A2],['N',lit.A2]],
+   lB0:[['L',aB],['N',aB]],lB1:[['L',aB],['S',lit.B1],['N',lit.B2||b3]],lB2:[['L',aB],['S',lit.B1],['S',lit.B2],['N',b3]],
+   lB3:[['S',b3],['N',b3]]};
   ['p0','p1','p2','p3','p4'].forEach(id=>W3[id]=[['L',fl[id]],['N',fl[id]],['G',0]]);
   return {lit,run,fl,W3,W:PLUG.reduce((t,p,i)=>t+(run[i]?p.w:0),0)};
 }
@@ -748,7 +748,7 @@ function draw(){
     lg.forEach(([t,n,x,y])=>{const [c,da]=WST[t];s+=`<line x1="${x}" y1="${y}" x2="${x+22}" y2="${y}" stroke="${c}" stroke-width="3" ${da?`stroke-dasharray="${da}"`:''}/>`+(t==='G'?`<line x1="${x}" y1="${y}" x2="${x+22}" y2="${y}" stroke="#e5c220" stroke-width="3" stroke-dasharray="3 5"/>`:'')+`<text x="${x+28}" y="${y+4}" font-size="11">${n}</text>`})}
   else s+=`<line x1="40" y1="388" x2="64" y2="388" stroke="${LC}" stroke-width="3.5"/><text x="70" y="392" font-size="11">วงจรไฟ</text><line x1="160" y1="388" x2="184" y2="388" stroke="${PC}" stroke-width="3.5" stroke-dasharray="7 4"/><text x="190" y="392" font-size="11">วงจรปลั๊ก</text>`;
   $('rmV').innerHTML=`<button data-v="o" aria-pressed="${R.view!=='w'}">ภาพรวม (1 เส้น = 1 ท่อ)</button><button data-v="w" aria-pressed="${R.view==='w'}">สายจริงทีละเส้น</button><button data-v="z" aria-pressed="${!!R.zoom}">${R.zoom?'ย่อภาพ':'ขยายภาพ (เลื่อนดูได้)'}</button>`;$('rmFig').classList.toggle('zoom',!!R.zoom);
-  $('rmVnote').textContent=R.view==='w'?'แต่ละเส้นคือสายไฟ 1 เส้นในท่อ · ตัวเลขจำนวนเส้นช่วงนั้นนับได้จากภาพ · แนะนำเดินสายดินไปโคมด้วย เพราะโคมใต้ถุนโดนฝน':'';
+  $('rmVnote').textContent=R.view==='w'?'แต่ละเส้นคือสายไฟ 1 เส้นในท่อ · วงจรไฟเดิน 2 เส้น (L, N) ไม่มีสายดิน · วงจรปลั๊กยังมีสายดินครบ เพราะปลั๊กต้องมีกราวด์':'';
   $('svgM2').innerHTML=s;
   $('rmNo').textContent=`ขั้นที่ ${R.s+1} / ${ST.length}`;$('rmTitle').textContent=ST[R.s][0];$('rmBody').textContent=ST[R.s][1];
   $('rmPrev').disabled=R.s===0;$('rmNext').disabled=R.s===DONE;

@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#c2410c">
+<title>คลิปสอนเดินไฟบ้าน</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f6f4ef;--card:#fff;--ink:#1f2328;--mute:#6b6f76;--line:#e3e0d8;--acc:#c2410c;--acc2:#fff3ea;--steel:#475569;--steelF:#cbd5e1;--teal:#0f766e;--blue:#2563eb;--board:#f2dcae;--ex:#d6d3cc;--stage:#fbfaf7}
+@media (prefers-color-scheme:dark){:root{--bg:#16181b;--card:#202327;--ink:#eceae5;--mute:#9a9ea5;--line:#33373d;--acc:#fb923c;--acc2:#2c2219;--steel:#94a3b8;--steelF:#334155;--teal:#2dd4bf;--blue:#60a5fa;--board:#5a4a2e;--ex:#3a3d42;--stage:#1b1d20}}
+*{box-sizing:border-box}
+body{margin:0;font-family:Sarabun,system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.5}
+.top{max-width:760px;margin:auto;padding:10px 16px 0;font-size:14px}.top a{color:var(--acc);text-decoration:none}
+header{max-width:760px;margin:auto;padding:4px 16px}
+h1{font-size:22px;margin:0}header p{margin:2px 0 0;color:var(--mute);font-size:14px}
+main{max-width:760px;margin:auto;padding:4px 12px 50px}
+.player{background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden;margin:10px 0;position:sticky;top:0;z-index:5}
+.ttl{display:flex;justify-content:space-between;align-items:center;padding:10px 14px 4px;gap:8px}
+.ttl b{font-size:16px}.ttl small{color:var(--mute);font-size:13px;white-space:nowrap}
+.stage{background:var(--stage);margin:0 10px;border-radius:12px;aspect-ratio:4/3;display:grid;place-items:center;overflow:hidden}
+.stage svg{width:100%;height:100%}
+.cap{min-height:58px;padding:8px 14px;font-size:16.5px;font-weight:600}
+.track{height:5px;background:var(--line);margin:0 14px;border-radius:3px;overflow:hidden}.track i{display:block;height:100%;background:var(--acc);width:0;transition:width .4s}
+.ctrls{display:grid;grid-template-columns:auto 1fr 2fr 1fr;gap:8px;padding:10px 12px 12px}
+.ctrls button{font:inherit;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:10px;padding:9px 6px;cursor:pointer;font-size:15px}
+.ctrls button.pri{background:var(--acc);color:#fff;border-color:var(--acc);font-weight:600}
+.ctrls button:disabled{opacity:.4}
+.list{display:grid;gap:10px;margin-top:12px}
+.item{display:flex;gap:12px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;cursor:pointer;text-align:left;font:inherit;color:var(--ink);width:100%}
+.item.on{border-color:var(--acc);background:var(--acc2)}
+.item .no{flex:none;width:36px;height:36px;border-radius:50%;background:var(--acc);color:#fff;display:grid;place-items:center;font-weight:700}
+.item b{display:block;font-size:15.5px}.item span{font-size:13px;color:var(--mute)}
+.item .done{margin-left:auto;color:var(--teal);font-weight:700}
+/* svg */
+svg text{font-family:Sarabun,sans-serif;fill:var(--ink)}
+.st{fill:var(--steelF);stroke:var(--steel);stroke-width:1.2}
+.jb{fill:var(--acc);stroke:var(--acc)}
+.tr{fill:var(--teal)}
+.ng{fill:#94a3b8}
+.ex{fill:var(--ex)}
+.bd{fill:var(--board);stroke:var(--mute);stroke-width:.8}
+.an{fill:var(--blue)}
+.dm{stroke:var(--acc);stroke-width:1.3;fill:none}
+.dt{fill:var(--acc)!important;font-size:11px;font-weight:700}
+.lb{font-size:10.5px}
+.big{font-size:14px;font-weight:700}
+.ro{fill:var(--acc2);stroke:var(--acc);stroke-dasharray:5 3;stroke-width:1.2}
+.pf{fill:none;stroke:var(--steel);stroke-width:5;stroke-linejoin:round;stroke-linecap:round}
+.el{opacity:0;transition:opacity .45s,transform .7s cubic-bezier(.2,.8,.2,1);transform-box:fill-box;transform-origin:50% 50%}
+.el.on{opacity:1;transform:none!important}
+.el[data-a=drop]{transform:translateY(-60px)}
+.el[data-a=rise]{transform:translateY(60px)}
+.el[data-a=grow]{transform:scaleY(0);transform-origin:50% 100%}
+.el[data-a=growx]{transform:scaleX(0);transform-origin:0 50%}
+.el[data-a=slide]{transform:translateX(-80px)}
+.el[data-a=slider]{transform:translateX(80px)}
+.el[data-a=pop]{transform:scale(0)}
+.el[data-a=tilt]{transform:rotate(-14deg);transform-origin:50% 100%}
+.el[data-a=fold]{transform:rotate(-90deg);transform-origin:50% 0}
+.el[data-a=fade]{transform:none}
+.hl{animation:hl 1s ease-in-out infinite}
+@keyframes hl{50%{filter:drop-shadow(0 0 4px var(--acc)) brightness(1.25)}}
+@media (prefers-reduced-motion:reduce){.el{transition:opacity .2s}.el[data-a]{transform:none}.hl{animation:none;filter:drop-shadow(0 0 3px var(--acc))}}
+.vc{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--mute)}
+</style>
+</head>
+<body>
+<div class="top"><a href="./">← หน้าหลัก</a></div>
+<header><h1>คลิปสอนเดินไฟบ้าน</h1><p>ตั้งแต่เสาไฟเข้าตู้ จนต่อปลั๊ก สวิตช์ หลอดไฟ · ภาพเคลื่อนไหวพร้อมเสียงพูดภาษาไทย</p></header>
+<main>
+<div class="player">
+ <div class="ttl"><b id="title">เลือกคลิปด้านล่าง</b><small id="cnt"></small></div>
+ <div class="stage" id="stage"></div>
+ <div class="cap" id="cap">กด ▶ เล่น เพื่อเริ่มคลิปที่ 1</div>
+ <div class="track"><i id="fill"></i></div>
+ <div class="ctrls">
+  <button id="voice" title="เปิด/ปิดเสียง">🔊</button>
+  <button id="prev">◀ ก่อน</button>
+  <button id="play" class="pri">▶ เล่น</button>
+  <button id="next">ถัดไป ▶</button>
+ </div>
+</div>
+<div class="list" id="list"></div>
+<p style="font-size:13px;color:var(--mute);margin-top:16px">ลองกดเล่นเองใน <a href="wiring.html" style="color:var(--acc)">จำลองการเดินไฟ</a> · วางแผนจุดไฟของห้องใน <a href="electrical.html" style="color:var(--acc)">งานไฟฟ้า</a> · คลิปนี้เพื่อการเรียนรู้ งานจริงควรให้ช่างที่มีใบรับรองตรวจ</p>
+</main>
+<script>
+/* ---------- helpers วาด svg (หน่วย = ซม. ผนังกว้าง 300 สูง 240) ---------- */
+const X=x=>50+x, Y=h=>270-h;
+const E=(id,a,inner)=>`<g class="el" id="${id}" data-a="${a}">${inner}</g>`;
+const R=(x,y,w,h,c)=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" class="${c}"/>`;
+const stud=(x,h0=0,h1=240,c='st')=>R(X(x)-2,Y(h1),4,h1-h0,c);
+const T=(x,y,t,c='lb',anc='middle')=>`<text x="${x}" y="${y}" class="${c}" text-anchor="${anc}">${t}</text>`;
+const dimH=(x0,x1,y,t)=>`<line class="dm" x1="${x0}" y1="${y}" x2="${x1}" y2="${y}"/><line class="dm" x1="${x0}" y1="${y-4}" x2="${x0}" y2="${y+4}"/><line class="dm" x1="${x1}" y1="${y-4}" x2="${x1}" y2="${y+4}"/>`+T((x0+x1)/2,y-5,t,'dt');
+const dimV=(x,y0,y1,t)=>`<line class="dm" x1="${x}" y1="${y0}" x2="${x}" y2="${y1}"/><line class="dm" x1="${x-4}" y1="${y0}" x2="${x+4}" y2="${y0}"/><line class="dm" x1="${x-4}" y1="${y1}" x2="${x+4}" y2="${y1}"/>`+`<text x="${x+5}" y="${(y0+y1)/2+4}" class="dt">${t}</text>`;
+const dot=(x,y,r=3.2,c='an')=>`<circle cx="${x}" cy="${y}" r="${r}" class="${c}"/>`;
+const room=()=>R(40,Y(244),320,8,'ex')+R(40,Y(0),320,8,'ex')+T(200,Y(244)-4,'เพดาน / คาน')+T(200,Y(0)+20,'พื้น');
+const tracks=(door)=>door?E('tt','drop',R(X(0),Y(240),300,4,'tr'))+E('tbL','rise',R(X(0),Y(4),39,4,'tr'))+E('tbR','rise',R(X(121),Y(4),179,4,'tr')):E('tt','drop',R(X(0),Y(240),300,4,'tr'))+E('tb','rise',R(X(0),Y(4),300,4,'tr'));
+const SV=(inner,vb='0 0 400 300')=>`<svg viewBox="${vb}" xmlns="http://www.w3.org/2000/svg">${inner}</svg>`;
+
+/* helpers งานไฟ */
+const CL={L:'#9b5422',N:'#2f7fd8',G:'#4f9a2a',Y:'#e5c220',grn:'#2e7d46'};
+const wr=(d,c,w=6)=>`<path d="${d}" fill="none" stroke="${CL[c]}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"/>`;
+const gy=d=>wr(d,'G')+`<path d="${d}" fill="none" stroke="${CL.Y}" stroke-width="6" stroke-dasharray="6 10"/>`;
+const scr=(x,y)=>`<circle cx="${x}" cy="${y}" r="9" fill="#d5d8db" stroke="#5c6166" stroke-width="1.5"/><path d="M${x-5} ${y}H${x+5}" stroke="#5c6166" stroke-width="2"/>`;
+const W=(x,y,t,s=12,anc='middle')=>`<text x="${x}" y="${y}" text-anchor="${anc}" style="fill:#fff;font-weight:700;font-size:${s}px">${t}</text>`;
+const box=(x,y,w,h,f)=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="8" fill="${f}"/>`;
+const card=(x,y,w,h)=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="10" fill="var(--card)" stroke="var(--ink)" stroke-width="1.5"/>`;
+const bulb=(x,y,r=16)=>`<circle cx="${x}" cy="${y}" r="${r}" fill="var(--card)" stroke="var(--ink)" stroke-width="2"/><path d="M${x-r*.65} ${y-r*.65}L${x+r*.65} ${y+r*.65}M${x+r*.65} ${y-r*.65}L${x-r*.65} ${y+r*.65}" stroke="var(--ink)" stroke-width="1.6"/>`;
+const glow=(x,y,r=16)=>`<circle cx="${x}" cy="${y}" r="${r*2}" fill="#ffd34d" opacity=".45"/><circle cx="${x}" cy="${y}" r="${r}" fill="#ffd34d" stroke="var(--ink)" stroke-width="2"/>`;
+const tick=(y,t)=>`<circle cx="44" cy="${y-5}" r="13" fill="var(--teal)"/><path d="M37 ${y-5}l5 5 9-10" fill="none" stroke="#fff" stroke-width="3"/>`+T(66,y,t,'big','start');
+
+/* ---------- คลิป ---------- */
+const CLIPS=[
+{t:'ไฟเดินทางจากเสาเข้าบ้าน',d:'เสา → มิเตอร์ → ตู้ไฟ → ลูกย่อย → จุดใช้งาน',
+ stage:()=>SV(
+  E('pole','rise',`<rect x="20" y="30" width="10" height="230" fill="#64748b"/><rect x="8" y="40" width="34" height="6" fill="#64748b"/>`+T(25,278,'เสาไฟ'))+
+  E('drop','fade',wr('M30 44C70 44 105 55 128 80','L',4)+wr('M30 44C80 48 130 60 152 80','N',4))+
+  E('meter','pop',card(110,80,60,50)+T(140,100,'มิเตอร์')+T(140,118,'kWh','big'))+
+  E('warn','pop',T(178,104,'ของการไฟฟ้า ห้ามแตะ','dt','start'))+
+  E('mainW','growx',wr('M130 130V180H230','L')+wr('M152 130V168H230','N'))+
+  E('panel','pop',card(230,140,145,80)+T(302,160,'ตู้คอนซูมเมอร์','lb'))+
+  E('brk','pop',box(242,170,24,40,CL.grn)+W(254,194,'เมน',9)+[285,315,345].map(x=>box(x-10,176,20,34,CL.grn)).join(''))+
+  E('toL','grow',wr('M285 210V246','L'))+E('toO','grow',wr('M345 210V244','L'))+
+  E('lamp','pop',bulb(285,262))+E('out','pop',card(330,244,30,30)+`<rect x="338" y="254" width="3" height="10" fill="var(--ink)"/><rect x="349" y="254" width="3" height="10" fill="var(--ink)"/>`)+
+  E('lampOn','fade',glow(285,262))+
+  E('order','fade',R(60,6,330,26,'ro')+T(225,24,'เสา → มิเตอร์ → เมน → ลูกย่อย → จุดใช้งาน','big'))),
+ sc:[
+  {cap:'ไฟฟ้ามาจากเสาของการไฟฟ้า ผ่านสายเข้าบ้าน มาที่มิเตอร์',show:['pole','drop','meter']},
+  {cap:'ตั้งแต่เสาจนถึงมิเตอร์ เป็นของการไฟฟ้า เราห้ามแตะเด็ดขาด',show:['warn'],hl:['drop','meter']},
+  {cap:'จากมิเตอร์ สายเมนเข้าตู้ไฟในบ้าน เรียกว่าตู้คอนซูมเมอร์',show:['mainW','panel'],hl:['mainW']},
+  {cap:'ในตู้มีเมนเบรกเกอร์หนึ่งตัว แล้วแยกเป็นลูกย่อยหลายตัว ลูกละหนึ่งวงจร',show:['brk'],hl:['brk']},
+  {cap:'ลูกย่อยแต่ละตัว ส่งไฟไปที่หลอดไฟ หรือปลั๊ก ในแต่ละห้อง',show:['toL','toO','lamp','out','lampOn'],hl:['toL','toO']},
+  {cap:'จำง่ายๆ ไฟเดินจาก เสา มิเตอร์ เมน ลูกย่อย แล้วไปถึงจุดใช้งาน',show:['order'],hl:['order']}
+ ]},
+{t:'ในตู้คอนซูมเมอร์มีอะไร',d:'เมน · ลูกย่อย · RCBO · บาร์ N · บาร์ G · หลักดิน',
+ stage:()=>SV(
+  card(20,30,360,250)+
+  E('in','grow',wr('M60 0V60','L'))+
+  E('main','pop',box(40,60,40,64,CL.grn)+W(60,90,'เมน')+W(60,106,'50A',10))+
+  E('live','pop',T(70,22,'มีไฟตลอด แม้ปิดเมน','dt','start'))+
+  E('bus','growx',wr('M60 124V146H302','L'))+
+  E('br','pop',[120,190,280].map((x,i)=>box(x-22,150,44,56,CL.grn)+W(x,176,['ไฟ','ปลั๊ก','น้ำอุ่น'][i],11)+W(x,193,['10A','16A','25A'][i],10)).join(''))+
+  E('rcbo','pop',`<rect x="164" y="144" width="140" height="68" rx="10" fill="none" stroke="var(--acc)" stroke-width="2.5" stroke-dasharray="6 4"/>`+T(234,230,'RCBO ตัดไฟรั่ว 30 mA','dt'))+
+  E('nin','grow',wr('M200 0V60','N'))+
+  E('nbar','growx',box(140,60,120,12,CL.N)+T(266,71,'บาร์ N','lb','start'))+
+  E('gbar','growx',box(140,92,120,12,CL.G)+T(266,103,'บาร์ G','lb','start'))+
+  E('rod','grow',gy('M150 104V250H350V262')+`<path d="M335 266H365M340 273H360M345 280H355" stroke="var(--ink)" stroke-width="2.5"/>`+T(330,277,'ลงหลักดิน','lb','end'))+
+  E('bond','pop',`<line x1="250" y1="72" x2="250" y2="92" stroke="var(--ink)" stroke-width="4"/>`+T(244,86,'N-G','lb','end'))),
+ sc:[
+  {cap:'ตัวใหญ่ซ้ายสุดคือเมนเบรกเกอร์ ปิดตัวนี้แล้วไฟทั้งบ้านดับ',show:['in','main'],hl:['main']},
+  {cap:'แต่สายจากมิเตอร์ที่เข้าด้านบนของเมน ยังมีไฟตลอด แม้ปิดเมนแล้ว ห้ามแตะ',show:['live'],hl:['in']},
+  {cap:'ใต้เมนคือบัสบาร์ จ่ายไฟให้ลูกย่อยทุกตัว ลูกย่อยหนึ่งตัวคุมหนึ่งวงจร',show:['bus','br'],hl:['bus','br']},
+  {cap:'วงจรปลั๊กและเครื่องทำน้ำอุ่น ควรใช้ RCBO ที่ตัดไฟรั่ว 30 มิลลิแอมป์ ช่วยชีวิตตอนโดนไฟดูด',show:['rcbo'],hl:['rcbo']},
+  {cap:'บาร์ N รวมสายสีฟ้าของทุกวงจร',show:['nin','nbar'],hl:['nbar']},
+  {cap:'บาร์ G รวมสายดินของทุกวงจร แล้วต่อลงหลักดินที่ตอกลงไปในดิน',show:['gbar','rod'],hl:['gbar','rod']},
+  {cap:'สาย N กับสายดิน ต่อถึงกันได้ที่ตู้เมนจุดเดียวเท่านั้น ห้ามไปต่อที่ปลั๊กหรือที่อื่น',show:['bond'],hl:['bond']}
+ ]},
+{t:'สายไฟ 3 สี จำให้ขึ้นใจ',d:'น้ำตาล · ฟ้า · เขียวเหลือง และกฎของสวิตช์',
+ stage:()=>SV(
+  E('l','growx',wr('M30 60H230','L',10)+T(242,65,'L = มีไฟ 230 V','big','start'))+
+  E('n','growx',wr('M30 115H230','N',10)+T(242,120,'N = ไฟไหลกลับ','big','start'))+
+  E('g','growx',wr('M30 170H230','G',10)+`<path d="M30 170H230" fill="none" stroke="${CL.Y}" stroke-width="10" stroke-dasharray="10 14"/>`+T(242,175,'G = ลงดิน','big','start'))+
+  E('rule','pop',R(40,205,320,40,'ro')+T(200,231,'สวิตช์กินแต่น้ำตาล สายฟ้าไม่ผ่านสวิตช์','big'))+
+  E('old','fade',T(200,278,'บ้านเก่าสายสีดำ/เทา → วัดด้วยไขควงวัดไฟก่อนเสมอ','dt'))),
+ sc:[
+  {cap:'สายสีน้ำตาล คือสาย L มีไฟ 230 โวลต์ แตะแล้วโดนไฟดูด',show:['l'],hl:['l']},
+  {cap:'สายสีฟ้า คือสาย N เป็นทางที่ไฟไหลกลับ',show:['n'],hl:['n']},
+  {cap:'สายสีเขียวแถบเหลือง คือสายดิน ปกติไม่มีไฟ มีไว้พาไฟรั่วลงดิน',show:['g'],hl:['g']},
+  {cap:'กฎสำคัญ สวิตช์ต้องตัดสายน้ำตาลเท่านั้น สายฟ้าไม่ต้องผ่านสวิตช์',show:['rule'],hl:['rule']},
+  {cap:'ถ้าเจอบ้านเก่า ที่สายเป็นสีดำหรือเทา ต้องใช้ไขควงวัดไฟเช็กก่อนทุกครั้ง',show:['old']}
+ ]},
+{t:'ต่อปลั๊กทีละขั้น',d:'ปิดไฟ วัด ปอก แล้วสีเข้าขั้วตามตัวอักษร',
+ stage:()=>SV(
+  E('mod','fade',box(200,60,150,180,CL.grn)+W(255,128,'L',14)+W(255,185,'N',14)+W(325,180,'⏚',16)+T(275,258,'หลังเต้ารับ','lb'))+
+  E('test','pop',`<rect x="40" y="18" width="70" height="10" rx="5" fill="#f59e0b" transform="rotate(20 75 23)"/>`+T(120,30,'ไขควงวัดไฟ: ไม่ติด = ไม่มีไฟ','dt','start'))+
+  E('strip','pop',`<rect x="150" y="96" width="22" height="8" fill="#d97706"/><rect x="150" y="196" width="22" height="8" fill="#d97706"/><rect x="150" y="146" width="22" height="8" fill="#d97706"/>`+T(100,270,'ปอกยาว ~1 ซม.','dt'))+
+  E('wL','growx',wr('M0 100H231','L'))+
+  E('wN','growx',wr('M0 200H231','N'))+
+  E('wG','growx',gy('M0 150H170C220 150 280 130 316 130'))+
+  E('loop','fade',wr('M289 100C330 100 350 80 400 80','L')+wr('M289 200C330 200 350 220 400 220','N')+gy('M334 160C360 160 370 150 400 150')+T(398,50,'ไปปลั๊กตัวถัดไป','lb','end'))+
+  scr(240,100)+scr(280,100)+scr(240,200)+scr(280,200)+scr(325,130)+scr(325,160)+
+  E('pull','pop',T(200,290,'ดึงทีละเส้น ต้องไม่หลุด ไม่มีทองแดงโผล่','dt'))),
+ sc:[
+  {cap:'ปิดเบรกเกอร์ก่อน แล้วใช้ไขควงวัดไฟแตะสาย ไฟต้องไม่ติด',show:['mod','test'],hl:['test']},
+  {cap:'ปอกปลายสายยาวประมาณหนึ่งเซนติเมตร',show:['strip'],hide:['test']},
+  {cap:'สายน้ำตาลเข้าขั้ว L แล้วขันสกรูให้แน่น',show:['wL'],hide:['strip'],hl:['wL']},
+  {cap:'สายฟ้าเข้าขั้ว N',show:['wN'],hl:['wN']},
+  {cap:'สายเขียวแถบเหลืองเข้าขั้วกราวด์',show:['wG'],hl:['wG']},
+  {cap:'ถ้าจะต่อไปปลั๊กตัวถัดไป ใช้รูที่สองของแต่ละขั้ว สีเดิมเข้าขั้วเดิม',show:['loop'],hl:['loop']},
+  {cap:'สุดท้าย ดึงสายทีละเส้นว่าแน่น และไม่มีทองแดงโผล่นอกขั้ว',show:['pull']}
+ ]},
+{t:'ต่อสวิตช์กับหลอดไฟ',d:'น้ำตาลผ่านสวิตช์ · ฟ้าไปหลอดตรงๆ',
+ stage:()=>SV(
+  E('sw','fade',box(140,40,60,120,CL.grn)+W(170,104,'สวิตช์',11)+W(186,64,'1',10)+W(186,144,'2',10))+
+  E('hold','fade',`<rect x="280" y="190" width="80" height="30" rx="6" fill="#e7e7e7" stroke="#888"/>`+bulb(320,252,20)+T(305,184,'กลาง','lb')+T(340,184,'เกลียว','lb'))+
+  E('lin','growx',wr('M0 80C80 80 120 60 161 60','L')+T(6,72,'L เข้า','lb','start'))+
+  E('sl','grow',wr('M170 149C170 210 300 160 305 196','L'))+
+  E('nn','growx',wr('M0 230C120 240 250 270 300 250C330 236 335 220 335 205','N')+T(6,222,'N','lb','start'))+
+  scr(170,60)+scr(170,140)+scr(305,205)+scr(335,205)+
+  E('on','fade',glow(320,252,20))+
+  E('safe','pop',T(200,292,'ปิดสวิตช์ = ขั้วหลอดไม่มีไฟ เปลี่ยนหลอดได้','dt'))),
+ sc:[
+  {cap:'อุปกรณ์มีสองชิ้น สวิตช์ทางเดียวมีสองขั้ว และขั้วหลอดมีขั้วกลางกับขั้วเกลียว',show:['sw','hold']},
+  {cap:'สายน้ำตาลจากเบรกเกอร์ เข้าขั้ว 1 ของสวิตช์',show:['lin'],hl:['lin']},
+  {cap:'จากขั้ว 2 ของสวิตช์ ใช้สายน้ำตาลไปเข้าขั้วกลางของขั้วหลอด',show:['sl'],hl:['sl']},
+  {cap:'สายฟ้า วิ่งไปเข้าขั้วเกลียวของหลอดตรงๆ ไม่ผ่านสวิตช์',show:['nn'],hl:['nn']},
+  {cap:'เปิดสวิตช์ ไฟวิ่งครบวง หลอดติด',show:['on']},
+  {cap:'ปิดสวิตช์ สายน้ำตาลถูกตัด ขั้วหลอดไม่มีไฟ เปลี่ยนหลอดได้ปลอดภัย',show:['safe'],hide:['on'],hl:['safe']}
+ ]},
+{t:'สวิตช์ 2 จุด (บันไดบน-ล่าง)',d:'COM แรกรับไฟ · COM หลังส่งหลอด · 1 ต่อ 1 · 2 ต่อ 2',
+ stage:()=>SV(
+  E('sws','fade',box(40,80,80,120,CL.grn)+box(280,80,80,120,CL.grn)+W(66,166,'COM',10)+W(92,109,'1',10)+W(92,179,'2',10)+W(308,109,'1',10)+W(308,179,'2',10)+W(334,166,'COM',10)+T(80,222,'ตัวที่ 1 (ล่าง)','lb')+T(320,222,'ตัวที่ 2 (บน)','lb'))+
+  E('lin','growx',wr('M0 140H51','L')+T(4,130,'L เข้า','lb','start'))+
+  E('t1','growx',wr('M109 105H291','L')+T(200,96,'1 ต่อ 1','dt'))+
+  E('t2','growx',wr('M109 175H291','L')+T(200,195,'2 ต่อ 2','dt'))+
+  E('out','grow',wr('M349 131V51','L'))+
+  E('nn','growx',wr('M0 35H324','N')+T(4,27,'N','lb','start'))+
+  scr(60,140)+scr(100,105)+scr(100,175)+scr(300,105)+scr(300,175)+scr(340,140)+
+  `<g>${bulb(340,35)}</g>`+
+  E('on','fade',glow(340,35))+
+  E('inter','pop',`<rect x="170" y="88" width="60" height="104" rx="8" fill="none" stroke="var(--acc)" stroke-width="2" stroke-dasharray="5 4"/>`+T(200,250,'3 จุดขึ้นไป: ใส่สวิตช์กลางทางคั่นตรงนี้','dt'))),
+ sc:[
+  {cap:'ใช้สวิตช์สองทาง สองตัว แต่ละตัวมีสามขั้ว คือ COM ขั้ว 1 และขั้ว 2',show:['sws']},
+  {cap:'สายน้ำตาลจากเบรกเกอร์ เข้าขั้ว COM ของตัวแรก',show:['lin'],hl:['lin']},
+  {cap:'ขั้ว 1 ของตัวแรก ต่อไปขั้ว 1 ของตัวที่สอง',show:['t1'],hl:['t1']},
+  {cap:'ขั้ว 2 ต่อไปขั้ว 2 เหมือนกัน สองเส้นนี้เรียกว่าสายวิ่ง',show:['t2'],hl:['t2']},
+  {cap:'ขั้ว COM ของตัวที่สอง ส่งไฟไปที่หลอด',show:['out'],hl:['out']},
+  {cap:'สายฟ้า ไปเข้าหลอดตรงๆ เหมือนเดิม',show:['nn'],hl:['nn']},
+  {cap:'ทีนี้กดตัวไหนก็เปิดปิดหลอดได้ จำว่า COM แรกรับไฟ COM หลังส่งหลอด หนึ่งต่อหนึ่ง สองต่อสอง',show:['on']},
+  {cap:'ถ้าอยากได้สามจุดขึ้นไป ให้ใส่สวิตช์กลางทาง คั่นระหว่างสายวิ่งตรงกลาง',show:['inter'],hl:['inter']}
+ ]},
+{t:'ตรวจก่อนจ่ายไฟ',d:'5 ข้อก่อนเปิดเบรกเกอร์ และหลังเปิด',
+ stage:()=>SV(
+  E('c1','slide',tick(50,'สกรูทุกขั้วแน่น ดึงแล้วไม่หลุด'))+
+  E('c2','slide',tick(95,'ไม่มีทองแดงโผล่ พับสายเก็บในบ็อกซ์'))+
+  E('c3','slide',tick(140,'ปิดหน้ากากครบ แล้วจึงเปิดเบรกเกอร์'))+
+  E('c4','slide',tick(185,'ไขควงวัดไฟ: รู L ติด · รู N ไม่ติด'))+
+  E('c5','slide',tick(230,'กดปุ่ม TEST ของ RCBO ต้องตัดได้'))+
+  E('w','pop',T(200,285,'ไม่แน่ใจ → ให้ช่างไฟที่มีใบรับรองตรวจ','dt'))),
+ sc:[
+  {cap:'ข้อหนึ่ง ขันสกรูทุกขั้วให้แน่น แล้วดึงสายทีละเส้นว่าไม่หลุด',show:['c1'],hl:['c1']},
+  {cap:'ข้อสอง ไม่มีทองแดงโผล่นอกขั้ว พับสายเก็บในบ็อกซ์ให้เรียบร้อย',show:['c2'],hl:['c2']},
+  {cap:'ข้อสาม ปิดหน้ากากให้ครบทุกจุด แล้วจึงเปิดเบรกเกอร์',show:['c3'],hl:['c3']},
+  {cap:'ข้อสี่ ใช้ไขควงวัดไฟแตะรูปลั๊ก รู L ต้องติด รู N ต้องไม่ติด ถ้ากลับกันแปลว่าต่อสลับ',show:['c4'],hl:['c4']},
+  {cap:'ข้อห้า กดปุ่ม TEST ที่ RCBO ต้องตัดไฟทันที และควรกดเช็กเดือนละครั้ง',show:['c5'],hl:['c5']},
+  {cap:'ถ้าไม่แน่ใจตรงไหน ให้ช่างไฟที่มีใบรับรองช่วยตรวจก่อนใช้งานจริง',show:['w']}
+ ]}
+];
+
+/* ---------- player ---------- */
+const $=id=>document.getElementById(id);
+let ci=-1,si=0,playing=false,gen=0,voiceOn=true,thVoice=null;
+const HAS_TTS='speechSynthesis' in window;
+let seen={};try{seen=JSON.parse(localStorage.getItem('torteum_wiring_seen')||'{}')}catch(e){}
+function pickVoice(){if(!HAS_TTS)return;const v=speechSynthesis.getVoices();thVoice=v.find(x=>/^th/i.test(x.lang))||null}
+if(HAS_TTS){pickVoice();speechSynthesis.onvoiceschanged=pickVoice}
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function speak(text,g){
+ if(!(voiceOn&&HAS_TTS))return sleep(Math.max(2600,text.length*85));
+ return new Promise(res=>{let done=false;const fin=()=>{if(!done){done=true;res()}};
+  try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);if(thVoice){u.voice=thVoice;u.lang=thVoice.lang}else u.lang='th-TH';u.rate=1;u.onend=fin;u.onerror=fin;speechSynthesis.speak(u)}catch(e){fin()}
+  setTimeout(fin,Math.max(4500,text.length*170))});
+}
+function renderList(){
+ $('list').innerHTML=CLIPS.map((c,i)=>`<button class="item ${i===ci?'on':''}" data-i="${i}"><span class="no">${i+1}</span><span><b>${c.t}</b><span>${c.d} · ${c.sc.length} ฉาก</span></span>${seen[i]?'<span class="done">✓</span>':''}</button>`).join('');
+}
+function load(i){ci=i;si=0;const c=CLIPS[i];$('stage').innerHTML=c.stage();$('title').textContent=`${i+1}. ${c.t}`;applyUpTo(0,false);renderList();ui()}
+function applyScene(sc,anim){
+ const st=$('stage');
+ st.querySelectorAll('.hl').forEach(e=>e.classList.remove('hl'));
+ (sc.hide||[]).forEach(id=>{const e=st.querySelector('#'+id);if(e)e.classList.remove('on')});
+ (sc.show||[]).forEach(id=>{const e=st.querySelector('#'+id);if(!e)return;if(!anim){e.style.transition='none';e.classList.add('on');e.getBoundingClientRect();e.style.transition=''}else e.classList.add('on')});
+ (sc.hl||[]).forEach(id=>{const e=st.querySelector('#'+id);if(e)e.classList.add('hl')});
+ $('cap').textContent=sc.cap;
+}
+function applyUpTo(k,anim){const st=$('stage');st.querySelectorAll('.el').forEach(e=>{e.style.transition='none';e.classList.remove('on','hl');e.getBoundingClientRect();e.style.transition=''});
+ const c=CLIPS[ci];for(let j=0;j<k;j++)applyScene(c.sc[j],false);applyScene(c.sc[k],anim)}
+function ui(){const c=CLIPS[ci],n=c?c.sc.length:0;
+ $('cnt').textContent=c?`ฉาก ${si+1}/${n}`:'';$('fill').style.width=c?((si+(playing?1:0))/n*100)+'%':'0';
+ $('play').textContent=playing?'⏸ หยุด':(c&&si>=n-1&&seen[ci]?'↻ ดูอีกครั้ง':'▶ เล่น');
+ $('prev').disabled=!c||si===0;$('next').textContent=c&&si>=n-1?(ci<CLIPS.length-1?'คลิปถัดไป ▶':'จบแล้ว'):'ถัดไป ▶';$('next').disabled=c&&si>=n-1&&ci>=CLIPS.length-1;
+ $('voice').textContent=voiceOn?'🔊':'🔇'}
+async function run(){const g=++gen;playing=true;ui();const c=CLIPS[ci];
+ while(playing&&g===gen&&si<c.sc.length){applyScene(c.sc[si],true);ui();await Promise.all([speak(c.sc[si].cap,g),sleep(Math.max(2500,c.sc[si].cap.length*60))]);if(g!==gen||!playing)return;await sleep(c.sc[si].wait||700);if(g!==gen||!playing)return;
+  if(si<c.sc.length-1)si++;else break}
+ if(g===gen){playing=false;seen[ci]=1;try{localStorage.setItem('torteum_wiring_seen',JSON.stringify(seen))}catch(e){};renderList();ui();$('fill').style.width='100%'}}
+function stop(){playing=false;gen++;if(HAS_TTS)try{speechSynthesis.cancel()}catch(e){};ui()}
+function go(k){stop();si=k;applyUpTo(si,true);ui()}
+$('play').onclick=()=>{if(ci<0)load(0);if(playing){stop();return}
+ const n=CLIPS[ci].sc.length;if(si>=n-1&&seen[ci]){si=0;applyUpTo(0,false)}else if(si>0){applyUpTo(si,false)}run()};
+$('prev').onclick=()=>{if(si>0)go(si-1)};
+$('next').onclick=()=>{const n=CLIPS[ci].sc.length;if(si<n-1){const was=playing;go(si+1);if(was)run()}else if(ci<CLIPS.length-1){stop();load(ci+1);run()}};
+$('voice').onclick=()=>{voiceOn=!voiceOn;if(!voiceOn&&HAS_TTS)speechSynthesis.cancel();ui()};
+$('list').onclick=e=>{const b=e.target.closest('[data-i]');if(!b)return;stop();load(+b.dataset.i);window.scrollTo({top:0,behavior:'smooth'});run()};
+const h=parseInt((location.hash||'').replace('#clip-',''));load(isFinite(h)&&h>0&&h<=CLIPS.length?h-1:0);
+</script>
+</body>
+</html>

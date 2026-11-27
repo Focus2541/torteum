@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>จำลองการเดินไฟบ้าน</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+/* VOICE: ครูช่างใจเย็น ชัดเจน ปลอดภัยมาก่อน
+   IDEA: แผงฝึกเดินสายไฟในห้องเรียนช่าง — แผ่นไม้อัดสีขาวมีอุปกรณ์ติดจริง
+   PICTURE: ไดอะแกรมวงจรที่กดได้ สายมีกระแสไหลจริง
+   COLOUR+TYPE: สีสายจริง น้ำตาล/ฟ้า/เขียวเหลือง บนพื้นขาวกระดาน, IBM Plex Sans Thai
+   LAYOUT: เมน → วงจรแสงสว่าง → วงจรเต้ารับ → ความรู้ */
+:root{color-scheme:light dark;--bg:light-dark(#f3f1ec,#141516);--panel:light-dark(#ffffff,#1e2022);--ink:light-dark(#1b1c1d,#ecebe7);--mute:light-dark(#62605b,#a3a19c);--line:light-dark(#dcd8cf,#34373a);--L:#9b5422;--N:#2f7fd8;--G:#4f9a2a;--Y:#e5c220;--warn:#d4361c;--ok:#2f8a46;--glow:#ffd34d}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 "IBM Plex Sans Thai",system-ui,sans-serif;overflow-x:clip}
+.wrap{max-width:860px;margin:0 auto;padding:20px max(4vw,14px) 48px}
+h1{font-size:clamp(28px,6vw,40px);line-height:1.12;margin:6px 0 6px;text-wrap:balance}
+h2{font-size:21px;margin:0 0 4px}
+p{margin:.3em 0}
+.sub{color:var(--mute);margin-bottom:16px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;margin:14px 0}
+.fig svg{width:100%;height:auto;display:block}
+.ctrls{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+button{font:inherit;font-size:15px;min-height:44px;padding:8px 14px;border-radius:10px;border:1px solid var(--line);background:light-dark(#f6f4ef,#26292b);color:var(--ink);cursor:pointer}
+button[aria-pressed=true]{background:var(--ink);color:var(--panel);border-color:var(--ink)}
+button.danger{border-color:var(--warn);color:var(--warn)}
+button.danger[aria-pressed=true]{background:var(--warn);color:#fff}
+button:focus-visible{outline:3px solid var(--N);outline-offset:2px}
+button:disabled{opacity:.4;cursor:not-allowed}
+.grp{font-size:13px;color:var(--mute);margin:12px 0 0}
+.msg{margin-top:12px;padding:10px 12px;border-radius:10px;background:light-dark(#eef5ee,#1c2a20);border-left:4px solid var(--ok);font-size:15px}
+.msg.bad{background:light-dark(#fdeeea,#331d18);border-left-color:var(--warn)}
+.msg.info{background:light-dark(#eef3fb,#1a2333);border-left-color:var(--N)}
+.main{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.main .st{flex:1 1 200px;font-size:15px;color:var(--mute)}
+.meter{height:12px;border-radius:6px;background:var(--line);overflow:hidden;margin-top:6px}
+.meter i{display:block;height:100%;background:var(--ok);transition:width .3s}
+.loadrow{display:flex;justify-content:space-between;font-size:14px;margin-top:12px;gap:8px;white-space:nowrap}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:14px}
+.legend b{display:inline-block;width:28px;height:6px;border-radius:3px;vertical-align:middle;margin-right:6px}
+.w{fill:none;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;transition:opacity .2s}
+.w.off{opacity:.25}
+.flow{fill:none;stroke:#fff;stroke-width:2;stroke-dasharray:3 9;stroke-linecap:round;animation:f .6s linear infinite;opacity:.95}
+@keyframes f{to{stroke-dashoffset:-12}}
+@media (prefers-reduced-motion:reduce){.flow{animation:none}}
+svg text{font-family:"IBM Plex Sans Thai",system-ui,sans-serif;fill:var(--ink)}
+.tap{fill:transparent;cursor:pointer}
+details{border-top:1px solid var(--line);padding:10px 0}
+summary{font-weight:600;cursor:pointer;min-height:32px}
+details ul,details ol{padding-left:1.2em;margin:.4em 0}
+details li{margin:.25em 0}
+table{border-collapse:collapse;width:100%;font-size:15px;margin:.5em 0}
+th,td{border-bottom:1px solid var(--line);padding:7px 6px;text-align:left;vertical-align:top}
+th{font-weight:600}
+.note{font-size:13px;color:var(--mute)}
+.stepbar{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:10px}
+.stepbox{margin-top:8px;padding:12px 14px;border-radius:10px;background:light-dark(#f6f4ef,#26292b)}
+.stepbox h3{margin:0 0 4px;font-size:17px}
+.now{animation:pz 1s ease-in-out infinite alternate}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pz{from{opacity:1}to{opacity:.45}}
+@media (prefers-reduced-motion:reduce){.now{animation:none}}
+.rhyme{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.rhyme span{color:#fff;font-weight:700;padding:8px 12px;border-radius:999px;font-size:15px}
+.rhyme .gy{background:repeating-linear-gradient(90deg,#4f9a2a 0 14px,#c9a90f 14px 24px)}
+.gold{padding-left:1.3em;font-size:17px}.gold li{margin:.35em 0}
+.qh{font-size:17px;margin:18px 0 8px}
+.qz{border:1px solid var(--line);border-radius:12px;padding:12px;margin:10px 0}
+.qz h4{margin:0 0 8px;font-size:16px}
+.slots{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;background:#2e7d46;padding:10px;border-radius:10px}
+.slot{display:flex;flex-direction:column;align-items:flex-start;gap:4px;background:#ffffff1a;border:1px dashed #ffffff80;color:#fff;text-align:left}
+.slot .wire{display:block;width:100%;height:10px;border-radius:5px;background:#ffffff30}
+.slot.ok{border:2px solid #b8f5c4}.slot.no{border:2px solid #ff9b8a}
+.qz .tip{margin-top:8px;font-size:15px}
+.mem{border:1px solid var(--line);border-radius:12px;padding:12px;margin:10px 0}
+.mem svg{width:100%;height:auto;margin-top:8px}
+.say{font-weight:700;font-size:16px;margin-top:6px}
+.warnbox{border:2px solid var(--warn);border-radius:12px;padding:12px 14px;font-size:15px}
+@media(max-width:600px){table{font-size:13px}.stack thead{display:none}.stack tr{display:grid;padding-block:10px;border-bottom:1px solid var(--line)}.stack td{display:flow-root;border:0;padding:3px 0;padding-inline-start:7em;text-align:start}.stack td::before{content:attr(data-l);float:inline-start;width:6.5em;margin-inline-start:-7em;color:var(--mute)}}
+</style>
+<script>new MutationObserver(()=>{for(const c of document.querySelectorAll('.stack td:not([data-l])')){let i=0,p=c;while(p=p.previousElementSibling)i+=p.colSpan;c.dataset.l=c.closest('table').rows[0].cells[i]?.textContent||''}}).observe(document,{childList:true,subtree:true})</script>
+</head>
+<body>
+<div class="wrap">
+<p class="note"><a href="./" style="color:var(--L)">← หน้าหลัก</a> · <a href="wiring-video.html" style="color:var(--L)">ดูคลิปสอน (มีเสียงพูด)</a></p>
+<h1>จำลองการเดินไฟบ้าน: แสงสว่างกับปลั๊ก</h1>
+<p class="sub">กดสวิตช์ เบรกเกอร์ และเสียบปลั๊กได้จริง เส้นขีดสีขาวที่วิ่งบนสายคือกระแสที่กำลังไหล ลองเปิดโหมด "ต่อผิด" เพื่อดูว่าอันตรายเกิดตรงไหน</p>
+
+<div class="legend">
+<span><b style="background:var(--L)"></b>L สายไฟ (น้ำตาล)</span>
+<span><b style="background:var(--N)"></b>N นิวทรัล (ฟ้า)</span>
+<span><b style="background:repeating-linear-gradient(90deg,var(--G) 0 7px,var(--Y) 7px 12px)"></b>G สายดิน (เขียวแถบเหลือง)</span>
+</div>
+
+<div class="card" id="easy">
+<h2>แบบจำง่าย: ไม่ต้องอ่านวงจร</h2>
+<p class="note">สำหรับคนที่ดูผังไม่เป็น จำแค่ "สีไหนเข้าช่องไหน" ก็ต่อได้ถูก</p>
+<div class="rhyme"><span style="background:var(--L)">น้ำตาล = มีไฟ</span><span style="background:var(--N)">ฟ้า = ไฟกลับ</span><span class="gy">เขียวเหลือง = ลงดิน</span></div>
+<ol class="gold">
+<li><b>ปิดเบรกเกอร์ แล้ววัดก่อนจับ</b> ไขควงวัดไฟต้องไม่ติด</li>
+<li><b>สีตรงตัวอักษร</b> L = น้ำตาล · N = ฟ้า · ⏚ = เขียวเหลือง</li>
+<li><b>สวิตช์กินแต่น้ำตาล</b> สายฟ้าไม่ผ่านสวิตช์เด็ดขาด</li>
+</ol>
+<h3 class="qh">ฝึกจำ: แตะช่องเพื่อเลือกสีสาย แล้วกดตรวจ</h3>
+<div id="quiz"></div>
+<h3 class="qh">สวิตช์หลายจุด: จำเป็นประโยค</h3>
+<div class="mem"><b>สวิตช์ 2 จุด (บันไดบน-ล่าง)</b> ใช้สวิตช์ 2 ทาง 2 ตัว แต่ละตัวมี 3 ขา: COM, 1, 2
+<svg viewBox="0 0 360 150" role="img" aria-label="วิธีต่อสวิตช์สองทาง">
+<rect x="40" y="35" width="90" height="90" rx="8" fill="#2e7d46"/><rect x="230" y="35" width="90" height="90" rx="8" fill="#2e7d46"/>
+<path d="M0 80H58" class="w" stroke="var(--L)"/><path d="M302 80H360" class="w" stroke="var(--L)"/>
+<path d="M112 55H248" class="w" stroke="var(--L)"/><path d="M112 105H248" class="w" stroke="var(--L)"/>
+<g fill="#d5d8db" stroke="#5c6166"><circle cx="58" cy="80" r="9"/><circle cx="112" cy="55" r="9"/><circle cx="112" cy="105" r="9"/><circle cx="248" cy="55" r="9"/><circle cx="248" cy="105" r="9"/><circle cx="302" cy="80" r="9"/></g>
+<g font-size="11" style="font-weight:700"><text x="72" y="84" style="fill:#fff">COM</text><text x="93" y="59" style="fill:#fff">1</text><text x="93" y="109" style="fill:#fff">2</text><text x="262" y="59" style="fill:#fff">1</text><text x="262" y="109" style="fill:#fff">2</text><text x="260" y="84" style="fill:#fff">COM</text></g>
+<text x="2" y="100" font-size="10">ไฟเข้า</text><text x="358" y="100" font-size="10" text-anchor="end">ไปหลอด</text>
+<text x="180" y="48" font-size="11" text-anchor="middle">1 ต่อ 1</text><text x="180" y="122" font-size="11" text-anchor="middle">2 ต่อ 2</text>
+<text x="85" y="142" font-size="11" text-anchor="middle">ตัวที่ 1</text><text x="275" y="142" font-size="11" text-anchor="middle">ตัวที่ 2</text>
+</svg>
+<p class="say">"COM แรกรับไฟ · COM หลังส่งหลอด · 1 ต่อ 1 · 2 ต่อ 2"</p></div>
+<div class="mem"><b>สวิตช์ 3–4 จุด</b> หัวกับท้ายเหมือนข้างบน แล้วเอา "สวิตช์กลางทาง" (4 ขา) ไปคั่นสาย 1 กับ 2
+<svg viewBox="0 0 360 120" role="img" aria-label="วิธีแทรกสวิตช์กลางทาง">
+<rect x="135" y="15" width="90" height="90" rx="8" fill="#2e7d46"/>
+<path d="M0 35H153M0 85H153M207 35H360M207 85H360" class="w" stroke="var(--L)"/>
+<g fill="#d5d8db" stroke="#5c6166"><circle cx="153" cy="35" r="9"/><circle cx="153" cy="85" r="9"/><circle cx="207" cy="35" r="9"/><circle cx="207" cy="85" r="9"/></g>
+<text x="4" y="27" font-size="11">สาย 1 จากตัวแรก</text><text x="4" y="104" font-size="11">สาย 2 จากตัวแรก</text>
+<text x="356" y="27" font-size="11" text-anchor="end">สาย 1 ไปตัวท้าย</text><text x="356" y="104" font-size="11" text-anchor="end">สาย 2 ไปตัวท้าย</text>
+<text x="180" y="64" font-size="11" text-anchor="middle" style="fill:#fff">กลางทาง</text>
+</svg>
+<p class="say">"เข้าซ้าย 2 เส้น ออกขวา 2 เส้น" · 3 จุดใส่ 1 ตัว · 4 จุดใส่ 2 ตัว</p></div>
+<p class="note">อยากเห็นว่าทำไมถึงต้องต่อแบบนี้ ดูภาพจำลองแบบละเอียดด้านล่าง</p>
+</div>
+
+<div class="card" id="mains">
+<h2>ตั้งแต่เมนลงมา: เสาไฟ → มิเตอร์ → ตู้ → ทุกจุดในบ้าน</h2>
+<p class="note">แตะเมน ลูกย่อย หรือเครื่องใช้ในภาพเพื่อเปิด/ปิด แล้วดูว่ามิเตอร์หมุนแค่ไหน และส่วนไหนของบ้านดับ</p>
+<div class="fig"><svg id="svgP" viewBox="0 0 360 470" role="img" aria-label="ระบบไฟตั้งแต่เสาไฟถึงจุดใช้งาน"></svg></div>
+<div class="ctrls" id="pCtrls"></div>
+<div class="msg" id="pMsg"></div>
+<div class="stepbox"><h3>จำลำดับไฟ</h3><ol>
+<li><b>เสาไฟ → มิเตอร์</b> เป็นของการไฟฟ้า ห้ามแตะ</li>
+<li><b>มิเตอร์ → เมนเบรกเกอร์</b> สายเส้นนี้มีไฟตลอด แม้ปิดเมนแล้ว</li>
+<li><b>เมน → บัสบาร์ → ลูกย่อย</b> ลูกย่อย 1 ตัว = 1 วงจร (ไฟแสงสว่าง / ปลั๊ก / เครื่องทำน้ำอุ่น / แอร์)</li>
+<li><b>บาร์ N</b> รวมสายฟ้าทุกวงจร · <b>บาร์ G</b> รวมสายดินทุกวงจร แล้วลงหลักดิน</li>
+<li>ต่อ N กับ G เข้าหากันที่ตู้เมนจุดเดียวเท่านั้น</li>
+</ol></div>
+</div>
+
+<div class="card" id="site">
+<h2>หน้างานจริง: เซฟตี้เบรกเกอร์ + สวิตช์ + เต้ารับ + หลอดไฟ</h2>
+<p class="note">มองจากด้านหลังหน้ากาก แบบเดียวกับชุดปลั๊กประกอบทั่วไป ทำทีละขั้น สายที่กำลังต่อจะเป็นเส้นหนากะพริบ</p>
+<div class="fig"><svg id="svgR" viewBox="0 0 380 590" role="img" aria-label="ผังต่อสายหน้างานจริง"></svg></div>
+<div class="stepbar"><button id="rPrev">ก่อนหน้า</button><b id="rNo"></b><button id="rNext">ถัดไป</button></div>
+<div class="stepbox"><h3 id="rTitle"></h3><p id="rBody"></p></div>
+<div class="ctrls">
+<button id="rBrk">เซฟตี้เบรกเกอร์</button>
+<button id="rSw">กดสวิตช์</button>
+<button id="rPlug">เสียบพัดลม 60W</button>
+</div>
+<div class="msg" id="rMsg"></div>
+<p class="note">ตำแหน่งขั้วจริงแต่ละยี่ห้อต่างกัน ให้ดูตัวอักษร L, N, ⏚ ที่พิมพ์ไว้หลังโมดูลเสมอ</p>
+</div>
+
+<div class="card" id="multi">
+<h2>หลายจุด: ปลั๊กหลายตัว · สวิตช์ 2 จุด · สวิตช์ 3–4 จุด</h2>
+<div class="ctrls" role="tablist">
+<button id="tb0" role="tab">ปลั๊ก 4 จุด</button>
+<button id="tb1" role="tab">สวิตช์ 2 จุด</button>
+<button id="tb2" role="tab">สวิตช์ 3–4 จุด</button>
+</div>
+<p id="mIntro" style="margin-top:10px"></p>
+<div class="fig"><svg id="svgM" viewBox="0 0 360 250" role="img" aria-label="วงจรหลายจุด"></svg></div>
+<div id="mLoad" class="loadrow"><span>โหลดรวม <b id="mW">0</b> W · <b id="mA">0.0</b> A</span><span>เบรกเกอร์ 16 A ≈ 3,680 W</span></div>
+<div id="mMeter" class="meter"><i id="mMt" style="width:0"></i></div>
+<div class="ctrls" id="mCtrls"></div>
+<div class="msg" id="mMsg"></div>
+<div class="stepbox" id="mTips"></div>
+</div>
+
+<div class="card">
+<div class="main">
+<button id="bMain" aria-pressed="true">เมนเบรกเกอร์</button>
+<div class="st" id="mainSt"></div>
+</div>
+</div>
+
+<div class="card">
+<h2>วงจรที่ 1 · แสงสว่าง</h2>
+<p class="note">หลอด 1 ใช้สวิตช์ทางเดียว · หลอด 2 ใช้สวิตช์สองทาง (เปิด-ปิดได้ 2 จุด เช่น บันไดบน-ล่าง) · แตะที่สวิตช์ในภาพได้เลย</p>
+<div class="fig"><svg id="svgL" viewBox="0 0 360 215" role="img" aria-label="วงจรแสงสว่าง"></svg></div>
+<div class="ctrls">
+<button id="bCbL">MCB 10A</button>
+<button id="bS1">S1 หลอด 1</button>
+<button id="bA">SW-A (ล่าง)</button>
+<button id="bB">SW-B (บน)</button>
+</div>
+<p class="grp">โหมดต่อผิด</p>
+<div class="ctrls"><button id="bFaultN" class="danger">ต่อสวิตช์ไว้ที่สาย N</button></div>
+<div class="msg" id="msgL"></div>
+</div>
+
+<div class="card">
+<h2>วงจรที่ 2 · เต้ารับ (ปลั๊ก)</h2>
+<p class="note">แตะที่เต้ารับในภาพเพื่อเสียบ/ถอดปลั๊ก · วงจรนี้ใช้ RCBO 16A 30mA ตัดได้ทั้งไฟเกิน ไฟช็อต และไฟรั่ว</p>
+<div class="fig"><svg id="svgO" viewBox="0 0 360 245" role="img" aria-label="วงจรเต้ารับ"></svg></div>
+<div class="loadrow"><span>โหลดรวม <b id="w">0</b> W · <b id="a">0.0</b> A</span><span>พิกัด 16 A ≈ 3,680 W</span></div>
+<div class="meter"><i id="mt" style="width:0"></i></div>
+<div class="ctrls">
+<button id="bCbO">RCBO 16A</button>
+<button id="p0">กาต้มน้ำ 2000W</button>
+<button id="p1">ทีวี 150W</button>
+<button id="p2">ไดร์เป่าผม 1800W</button>
+</div>
+<p class="grp">จำลองเหตุผิดปกติ</p>
+<div class="ctrls">
+<button id="bLeak" class="danger">กาต้มน้ำไฟรั่วลงตัวถัง</button>
+<button id="bNoG" class="danger">ไม่ต่อสายดิน</button>
+<button id="bTouch" class="danger">เอามือแตะกาต้มน้ำ</button>
+<button id="bShort" class="danger">สายลัดวงจร</button>
+</div>
+<div class="msg" id="msgO"></div>
+</div>
+
+<div class="card">
+<h2>ความรู้สำหรับช่างมือใหม่</h2>
+<details open><summary>สีสายและหน้าที่</summary>
+<ul>
+<li><b>L (น้ำตาล)</b> สายที่มีแรงดัน 230 V แตะแล้วโดนไฟดูด</li>
+<li><b>N (ฟ้า)</b> ทางกลับของกระแส ปกติแรงดันใกล้ 0 แต่ถ้าวงจรต่อผิดก็มีไฟได้ ห้ามประมาท</li>
+<li><b>G (เขียวแถบเหลือง)</b> สายดิน ปกติไม่มีกระแส มีไว้พาไฟรั่วลงดินให้เบรกเกอร์ตัด</li>
+</ul>
+<p class="note">สีตามมาตรฐานสายไฟ มอก. 11-2553 · บ้านเก่าอาจเป็นสีดำ/เทา ต้องวัดก่อนเสมอ</p>
+</details>
+<details><summary>กฎหลัก 6 ข้อ</summary>
+<ol>
+<li>สวิตช์ต้องตัด <b>สาย L</b> เสมอ ไม่ใช่สาย N</li>
+<li>เต้ารับต้องเป็นแบบ 3 รู และต่อสายดินจริงไปถึงหลักดิน</li>
+<li>แยกวงจรแสงสว่างกับเต้ารับ ไฟปลั๊กตัด ไฟห้องยังสว่าง</li>
+<li>เครื่องใช้กำลังสูง เช่น แอร์ เครื่องทำน้ำอุ่น ให้มีวงจรของตัวเอง</li>
+<li>ต่อ N กับ G ร่วมกันได้ที่ตู้เมนจุดเดียวเท่านั้น ห้ามไปต่อที่ปลั๊กหรือที่อื่น</li>
+<li>วงจรเต้ารับและจุดที่เปียก (ห้องน้ำ ครัว นอกบ้าน) ใช้ RCBO/RCD 30 mA</li>
+</ol>
+</details>
+<details><summary>ขนาดสายและเบรกเกอร์ที่นิยมใช้ในบ้าน</summary>
+<table class="stack"><thead><tr><th>วงจร</th><th>สาย (ทองแดง)</th><th>เบรกเกอร์</th></tr></thead><tbody>
+<tr><td>แสงสว่าง</td><td>1.5–2.5 ตร.มม.</td><td>MCB 10 A</td></tr>
+<tr><td>เต้ารับทั่วไป</td><td>2.5 ตร.มม.</td><td>RCBO 16–20 A 30 mA</td></tr>
+<tr><td>เครื่องทำน้ำอุ่น 3.5–4.5 kW</td><td>4 ตร.มม.</td><td>RCBO 20–25 A 30 mA</td></tr>
+<tr><td>แอร์ 9,000–12,000 BTU</td><td>2.5 ตร.มม.</td><td>MCB 16–20 A</td></tr>
+<tr><td>สายดินวงจรย่อย</td><td>เท่ากับสายไฟ (สำหรับสายไม่เกิน 16 ตร.มม.)</td><td>—</td></tr>
+</tbody></table>
+<p class="note">เป็นค่าที่ใช้กันทั่วไปเพื่อการเรียนรู้ ขนาดจริงต้องคำนวณจากโหลด ความยาวสาย และวิธีเดินสาย ตามมาตรฐาน วสท. และข้อกำหนดของการไฟฟ้าในพื้นที่ · เบรกเกอร์ต้องไม่ใหญ่กว่าที่สายทนได้</p>
+</details>
+<details><summary>สวิตช์สองทางทำงานอย่างไร</summary>
+<p>สวิตช์สองทางมี 3 ขั้ว: ขั้วกลาง (COM) และขั้วเลือก 2 ขั้ว สายระหว่างสวิตช์ 2 ตัวเรียกว่า "สายวิ่ง" มี 2 เส้น หลอดจะติดเมื่อก้านของทั้งสองตัวชี้ไปที่สายวิ่งเส้นเดียวกัน กดตัวไหนก็สลับสถานะได้ ลองกด SW-A กับ SW-B ด้านบนดู</p>
+<p>ต่อ L เข้าขั้ว COM ของตัวแรก และขั้ว COM ของตัวที่สองไปหาหลอด ส่วนสาย N ไปหาหลอดตรงๆ</p>
+</details>
+<details><summary>ขั้นตอนความปลอดภัยก่อนลงมือ</summary>
+<ol>
+<li>ปิดเมนเบรกเกอร์ (ไม่ใช่แค่ปิดสวิตช์) แล้วแขวนป้าย "กำลังซ่อม ห้ามเปิด"</li>
+<li>ทดสอบไขควงวัดไฟหรือมัลติมิเตอร์กับจุดที่รู้ว่ามีไฟก่อน แล้วค่อยวัดจุดที่จะทำงาน</li>
+<li>วัดทุกเส้น ทั้ง L, N และ G</li>
+<li>ใช้เครื่องมือด้ามฉนวน ยืนบนพื้นแห้ง ใส่รองเท้า</li>
+<li>ต่อสายด้วยขั้วต่อหรือ wire nut ขันให้แน่น ห้ามพันเทปอย่างเดียว ห้ามต่อสายนอกกล่อง</li>
+<li>เสร็จแล้วกดปุ่ม Test ของ RCBO ให้ตัดได้จริง และกดซ้ำเดือนละครั้ง</li>
+</ol>
+</details>
+<details><summary>ข้อผิดพลาดที่พบบ่อย</summary>
+<table class="stack"><thead><tr><th>ต่อผิด</th><th>ผลที่ตามมา</th></tr></thead><tbody>
+<tr><td>สวิตช์ตัดสาย N</td><td>ปิดไฟแล้วขั้วหลอดยังมีไฟ เปลี่ยนหลอดแล้วโดนดูด</td></tr>
+<tr><td>ไม่ต่อสายดิน / ต่อลอยไว้</td><td>เครื่องรั่วแล้วตัวถังมีไฟ คนแตะคือทางลงดิน</td></tr>
+<tr><td>สายเล็กกว่าเบรกเกอร์</td><td>สายร้อนจนฉนวนละลายก่อนเบรกเกอร์ตัด เสี่ยงไฟไหม้</td></tr>
+<tr><td>ต่อ N กับ G ที่ปลั๊ก</td><td>RCBO ตัดบ่อยหรือตรวจรั่วไม่ได้ สายดินมีกระแส</td></tr>
+<tr><td>ใช้ปลั๊กพ่วงต่อเครื่องกำลังสูงหลายตัว</td><td>โหลดเกิน ปลั๊กละลาย</td></tr>
+</tbody></table>
+</details>
+</div>
+
+<div class="warnbox"><b>ข้อควรระวัง</b> หน้านี้เป็นแบบจำลองเพื่อการเรียนรู้ ไม่ใช่แบบติดตั้งจริง งานเดินสายในบ้านควรทำหรือตรวจโดยช่างที่มีใบรับรองฝีมือแรงงาน และขอตรวจจากการไฟฟ้าเมื่อเดินระบบใหม่</div>
+</div>
+
+<script>
+{
+const C={L:'var(--L)',N:'var(--N)',G:'var(--G)'};
+const S={main:true,cbL:true,s1:false,a:0,b:1,faultN:false,cbO:true,tripO:'',plug:[false,false,false],leak:false,noG:false};
+const AP=[{n:'กาต้มน้ำ',w:2000},{n:'ทีวี',w:150},{n:'ไดร์',w:1800}];
+let olTimer=null,msgO='',msgOcls='';
+const $=id=>document.getElementById(id);
+
+const seg=(d,col,live,flow)=>`<path d="${d}" class="w ${live?'':'off'}" stroke="${col}"/>`+(flow&&S.main?`<path d="${d}" class="flow"/>`:'');
+const gseg=(d,live,flow)=>`<path d="${d}" class="w ${live?'':'off'}" stroke="var(--G)"/><path d="${d}" class="w ${live?'':'off'}" stroke="var(--Y)" stroke-width="4" stroke-dasharray="5 9" style="fill:none"/>`+(flow?`<path d="${d}" class="flow"/>`:'');
+const dot=(x,y)=>`<circle cx="${x}" cy="${y}" r="3.5" fill="var(--ink)"/>`;
+const lamp=(x,y,on,lab,ly)=>`${on?`<circle cx="${x}" cy="${y}" r="26" fill="var(--glow)" opacity=".35"/>`:''}<circle cx="${x}" cy="${y}" r="14" fill="${on?'var(--glow)':'var(--panel)'}" stroke="var(--ink)" stroke-width="2"/><path d="M${x-9} ${y-9}L${x+9} ${y+9}M${x+9} ${y-9}L${x-9} ${y+9}" stroke="var(--ink)" stroke-width="1.6"/><text x="${x}" y="${ly}" font-size="12" text-anchor="middle">${lab}</text>`;
+const brk=(x,y,h,on,trip,l1,l2)=>`<rect x="${x}" y="${y}" width="44" height="${h}" rx="6" fill="${trip?'var(--warn)':on?'var(--ok)':'var(--mute)'}"/><text x="${x+22}" y="${y+h/2-2}" font-size="11" text-anchor="middle" style="fill:#fff;font-weight:700">${l1}</text><text x="${x+22}" y="${y+h/2+12}" font-size="10" text-anchor="middle" style="fill:#fff">${trip?'ตัดแล้ว':on?'ON':'OFF'}</text>${l2||''}`;
+
+function drawL(){
+  const p=S.main&&S.cbL, l1=p&&S.s1, l2=p&&S.a===S.b, any=l1||l2;
+  let s='';
+  s+=`<text x="4" y="14" font-size="11">N</text>`+seg('M10 20H345',C.N,S.main,any);
+  s+=`<text x="4" y="36" font-size="11" style="fill:var(--mute)">L จากเมน</text>`;
+  s+=seg('M52 60H100',C.L,p,any)+dot(100,60);
+  if(!S.faultN){
+    s+=seg('M100 60H130',C.L,p,l1)+seg('M165 60H266',C.L,p&&S.s1,l1)+seg('M294 60H300V20',C.N,S.main,l1)+dot(300,20);
+    s+=`<line x1="130" y1="60" x2="${S.s1?165:158}" y2="${S.s1?60:42}" stroke="var(--ink)" stroke-width="3" stroke-linecap="round"/>`+dot(130,60)+dot(165,60);
+    s+=`<text x="147" y="84" font-size="12" text-anchor="middle">S1</text>`+lamp(280,60,l1,'หลอด 1',92);
+    s+=`<rect class="tap" data-t="s1" x="115" y="30" width="65" height="60"/>`;
+  }else{
+    s+=seg('M100 60H146',C.L,p,l1)+lamp(160,60,l1,'หลอด 1',92);
+    s+=seg('M174 60H210',C.L,p,l1)+seg('M245 60H300V20',C.N,S.main,l1)+dot(300,20);
+    s+=`<line x1="210" y1="60" x2="${S.s1?245:238}" y2="${S.s1?60:42}" stroke="var(--ink)" stroke-width="3" stroke-linecap="round"/>`+dot(210,60)+dot(245,60);
+    s+=`<text x="227" y="84" font-size="12" text-anchor="middle" style="fill:var(--warn)">S1 (ผิด)</text>`;
+    s+=`<rect class="tap" data-t="s1" x="195" y="30" width="65" height="60"/>`;
+  }
+  s+=seg('M100 60V150H130',C.L,p,l2);
+  s+=seg('M165 135H225',C.L,p&&S.a===0,l2&&S.a===0)+seg('M165 165H225',C.L,p&&S.a===1,l2&&S.a===1);
+  const ay=S.a?165:135,by=S.b?165:135;
+  s+=`<line x1="130" y1="150" x2="165" y2="${ay}" stroke="var(--ink)" stroke-width="3" stroke-linecap="round"/><line x1="260" y1="150" x2="225" y2="${by}" stroke="var(--ink)" stroke-width="3" stroke-linecap="round"/>`;
+  s+=[[130,150],[165,135],[165,165],[225,135],[225,165],[260,150]].map(([x,y])=>dot(x,y)).join('');
+  s+=`<text x="195" y="128" font-size="10" text-anchor="middle" style="fill:var(--mute)">สายวิ่ง</text>`;
+  s+=seg('M260 150H286',C.L,l2,l2)+seg('M314 150H345V20',C.N,S.main,l2)+dot(345,20);
+  s+=lamp(300,150,l2,'หลอด 2',182);
+  s+=`<text x="145" y="190" font-size="12" text-anchor="middle">SW-A</text><text x="243" y="190" font-size="12" text-anchor="middle">SW-B</text>`;
+  s+=`<rect class="tap" data-t="a" x="118" y="120" width="55" height="60"/><rect class="tap" data-t="b" x="217" y="120" width="55" height="60"/>`;
+  s+=brk(8,40,40,S.cbL,false,'MCB','')+`<rect class="tap" data-t="cbL" x="8" y="40" width="44" height="40"/>`;
+  $('svgL').innerHTML=s;
+  let m,c='';
+  if(!S.main){m='เมนปิดอยู่ ทั้งบ้านไม่มีไฟ';c='info'}
+  else if(!S.cbL){m='MCB วงจรแสงสว่างปิดอยู่ ขั้วหลอดทุกดวงไม่มีไฟ ปลอดภัยที่จะทำงาน';c='info'}
+  else if(S.faultN&&!S.s1){m='อันตราย: หลอด 1 ดับ แต่สายจาก L ยังวิ่งผ่านไส้หลอดมาถึงขั้วหลอด (เส้นน้ำตาลยังเข้มอยู่) ใครคิดว่าปิดสวิตช์แล้วเปลี่ยนหลอดได้ จะโดนไฟดูด แก้โดยย้ายสวิตช์ไปตัดสาย L';c='bad'}
+  else if(S.faultN){m='หลอด 1 ติดตามปกติ ดูเผินๆ ไม่รู้ว่าต่อผิด ลองกด S1 ปิดดู';c='bad'}
+  else{m=`หลอด 1 ${l1?'ติด':'ดับ — ขั้วหลอดไม่มีไฟเพราะสวิตช์ตัดสาย L'} · หลอด 2 ${l2?'ติด (ก้านสวิตช์ทั้งสองชี้สายวิ่งเส้นเดียวกัน)':'ดับ (ก้านชี้คนละเส้น)'}`}
+  $('msgL').className='msg '+c;$('msgL').textContent=m;
+}
+
+function drawO(){
+  const p=S.main&&S.cbO, run=S.plug.map(v=>v&&p);
+  const any=run.some(Boolean), body=S.leak&&run[0]&&S.noG;
+  let s='';
+  s+=seg('M54 50H345',C.L,p,any)+seg('M54 85H345',C.N,S.main&&S.cbO,any);
+  s+=`<text x="340" y="44" font-size="11" text-anchor="end">L</text><text x="340" y="79" font-size="11" text-anchor="end">N</text><text x="340" y="114" font-size="11" text-anchor="end">G</text>`;
+  if(S.noG){s+=gseg('M60 120H345',true,false)+gseg('M20 120V200',true,false)+`<path d="M30 112l16 16M46 112l-16 16" stroke="var(--warn)" stroke-width="3"/>`}
+  else s+=gseg('M20 120H345',true,false)+gseg('M20 120V200',true,false);
+  s+=`<path d="M8 200H32M12 207H28M16 214H24" stroke="var(--ink)" stroke-width="2.5"/><text x="38" y="212" font-size="11">หลักดิน</text>`;
+  [115,205,295].forEach((x,i)=>{
+    const r=run[i];
+    s+=seg(`M${x-12} 50V150`,C.L,p,r)+seg(`M${x+12} 85V150`,C.N,S.main&&S.cbO,r);
+    s+=gseg(`M${x} 120V150`,true,false);
+    s+=dot(x-12,50)+dot(x+12,85)+dot(x,120);
+    const hot=i===0&&body;
+    s+=`<rect x="${x-24}" y="150" width="48" height="40" rx="7" fill="var(--panel)" stroke="${hot?'var(--warn)':'var(--ink)'}" stroke-width="${hot?3:1.5}"/>`;
+    s+=`<rect x="${x-15}" y="165" width="5" height="12" rx="1" fill="var(--ink)"/><rect x="${x+10}" y="165" width="5" height="12" rx="1" fill="var(--ink)"/><circle cx="${x}" cy="161" r="3.5" fill="var(--ink)"/>`;
+    if(S.plug[i])s+=`<rect x="${x-20}" y="154" width="40" height="32" rx="5" fill="${r?'var(--ok)':'var(--mute)'}" opacity=".85"/><text x="${x}" y="175" font-size="11" text-anchor="middle" style="fill:#fff;font-weight:700">เสียบ</text>`;
+    s+=`<text x="${x}" y="208" font-size="12" text-anchor="middle" ${hot?'style="fill:var(--warn);font-weight:700"':''}>${hot?'ตัวถังมีไฟ!':AP[i].n}</text><text x="${x}" y="223" font-size="11" text-anchor="middle" style="fill:var(--mute)">${AP[i].w} W</text>`;
+    s+=`<rect class="tap" data-t="p${i}" x="${x-28}" y="146" width="56" height="82"/>`;
+  });
+  s+=brk(8,30,70,S.cbO,S.tripO,'RCBO','')+`<rect class="tap" data-t="cbO" x="8" y="30" width="44" height="70"/>`;
+  $('svgO').innerHTML=s;
+  const W=AP.reduce((t,a,i)=>t+(run[i]?a.w:0),0),A=W/230;
+  $('w').textContent=W.toLocaleString();$('a').textContent=A.toFixed(1);
+  const pc=Math.min(100,A/16*100);$('mt').style.width=pc+'%';$('mt').style.background=A>16?'var(--warn)':A>12.8?'var(--Y)':'var(--ok)';
+  $('bTouch').disabled=!body;
+  let m=msgO,c=msgOcls;
+  if(!m){
+    if(!S.main){m='เมนปิดอยู่';c='info'}
+    else if(!S.cbO){m='RCBO ปิดอยู่ เต้ารับทุกตัวไม่มีไฟ';c='info'}
+    else if(body){m='ไฟรั่วลงตัวถังกาต้มน้ำ แต่ไม่มีสายดินให้กระแสไหลลงดิน RCBO จึงยังไม่รู้ ตัวถังมีไฟ 230 V รอคนมาแตะ';c='bad'}
+    else if(A>16){m='โหลดเกิน 16 A กำลังนับเวลา…';c='bad'}
+    else if(any){m=`ใช้ไฟ ${A.toFixed(1)} A จาก 16 A — กระแสไหลไปทาง L และกลับทาง N เท่ากัน สายดินไม่มีกระแส`}
+    else{m='มีไฟรอที่เต้ารับ แตะเต้ารับเพื่อเสียบปลั๊ก';c='info'}
+  }
+  $('msgO').className='msg '+c;$('msgO').textContent=m;
+  clearTimeout(olTimer);
+  if(p&&A>16) olTimer=setTimeout(()=>trip('โหลดเกิน','RCBO ตัดเพราะโหลดเกิน: ใช้ไฟรวมเกิน 16 A นานพอ จึงตัดเพื่อไม่ให้สายร้อน ถอดปลั๊กบางตัวแล้วเปิด RCBO ใหม่'),1500);
+  if(p&&S.leak&&run[0]&&!S.noG) setTimeout(()=>trip('รั่ว','RCBO ตัดทันที: ไฟรั่วไหลลงตัวถังแล้วไหลผ่านสายดินลงหลักดิน กระแสขา L กับ N ไม่เท่ากันเกิน 30 mA จึงตัด ปลอดภัย — ถ้าเปิดซ้ำจะตัดอีกจนกว่าจะซ่อมเครื่อง'),350);
+}
+
+function trip(kind,text){if(!(S.main&&S.cbO))return;S.cbO=false;S.tripO=kind;msgO=text;msgOcls='bad';sync()}
+function sync(){
+  const set=(id,v)=>$(id).setAttribute('aria-pressed',v);
+  set('bMain',S.main);set('bCbL',S.cbL);set('bS1',S.s1);set('bA',!!S.a);set('bB',!!S.b);set('bFaultN',S.faultN);
+  set('bCbO',S.cbO);S.plug.forEach((v,i)=>set('p'+i,v));set('bLeak',S.leak);set('bNoG',S.noG);
+  $('mainSt').textContent=S.main?'เปิดอยู่ — ไฟจากมิเตอร์เข้าตู้แล้วแยกไปวงจรย่อย':'ปิดอยู่ — ตัดไฟทั้งบ้าน ทำแบบนี้ทุกครั้งก่อนลงมือ';
+  drawL();drawO();
+}
+function act(t){
+  msgO='';msgOcls='';
+  if(t==='main')S.main=!S.main;
+  else if(t==='cbL')S.cbL=!S.cbL;
+  else if(t==='s1')S.s1=!S.s1;
+  else if(t==='a')S.a^=1;
+  else if(t==='b')S.b^=1;
+  else if(t==='faultN')S.faultN=!S.faultN;
+  else if(t==='cbO'){S.cbO=!S.cbO;S.tripO=''}
+  else if(t[0]==='p')S.plug[+t[1]]=!S.plug[+t[1]];
+  else if(t==='leak')S.leak=!S.leak;
+  else if(t==='noG')S.noG=!S.noG;
+  else if(t==='touch'){trip('รั่ว','คนโดนไฟดูด! กระแสไหลผ่านตัวคนลงดิน RCBO 30 mA ตัดภายในราว 0.03 วินาที คนจึงรอด แต่ถ้าไม่มี RCBO อาจถึงตาย สายดิน + RCBO ต้องมีคู่กันเสมอ');return}
+  else if(t==='short'){if(S.main&&S.cbO)trip('ช็อต','สาย L แตะ N โดยตรง กระแสพุ่งเป็นหลักร้อยแอมป์ RCBO ตัดทันทีด้วยกลไกแม่เหล็ก หาจุดลัดวงจรให้เจอก่อนเปิดใหม่');else{msgO='ต้องเปิดเมนและ RCBO ก่อนจึงจะจำลองได้';msgOcls='info';sync()}return}
+  sync();
+}
+const map={bMain:'main',bCbL:'cbL',bS1:'s1',bA:'a',bB:'b',bFaultN:'faultN',bCbO:'cbO',p0:'p0',p1:'p1',p2:'p2',bLeak:'leak',bNoG:'noG',bTouch:'touch',bShort:'short'};
+Object.entries(map).forEach(([id,t])=>$(id).addEventListener('click',()=>act(t)));
+['svgL','svgO'].forEach(id=>$(id).addEventListener('click',e=>{const t=e.target.dataset&&e.target.dataset.t;if(t)act(t)}));
+sync();
+}
+{
+const $=id=>document.getElementById(id);
+const R={step:0,brk:false,sw:false,plug:false,warn:''};
+const STEPS=[
+['ตัดไฟและวัดก่อน','ปิดเบรกเกอร์วงจรนี้ที่ตู้ไฟ แขวนป้ายห้ามเปิด แล้วใช้ไขควงวัดไฟแตะสายทุกเส้นให้แน่ใจว่าไม่มีไฟ เตรียมสาย: L น้ำตาล, N ฟ้า, G เขียวแถบเหลือง ปอกปลายสายราว 1 ซม.'],
+['สายจากตู้เข้าขั้ว "เข้า" ของเซฟตี้เบรกเกอร์','สายน้ำตาล (L) เข้าขั้ว L ด้านบน สายฟ้า (N) เข้าขั้ว N ด้านบน ขันสกรูให้แน่น สายดินไม่ต้องผ่านเบรกเกอร์ ให้ต่อผ่านขั้วต่อสายดินแยกต่างหาก'],
+['ขั้ว "ออก" ของเบรกเกอร์ไปหาเต้ารับ','จากขั้ว L ด้านล่างใช้สายน้ำตาลไปเข้าขั้ว L ของเต้ารับ จากขั้ว N ด้านล่างใช้สายฟ้าไปเข้าขั้ว N ของเต้ารับ ห้ามสลับ L กับ N'],
+['ต่อสายดินเข้าขั้ว ⏚ ของเต้ารับ','สายเขียวแถบเหลืองจากขั้วต่อสายดินเข้าขั้วกราวด์ของเต้ารับ ถ้าเป็นกล่องโลหะให้ต่อสายดินเข้ากล่องด้วย'],
+['จั๊มป์ L จากเต้ารับไปสวิตช์','ใช้สายน้ำตาลเส้นสั้นจากรูที่สองของขั้ว L เต้ารับ โค้งไปเข้าขั้ว 1 ของสวิตช์ (เหมือนสายน้ำตาลโค้งในชุดปลั๊กประกอบ) สวิตช์จึงได้ไฟจากสาย L'],
+['สวิตช์ไปหลอดไฟ','ขั้ว 2 ของสวิตช์ใช้สายน้ำตาลไปเข้าขั้วกลางของขั้วหลอด (L) ส่วนขั้วเกลียวของขั้วหลอด (N) รับสายฟ้าจากรูที่สองของขั้ว N เต้ารับ ขั้วกลางต้องเป็น L เสมอ เพราะขั้วเกลียวเป็นส่วนที่มือแตะได้ง่ายตอนเปลี่ยนหลอด'],
+['ตรวจแล้วจ่ายไฟทดสอบ','ดึงสายทีละเส้นว่าแน่น ไม่มีทองแดงโผล่นอกขั้ว พับสายเก็บในบ็อกซ์ ปิดหน้ากาก แล้วจึงเปิดเบรกเกอร์ที่ตู้และเซฟตี้เบรกเกอร์ ทดสอบสวิตช์ เสียบเครื่องใช้ และใช้ไขควงวัดไฟ: รู L ต้องติด รู N ต้องไม่ติด']
+];
+const W=[
+{id:'inL',s:1,c:'L',d:'M95 0V68'},{id:'inN',s:1,c:'N',d:'M185 0V68'},{id:'inG',s:1,c:'G',d:'M265 0V108'},
+{id:'ldL',s:2,c:'L',d:'M95 162C95 230 165 230 165 295'},
+{id:'ldN',s:2,c:'N',d:'M185 162C185 215 352 215 352 340C352 425 200 435 165 395'},
+{id:'gS',s:3,c:'G',d:'M265 134C265 220 290 230 290 300'},
+{id:'jp',s:4,c:'L',d:'M195 295C195 248 85 248 85 295'},
+{id:'swL',s:5,c:'L',d:'M85 395C85 440 80 450 80 497'},
+{id:'lpN',s:5,c:'N',d:'M195 395C195 455 120 450 120 497'}
+];
+const col={L:'#9b5422',N:'#2f7fd8',G:'#4f9a2a'};
+const term=(x,y,t,side)=>`<circle cx="${x}" cy="${y}" r="9" fill="#d5d8db" stroke="#5c6166" stroke-width="1.5"/><path d="M${x-5} ${y}H${x+5}" stroke="#5c6166" stroke-width="2"/>`+(t?`<text x="${x+(side||0)}" y="${y+4}" font-size="11" text-anchor="middle" style="fill:#fff;font-weight:700">${t}</text>`:'');
+function draw(){
+  const done=6;
+  const has=id=>W.find(w=>w.id===id).s<=R.step;
+  const feed=has('inL')&&has('inN')&&R.brk;
+  const sock=feed&&has('ldL')&&has('ldN');
+  const lamp=sock&&has('jp')&&has('swL')&&has('lpN')&&R.sw;
+  const fan=sock&&R.plug;
+  const flow={inL:lamp||fan,inN:lamp||fan,ldL:lamp||fan,ldN:lamp||fan,jp:lamp,swL:lamp,lpN:lamp};
+  const live={inL:has('inL'),inN:true,ldL:feed,ldN:true,jp:sock,swL:sock&&R.sw,lpN:true,inG:true,gS:true};
+  let s='';
+  s+=`<rect x="40" y="40" width="200" height="150" rx="10" style="fill:light-dark(#f2efe6,#2b2d2f)" stroke="var(--line)"/>`;
+  s+=`<rect x="80" y="55" width="120" height="120" rx="6" fill="#c23a2f"/>`;
+  s+=`<rect x="124" y="${R.brk?84:104}" width="32" height="34" rx="4" fill="#222"/><text x="140" y="${R.brk?105:125}" font-size="10" text-anchor="middle" style="fill:#fff">${R.brk?'ON':'OFF'}</text>`;
+  s+=`<text x="140" y="158" font-size="10" text-anchor="middle" style="fill:#fff">2P 20A</text>`;
+  s+=`<text x="60" y="72" font-size="11" text-anchor="middle">เข้า</text><text x="60" y="166" font-size="11" text-anchor="middle">ออก</text>`;
+  s+=`<rect x="252" y="108" width="26" height="26" rx="4" fill="#cfd3d6" stroke="#5c6166"/><text x="284" y="125" font-size="11">ต่อสายดิน</text>`;
+  s+=`<rect x="20" y="250" width="340" height="190" rx="12" style="fill:light-dark(#f2efe6,#2b2d2f)" stroke="var(--line)"/>`;
+  s+=`<rect x="45" y="275" width="80" height="140" rx="6" fill="#2e7d46"/><rect x="140" y="275" width="195" height="140" rx="6" fill="#2e7d46"/>`;
+  s+=`<text x="85" y="345" font-size="12" text-anchor="middle" style="fill:#fff">สวิตช์</text><text x="85" y="361" font-size="10" text-anchor="middle" style="fill:#d9eadf">${R.sw?'เปิด':'ปิด'}</text>`;
+  s+=`<text x="240" y="345" font-size="12" text-anchor="middle" style="fill:#fff">เต้ารับมีกราวด์</text>`;
+  if(R.plug)s+=`<rect x="200" y="356" width="82" height="24" rx="5" fill="${fan?'#ffd34d':'#888'}"/><text x="241" y="372" font-size="11" text-anchor="middle" style="fill:#111">${fan?'พัดลมหมุน':'เสียบ ไม่มีไฟ'}</text>`;
+  s+=`<rect x="55" y="480" width="90" height="34" rx="6" fill="#e7e7e7" stroke="#888"/>`;
+  s+=`${lamp?'<circle cx="100" cy="548" r="34" fill="#ffd34d" opacity=".35"/>':''}<circle cx="100" cy="548" r="22" fill="${lamp?'#ffd34d':'var(--panel)'}" stroke="var(--ink)" stroke-width="2"/>`;
+  s+=`<text x="160" y="545" font-size="12">ขั้วหลอด E27</text><text x="160" y="561" font-size="11" style="fill:var(--mute)">ขั้วกลาง = L · เกลียว = N</text>`;
+  W.forEach(w=>{
+    if(w.s>R.step)return;
+    const now=w.s===R.step&&R.step<done, lv=live[w.id]!==false, op=lv?1:.45;
+    s+=`<g class="${now?'now':''}" opacity="${op}"><path d="${w.d}" fill="none" stroke="#0006" stroke-width="${now?11:8}" stroke-linecap="round"/><path d="${w.d}" fill="none" stroke="${col[w.c]}" stroke-width="${now?8:6}" stroke-linecap="round"/>`+(w.c==='G'?`<path d="${w.d}" fill="none" stroke="#e5c220" stroke-width="${now?8:6}" stroke-dasharray="5 9"/>`:'')+`</g>`;
+    if(flow[w.id])s+=`<path d="${w.d}" class="flow"/>`;
+  });
+  s+=term(95,68,'L',18)+term(185,68,'N',-18)+term(95,162,'L',18)+term(185,162,'N',-18);
+  s+=term(85,295,'1',18)+term(85,395,'2',18);
+  s+=term(165,295,'')+term(195,295,'')+term(165,395,'')+term(195,395,'')+term(290,300,'')+term(318,300,'');
+  s+=`<text x="180" y="322" font-size="12" text-anchor="middle" style="fill:#fff;font-weight:700">L</text><text x="180" y="380" font-size="12" text-anchor="middle" style="fill:#fff;font-weight:700">N</text><text x="304" y="326" font-size="13" text-anchor="middle" style="fill:#fff;font-weight:700">⏚</text>`;
+  s+=term(80,497,'')+term(120,497,'');
+  if(R.step>=1)s+=`<text x="140" y="22" font-size="12" text-anchor="middle">จากตู้ไฟ</text>`;
+  s+=`<rect class="tap" data-r="brk" x="80" y="55" width="120" height="120"/><rect class="tap" data-r="sw" x="45" y="310" width="80" height="70"/><rect class="tap" data-r="plug" x="200" y="330" width="130" height="60"/>`;
+  $('svgR').innerHTML=s;
+  $('rNo').textContent=`ขั้นที่ ${R.step+1} / ${STEPS.length}`;
+  $('rTitle').textContent=STEPS[R.step][0];$('rBody').textContent=STEPS[R.step][1];
+  $('rPrev').disabled=R.step===0;$('rNext').disabled=R.step===done;
+  $('rBrk').setAttribute('aria-pressed',R.brk);$('rSw').setAttribute('aria-pressed',R.sw);$('rPlug').setAttribute('aria-pressed',R.plug);
+  let m,c='';
+  if(R.warn){m=R.warn;c='bad'}
+  else if(R.step<done){m='กำลังต่อสาย เบรกเกอร์ต้องปิดไว้ตลอด';c='info'}
+  else if(!R.brk){m='ต่อครบแล้ว แตะที่ตัวเบรกเกอร์หรือกดปุ่มเพื่อจ่ายไฟ';c='info'}
+  else m=`มีไฟที่เต้ารับแล้ว · หลอด${lamp?'ติด':'ดับ'} · พัดลม${fan?'ทำงาน':'ยังไม่เสียบ'} — เส้นขีดขาวคือกระแสไหล ไปทาง L กลับทาง N สายดินไม่มีกระแส`;
+  $('rMsg').className='msg '+c;$('rMsg').textContent=m;
+}
+function act(t){
+  R.warn='';
+  if(t==='brk'){
+    if(!R.brk&&R.step<6){R.warn='ห้ามเปิด! ยังต่อสายไม่เสร็จ ช่างมือใหม่โดนไฟดูดบ่อยที่สุดตอนมีคนเปิดเบรกเกอร์ระหว่างต่อสาย ไปให้ถึงขั้นสุดท้ายก่อน'}
+    else R.brk=!R.brk;
+  }else if(t==='sw')R.sw=!R.sw;
+  else if(t==='plug')R.plug=!R.plug;
+  draw();
+}
+$('rPrev').onclick=()=>{R.step=Math.max(0,R.step-1);R.brk=false;R.warn='';draw()};
+$('rNext').onclick=()=>{R.step=Math.min(6,R.step+1);R.warn='';draw()};
+$('rBrk').onclick=()=>act('brk');$('rSw').onclick=()=>act('sw');$('rPlug').onclick=()=>act('plug');
+$('svgR').addEventListener('click',e=>{const t=e.target.dataset&&e.target.dataset.r;if(t)act(t)});
+draw();
+}
+{
+const $=id=>document.getElementById(id);
+const col={L:'var(--L)',N:'var(--N)',G:'var(--G)'};
+const M={tab:0,plug:[false,false,false,false],loose:false,a:0,b:1,two:[0,0],n:1};
+const DEV=[['พัดลม',60],['ทีวี',150],['หม้อหุงข้าว',700],['กาต้มน้ำ',2000]];
+const XS=[90,170,250,330];
+const ln=(d,c,on,fl)=>`<path d="${d}" class="w ${on?'':'off'}" stroke="${c}"/>`+(fl?`<path d="${d}" class="flow"/>`:'');
+const gl=(d)=>`<path d="${d}" class="w" stroke="var(--G)"/><path d="${d}" class="w" stroke="var(--Y)" stroke-dasharray="5 9"/>`;
+const dot=(x,y)=>`<circle cx="${x}" cy="${y}" r="3.5" fill="var(--ink)"/>`;
+const bulb=(x,y,on)=>`${on?`<circle cx="${x}" cy="${y}" r="28" fill="var(--glow)" opacity=".35"/>`:''}<circle cx="${x}" cy="${y}" r="15" fill="${on?'var(--glow)':'var(--panel)'}" stroke="var(--ink)" stroke-width="2"/><path d="M${x-10} ${y-10}L${x+10} ${y+10}M${x+10} ${y-10}L${x-10} ${y+10}" stroke="var(--ink)" stroke-width="1.6"/>`;
+const blade=(x1,y1,x2,y2)=>`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="var(--ink)" stroke-width="3.5" stroke-linecap="round"/>`;
+const TXT=[
+['ต่อแบบ "พ่วงต่อกัน" สายเส้นเดียวเดินจากปลั๊กจุดที่ 1 ไปจุดที่ 2, 3, 4 ทุกจุดได้ไฟ 230 V เท่ากัน แต่ใช้เบรกเกอร์ตัวเดียวกัน แตะที่ปลั๊กเพื่อเสียบเครื่องใช้',
+ ['ทุกปลั๊กต่อ L เข้า L, N เข้า N, ดินเข้าดิน เหมือนกันหมด','ปลั๊กทุกจุดในวงจรนี้ใช้ไฟรวมกันได้ไม่เกินพิกัดเบรกเกอร์ (16 A ≈ 3,680 W)','ขั้วหลวมที่จุดต้นทาง ทำให้ปลั๊กที่อยู่ถัดไปดับหมด และจุดที่หลวมจะร้อนจนไหม้ได้','ในบ้านทั่วไป ปลั๊กวงจรหนึ่งมักไม่เกิน 8–10 จุด เครื่องกำลังสูง เช่น เครื่องทำน้ำอุ่น ให้แยกวงจรเอง']],
+['เปิด-ปิดหลอดเดียวได้จาก 2 ที่ เช่น บันไดชั้นล่างกับชั้นบน ใช้ "สวิตช์ 2 ทาง" 2 ตัว มีสาย 2 เส้นวิ่งระหว่างสวิตช์ เรียกว่า "สายวิ่ง" แตะที่สวิตช์ในภาพได้เลย',
+ ['นึกถึงรางรถไฟ 2 ราง: สวิตช์แต่ละตัวเลือกว่าจะต่อรางบนหรือรางล่าง','ถ้าสองตัวเลือกรางเดียวกัน ไฟวิ่งถึงหลอด หลอดติด · เลือกคนละราง หลอดดับ','ซื้อ "สวิตช์ 2 ทาง" (มี 3 ขั้ว: COM + 2 ขั้ว) ห้ามใช้สวิตช์ทางเดียว','L จากเบรกเกอร์เข้าขั้ว COM ของตัวแรก · COM ของตัวที่สองไปหลอด · N ไปหลอดตรงๆ']],
+['เปิด-ปิดได้ 3 หรือ 4 ที่ เช่น ทางเดินยาวมีหลายประตู ใช้สวิตช์ 2 ทางที่หัวกับท้าย แล้วแทรก "สวิตช์กลางทาง" (สวิตช์ 4 ทาง / intermediate) ไว้ตรงกลาง',
+ ['สวิตช์หัว-ท้ายเหมือนเดิม: ตัวเลือกราง','สวิตช์กลางทาง: กดแล้วไขว้รางบนกับรางล่าง (ตรง = ไม่ไขว้, X = ไขว้)','กดตัวไหนก็สลับหลอดเปิด/ปิดได้เสมอ','อยากได้กี่จุดก็แทรกสวิตช์กลางทางเพิ่ม: 3 จุด = 1 ตัว, 4 จุด = 2 ตัว · สวิตช์กลางทางมี 4 ขั้ว ต่อสายวิ่งเข้า 2 ออก 2']]
+];
+function plugs(){
+  const live=XS.map((x,i)=>!(M.loose&&i>=1));
+  const run=M.plug.map((p,i)=>p&&live[i]);
+  const W=DEV.reduce((t,d,i)=>t+(run[i]?d[1]:0),0),A=W/230;
+  let s=`<rect x="6" y="28" width="40" height="72" rx="6" fill="var(--ok)"/><text x="26" y="60" font-size="10" text-anchor="middle" style="fill:#fff;font-weight:700">เบรก</text><text x="26" y="74" font-size="10" text-anchor="middle" style="fill:#fff;font-weight:700">เกอร์</text>`;
+  XS.forEach((x,i)=>{
+    const st=i?XS[i-1]:46, on=live[i], fl=run.slice(i).some(Boolean)&&on;
+    const o=i?1:0;s+=ln(`M${st-10*o} 40H${x-10}`,col.L,on,fl)+ln(`M${st+10*o} 65H${x+10}`,col.N,on,fl)+gl(`M${st} 90H${x}`);
+    s+=ln(`M${x-10} 40V130`,col.L,on,run[i])+ln(`M${x+10} 65V130`,col.N,on,run[i])+gl(`M${x} 90V130`);
+    s+=dot(x-10,40)+dot(x+10,65)+dot(x,90);
+    const bad=M.loose&&i===1;
+    s+=`<rect x="${x-22}" y="130" width="44" height="44" rx="7" fill="var(--panel)" stroke="${bad?'var(--warn)':'var(--ink)'}" stroke-width="${bad?3:1.5}"/><rect x="${x-13}" y="146" width="5" height="12" fill="var(--ink)"/><rect x="${x+8}" y="146" width="5" height="12" fill="var(--ink)"/><circle cx="${x}" cy="140" r="3.5" fill="var(--ink)"/>`;
+    if(M.plug[i])s+=`<rect x="${x-18}" y="134" width="36" height="36" rx="5" fill="${run[i]?'var(--ok)':'var(--mute)'}" opacity=".9"/><text x="${x}" y="156" font-size="10" text-anchor="middle" style="fill:#fff;font-weight:700">${run[i]?'ทำงาน':'ไม่มีไฟ'}</text>`;
+    s+=`<text x="${x}" y="192" font-size="12" text-anchor="middle" style="font-weight:600">จุดที่ ${i+1}</text><text x="${x}" y="208" font-size="11" text-anchor="middle" style="fill:${bad?'var(--warn)':'var(--mute)'}">${bad?'ขั้วหลวม!':DEV[i][0]}</text><text x="${x}" y="222" font-size="10" text-anchor="middle" style="fill:var(--mute)">${bad?'ร้อน ไฟกะพริบ':DEV[i][1]+' W'}</text>`;
+    s+=`<rect class="tap" data-m="p${i}" x="${x-30}" y="125" width="60" height="100"/>`;
+  });
+  s+=`<text x="350" y="36" font-size="11" text-anchor="end">L</text><text x="350" y="61" font-size="11" text-anchor="end">N</text><text x="350" y="86" font-size="11" text-anchor="end">G</text>`;
+  $('svgM').innerHTML=s;
+  $('mW').textContent=W.toLocaleString();$('mA').textContent=A.toFixed(1);$('mMt').style.width=Math.min(100,A/16*100)+'%';$('mMt').style.background=A>12.8?'var(--Y)':'var(--ok)';
+  let m,c='';
+  if(M.loose){m='ขั้วในปลั๊กจุดที่ 2 หลวม: ไฟไม่ไปถึงจุดที่ 3 และ 4 จุดที่หลวมจะเกิดประกายไฟและร้อนสะสม เป็นสาเหตุไฟไหม้ที่พบบ่อย แก้โดยปิดเบรกเกอร์แล้วขันขั้วใหม่ให้แน่น';c='bad'}
+  else if(W)m=`เปิดใช้ ${run.filter(Boolean).length} จุด รวม ${A.toFixed(1)} A — กระแสของทุกจุดรวมกันวิ่งผ่านสายช่วงแรกและเบรกเกอร์ตัวเดียว สายช่วงแรกจึงต้องรับกระแสมากที่สุด`;
+  else{m='ทุกปลั๊กมีไฟรออยู่ แตะที่ปลั๊กเพื่อเสียบเครื่องใช้';c='info'}
+  return [m,c];
+}
+function trav(n){
+  const k=n;
+  const cx=k===0?[]:k===1?[185]:[145,225];
+  const nodes=[80,...cx.flatMap(x=>[x-25,x+25]),290];
+  let t=M.a;const segT=[t];
+  for(let j=0;j<k;j++){if(M.two[j])t=1-t;segT.push(t)}
+  const on=t===M.b;
+  let s=`<text x="4" y="14" font-size="11">N</text>`+ln('M10 20H325V40',col.N,true,on)+dot(325,20);
+  s+=`<text x="4" y="112" font-size="11">L</text>`+ln('M10 120H45',col.L,true,on);
+  s+=ln('M325 120V71',col.L,on,on);
+  const Y=[90,150];
+  for(let j=0;j<=k;j++){
+    const x1=nodes[2*j],x2=nodes[2*j+1];
+    [0,1].forEach(r=>s+=ln(`M${x1} ${Y[r]}H${x2}`,col.L,segT[j]===r,on&&segT[j]===r));
+  }
+  cx.forEach((x,j)=>{
+    s+=`<rect x="${x-30}" y="74" width="60" height="92" rx="8" fill="none" stroke="var(--mute)" stroke-dasharray="4 4"/>`;
+    const tin=segT[j];
+    if(!M.two[j])[0,1].forEach(r=>s+=ln(`M${x-25} ${Y[r]}H${x+25}`,'var(--ink)',tin===r,false));
+    else[0,1].forEach(r=>s+=ln(`M${x-25} ${Y[r]}L${x+25} ${Y[1-r]}`,'var(--ink)',tin===r,false));
+    [[x-25,90],[x-25,150],[x+25,90],[x+25,150]].forEach(([a,b])=>s+=dot(a,b));
+    s+=`<text x="${x}" y="186" font-size="12" text-anchor="middle" style="font-weight:600">จุดที่ ${j+2}</text><text x="${x}" y="202" font-size="10" text-anchor="middle" style="fill:var(--mute)">กลางทาง · ${M.two[j]?'ไขว้ X':'ตรง ='}</text>`;
+    s+=`<rect class="tap" data-m="i${j}" x="${x-32}" y="70" width="64" height="140"/>`;
+  });
+  s+=blade(45,120,80,Y[M.a])+blade(325,120,290,Y[M.b]);
+  s+=[[45,120],[80,90],[80,150],[290,90],[290,150],[325,120]].map(([a,b])=>dot(a,b)).join('');
+  s+=bulb(325,55,on);
+  s+=`<text x="${k?185:185}" y="${k?62:84}" font-size="10" text-anchor="middle" style="fill:var(--mute)">${k?'':'สายวิ่ง 2 เส้น'}</text>`;
+  const last=k+2;
+  s+=`<text x="60" y="186" font-size="12" text-anchor="middle" style="font-weight:600">จุดที่ 1</text><text x="60" y="202" font-size="10" text-anchor="middle" style="fill:var(--mute)">2 ทาง</text>`;
+  s+=`<text x="305" y="186" font-size="12" text-anchor="middle" style="font-weight:600">จุดที่ ${last}</text><text x="305" y="202" font-size="10" text-anchor="middle" style="fill:var(--mute)">2 ทาง</text>`;
+  s+=`<text x="275" y="45" font-size="11" text-anchor="end">หลอดไฟ</text>`;
+  s+=`<rect class="tap" data-m="a" x="30" y="70" width="70" height="140"/><rect class="tap" data-m="b" x="270" y="76" width="70" height="134"/>`;
+  $('svgM').innerHTML=s;
+  return [on?'หลอดติด: ไฟจาก L วิ่งตามรางไปถึงรางที่สวิตช์ตัวสุดท้ายเลือกไว้พอดี ลองกดสวิตช์ตัวไหนก็ได้ หลอดจะดับ':'หลอดดับ: ไฟวิ่งไปคนละรางกับที่สวิตช์ตัวสุดท้ายเลือกไว้ (เส้นจาง = ไม่มีไฟ) ลองกดสวิตช์ตัวไหนก็ได้ หลอดจะติด',on?'':'info'];
+}
+function render(){
+  [0,1,2].forEach(i=>$('tb'+i).setAttribute('aria-pressed',M.tab===i));
+  $('mIntro').textContent=TXT[M.tab][0];
+  $('mTips').innerHTML='<h3>จำง่ายๆ</h3><ul>'+TXT[M.tab][1].map(t=>`<li>${t}</li>`).join('')+'</ul>';
+  $('mLoad').style.display=$('mMeter').style.display=M.tab?'none':'';
+  let b='';
+  if(M.tab===0)b=DEV.map((d,i)=>`<button data-m="p${i}" aria-pressed="${M.plug[i]}">จุด ${i+1}: ${d[0]}</button>`).join('')+`<button class="danger" data-m="loose" aria-pressed="${M.loose}">จำลองขั้วหลวมที่จุด 2</button>`;
+  else{
+    const k=M.tab===1?0:M.n;
+    b=`<button data-m="a" aria-pressed="${!!M.a}">กดจุดที่ 1</button>`;
+    for(let j=0;j<k;j++)b+=`<button data-m="i${j}" aria-pressed="${!!M.two[j]}">กดจุดที่ ${j+2}</button>`;
+    b+=`<button data-m="b" aria-pressed="${!!M.b}">กดจุดที่ ${k+2}</button>`;
+    if(M.tab===2)b+=`<button data-m="n" aria-pressed="false">เปลี่ยนเป็น ${M.n===1?4:3} จุด</button>`;
+  }
+  $('mCtrls').innerHTML=b;
+  const [m,c]=M.tab===0?plugs():trav(M.tab===1?0:M.n);
+  $('mMsg').className='msg '+c;$('mMsg').textContent=m;
+}
+function act(t){
+  if(t[0]==='p')M.plug[+t[1]]=!M.plug[+t[1]];
+  else if(t==='loose')M.loose=!M.loose;
+  else if(t==='a')M.a^=1;
+  else if(t==='b')M.b^=1;
+  else if(t[0]==='i')M.two[+t[1]]^=1;
+  else if(t==='n'){M.n=M.n===1?2:1;M.two=[0,0]}
+  render();
+}
+[0,1,2].forEach(i=>$('tb'+i).onclick=()=>{M.tab=i;render()});
+['svgM','mCtrls'].forEach(id=>$(id).addEventListener('click',e=>{const el=e.target.closest('[data-m]');if(el)act(el.dataset.m)}));
+render();
+}
+{
+const _p=0;
+}
+{
+const $=id=>document.getElementById(id);
+const P={main:true,cb:[true,true,true],ld:[true,false,false]};
+const B=[{n:'ไฟ',r:'MCB 10A',l:'หลอดไฟ',w:120,x:90},{n:'ปลั๊ก',r:'RCBO 16A',l:'ปลั๊ก (หม้อหุงข้าว)',w:700,x:180},{n:'น้ำอุ่น',r:'RCBO 25A',l:'เครื่องทำน้ำอุ่น',w:4500,x:270}];
+const ln=(d,c,on,fl)=>`<path d="${d}" class="w ${on?'':'off'}" stroke="${c}"/>`+(fl?`<path d="${d}" class="flow"/>`:'');
+const gl=d=>`<path d="${d}" class="w" stroke="var(--G)"/><path d="${d}" class="w" stroke="var(--Y)" stroke-dasharray="5 9"/>`;
+const brk=(x,y,w,h,on,t1,t2,tap)=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="6" fill="${on?'var(--ok)':'var(--mute)'}"/><text x="${x+w/2}" y="${y+h/2-4}" font-size="10" text-anchor="middle" style="fill:#fff;font-weight:700">${t1}</text><text x="${x+w/2}" y="${y+h/2+10}" font-size="9" text-anchor="middle" style="fill:#fff">${on?t2:'OFF'}</text><rect class="tap" data-p="${tap}" x="${x}" y="${y}" width="${w}" height="${h}"/>`;
+function draw(){
+  const pw=B.map((b,i)=>P.main&&P.cb[i]), run=B.map((b,i)=>pw[i]&&P.ld[i]);
+  const W=B.reduce((t,b,i)=>t+(run[i]?b.w:0),0), A=W/230, any=W>0;
+  let s='';
+  s+=`<rect x="12" y="6" width="8" height="110" rx="3" fill="var(--mute)"/><rect x="2" y="14" width="28" height="5" fill="var(--mute)"/><text x="16" y="132" font-size="10" text-anchor="middle">เสาไฟ</text>`;
+  s+=ln('M30 16C50 16 70 30 80 44',C.L,true,any)+ln('M30 16C60 18 95 25 112 44',C.N,true,any);
+  s+=`<rect x="62" y="44" width="70" height="56" rx="8" fill="var(--panel)" stroke="var(--ink)" stroke-width="1.5"/><text x="97" y="62" font-size="10" text-anchor="middle">มิเตอร์</text><text x="97" y="80" font-size="13" text-anchor="middle" style="font-weight:700">${W.toLocaleString()} W</text><circle cx="97" cy="91" r="4" fill="none" stroke="var(--ink)"/><line x1="97" y1="91" x2="101" y2="91" stroke="var(--warn)" stroke-width="2" ${any?`style="transform-origin:97px 91px;animation:spin ${Math.max(.25,3-W/2000).toFixed(2)}s linear infinite"`:''}/>`;
+  s+=`<text x="142" y="60" font-size="10" style="fill:var(--warn)">ของการไฟฟ้า ห้ามแตะ</text>`;
+  s+=`<rect x="20" y="134" width="330" height="190" rx="12" fill="none" stroke="var(--ink)" stroke-width="1.5" stroke-dasharray="6 4"/><text x="342" y="152" font-size="11" text-anchor="end" style="font-weight:700">ตู้คอนซูมเมอร์</text>`;
+  s+=ln('M82 100V158',C.L,true,any);
+  s+=`<text x="88" y="131" font-size="9" style="fill:var(--warn)">มีไฟตลอด!</text>`;
+  s+=ln('M112 100V118H210V168',C.N,true,any);
+  s+=ln('M82 210V232H270',C.L,P.main,any);
+  B.forEach((b,i)=>{s+=ln(`M${b.x} 232V246`,C.L,P.main,run[i])+ln(`M${b.x} 290V372`,C.L,pw[i],run[i])});
+  s+=brk(60,158,44,52,P.main,'เมน','50A','main');
+  s+=`<rect x="170" y="168" width="80" height="10" rx="3" fill="var(--N)"/><text x="256" y="177" font-size="10">บาร์ N</text>`;
+  s+=`<rect x="170" y="196" width="80" height="10" rx="3" fill="var(--G)"/><text x="256" y="205" font-size="10">บาร์ G</text>`;
+  s+=`<line x1="240" y1="178" x2="240" y2="196" stroke="var(--ink)" stroke-width="3"/><text x="236" y="192" font-size="8" text-anchor="end">N-G</text>`;
+  s+=gl('M200 206V220H335V350');
+  s+=`<path d="M323 350H347M327 357H343M331 364H339" stroke="var(--ink)" stroke-width="2.5"/><text x="335" y="378" font-size="9" text-anchor="middle">หลักดิน</text>`;
+  B.forEach((b,i)=>s+=brk(b.x-24,246,48,44,P.cb[i],b.n,b.r.split(' ')[1],'c'+i));
+  const [l,o,h]=run;
+  s+=`${l?'<circle cx="90" cy="392" r="28" fill="var(--glow)" opacity=".35"/>':''}<circle cx="90" cy="392" r="16" fill="${l?'var(--glow)':'var(--panel)'}" stroke="var(--ink)" stroke-width="2"/><path d="M79 381L101 403M101 381L79 403" stroke="var(--ink)" stroke-width="1.5"/>`;
+  s+=`<rect x="160" y="372" width="40" height="40" rx="7" fill="${o?'var(--ok)':'var(--panel)'}" stroke="var(--ink)" stroke-width="1.5"/><rect x="170" y="386" width="4" height="11" fill="var(--ink)"/><rect x="186" y="386" width="4" height="11" fill="var(--ink)"/><circle cx="180" cy="380" r="3" fill="var(--ink)"/>`;
+  s+=`<rect x="250" y="372" width="40" height="46" rx="8" fill="${h?'#f08a5d':'var(--panel)'}" stroke="var(--ink)" stroke-width="1.5"/><text x="270" y="400" font-size="10" text-anchor="middle">${h?'ร้อน':'ปิด'}</text>`;
+  B.forEach((b,i)=>{s+=`<text x="${b.x}" y="438" font-size="10" text-anchor="middle">${b.l}</text><text x="${b.x}" y="452" font-size="10" text-anchor="middle" style="fill:var(--mute)">${b.w.toLocaleString()} W · ${pw[i]?(P.ld[i]?'ใช้อยู่':'ปิดอยู่'):'ไม่มีไฟ'}</text><rect class="tap" data-p="l${i}" x="${b.x-35}" y="365" width="70" height="95"/>`});
+  $('svgP').innerHTML=s;
+  $('pCtrls').innerHTML=`<button data-p="main" aria-pressed="${P.main}">เมนเบรกเกอร์</button>`+B.map((b,i)=>`<button data-p="c${i}" aria-pressed="${P.cb[i]}">ลูกย่อย ${b.n==='ไฟ'?'ไฟแสงสว่าง':b.n} (${b.r})</button>`).join('')+B.map((b,i)=>`<button data-p="l${i}" aria-pressed="${P.ld[i]}">เปิด${b.l.split(' ')[0]}</button>`).join('');
+  let m,c='';
+  if(!P.main){m='ปิดเมนแล้ว ทั้งบ้านดับ มิเตอร์หยุด แต่สายจากมิเตอร์ถึงขั้วบนของเมน (เส้นน้ำตาลที่ยังเข้ม) ยังมีไฟอยู่ ห้ามแตะ';c='bad'}
+  else if(P.cb.some(v=>!v)){const off=B.filter((b,i)=>!P.cb[i]).map(b=>b.n).join(', ');m=`ปิดลูกย่อย ${off}: ดับเฉพาะวงจรนั้น ที่เหลือยังใช้ได้ นี่คือเหตุผลที่ต้องแยกวงจร เวลาซ่อมจุดไหนก็ปิดเฉพาะลูกนั้น`;c='info'}
+  else m=`ใช้ไฟรวม ${W.toLocaleString()} W ≈ ${A.toFixed(1)} A · เปิดแบบนี้ 1 ชั่วโมง = ${(W/1000).toFixed(2)} หน่วย (kWh) ${h?'· เครื่องทำน้ำอุ่นกินไฟมากสุด จึงต้องมีวงจรและลูกย่อยของตัวเอง':''}`;
+  $('pMsg').className='msg '+c;$('pMsg').textContent=m;
+}
+function act(t){if(t==='main')P.main=!P.main;else if(t[0]==='c')P.cb[+t[1]]=!P.cb[+t[1]];else if(t[0]==='l')P.ld[+t[1]]=!P.ld[+t[1]];draw()}
+const C={L:'var(--L)',N:'var(--N)'};
+['svgP','pCtrls'].forEach(id=>$(id).addEventListener('click',e=>{const el=e.target.closest('[data-p]');if(el)act(el.dataset.p)}));
+draw();
+}
+{
+const CO={'':['ยังไม่เลือก','#ffffff30'],L:['น้ำตาล','#9b5422'],N:['ฟ้า','#2f7fd8'],G:['เขียวเหลือง','repeating-linear-gradient(90deg,#4f9a2a 0 10px,#e5c220 10px 18px)']};
+const ORD=['','L','N','G'];
+const Q=[
+{t:'เต้ารับ (ปลั๊ก)',s:[['ขั้ว L','L'],['ขั้ว N','N'],['ขั้ว ⏚ กราวด์','G']],tip:'สีตรงตัวอักษร: L น้ำตาล · N ฟ้า · ⏚ เขียวเหลือง'},
+{t:'สวิตช์ทางเดียว',s:[['ขาที่ 1 (ไฟเข้า)','L'],['ขาที่ 2 (ไปหลอด)','L']],tip:'สวิตช์กินแต่น้ำตาลทั้ง 2 ขา สายฟ้าวิ่งไปหลอดตรงๆ ไม่ผ่านสวิตช์'},
+{t:'ขั้วหลอดไฟ',s:[['ขั้วกลาง','L'],['ขั้วเกลียว','N']],tip:'น้ำตาลเข้ากลาง ฟ้าเข้าเกลียว เพราะเกลียวคือส่วนที่นิ้วแตะตอนเปลี่ยนหลอด'},
+{t:'เซฟตี้เบรกเกอร์',s:[['บน L (ไฟเข้า)','L'],['บน N (ไฟเข้า)','N'],['ล่าง L (ไฟออก)','L'],['ล่าง N (ไฟออก)','N']],tip:'บนรับจากตู้ ล่างส่งไปปลั๊ก · สายดินไม่ต้องผ่านเบรกเกอร์'}
+];
+const A=Q.map(q=>q.s.map(()=>''));const R=Q.map(()=>null);
+const box=document.getElementById('quiz');
+function draw(){
+  box.innerHTML=Q.map((q,i)=>`<div class="qz"><h4>${q.t}</h4><div class="slots">${q.s.map((s,j)=>{const v=A[i][j],r=R[i];const cls=r?(v===s[1]?'ok':'no'):'';return `<button class="slot ${cls}" data-q="${i}" data-j="${j}"><span>${s[0]}</span><span class="wire" style="background:${CO[v][1]}"></span><span>${CO[v][0]}${r?(v===s[1]?' ✓':' ✗ ต้องเป็น'+CO[s[1]][0]):''}</span></button>`}).join('')}</div><div class="ctrls"><button data-c="${i}">ตรวจคำตอบ</button><button data-a="${i}">ดูเฉลย</button></div>${R[i]?`<p class="tip msg ${R[i]==='all'?'':'bad'}">${R[i]==='all'?'ถูกหมด! ':'ยังผิดอยู่ · '}จำว่า: ${q.tip}</p>`:''}</div>`).join('');
+}
+box.addEventListener('click',e=>{
+  const b=e.target.closest('button');if(!b)return;const d=b.dataset;
+  if(d.q!=null){const i=+d.q,j=+d.j;A[i][j]=ORD[(ORD.indexOf(A[i][j])+1)%4];R[i]=null}
+  else if(d.c!=null){const i=+d.c;R[i]=Q[i].s.every((s,j)=>A[i][j]===s[1])?'all':'some'}
+  else if(d.a!=null){const i=+d.a;A[i]=Q[i].s.map(s=>s[1]);R[i]='all'}
+  draw();
+});
+draw();
+}
+</script>
+</body>
+</html>

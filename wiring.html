@@ -23,6 +23,7 @@ p{margin:.3em 0}
 .sub{color:var(--mute);margin-bottom:16px}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;margin:14px 0}
 .fig svg{width:100%;height:auto;display:block}
+.fig.zoom{overflow:auto;border:1px solid var(--line);border-radius:10px}.fig.zoom svg{width:820px;max-width:none}
 .ctrls{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
 button{font:inherit;font-size:15px;min-height:44px;padding:8px 14px;border-radius:10px;border:1px solid var(--line);background:light-dark(#f6f4ef,#26292b);color:var(--ink);cursor:pointer}
 button[aria-pressed=true]{background:var(--ink);color:var(--panel);border-color:var(--ink)}
@@ -98,7 +99,8 @@ th{font-weight:600}
 <div class="card" id="myroom">
 <h2>ห้องของฉัน: ต่อสายตามแบบทีละขั้น</h2>
 <p class="note">ห้อง 2.5 × 7.5 ม. + ใต้ถุนด้านซ้าย · เส้นส้ม = วงจรไฟ (สาย 1.5 ตร.มม.) · เส้นเขียวประ = วงจรปลั๊ก (สาย 2.5 ตร.มม. 3 เส้น) · ทำครบ 7 ขั้นแล้วเปิดเบรกเกอร์ลองกดสวิตช์ได้</p>
-<div class="fig"><svg id="svgM2" viewBox="0 0 380 410" role="img" aria-label="แปลนต่อสายห้อง"></svg></div>
+<div class="ctrls" id="rmV"></div><p class="note" id="rmVnote"></p>
+<div class="fig" id="rmFig"><svg id="svgM2" viewBox="0 0 380 414" role="img" aria-label="แปลนต่อสายห้อง"></svg></div>
 <div class="stepbar"><button id="rmPrev">ก่อนหน้า</button><b id="rmNo"></b><button id="rmNext">ถัดไป</button></div>
 <div class="stepbox"><h3 id="rmTitle"></h3><p id="rmBody"></p></div>
 <p class="grp">เบรกเกอร์และสวิตช์</p>
@@ -682,11 +684,17 @@ draw();
 const $=id=>document.getElementById(id);
 const LC='#c27a1a',PC='#0F6E56';
 const SEG={
- l0:{d:'M58 184H212V71',c:'l',s:1},lA:{d:'M205 64H160V165',c:'l',s:2},lA2:{d:'M160 179V269',c:'l',s:2},
- lB0:{d:'M221 64H264V101',c:'l',s:3},lB1:{d:'M264 115V181',c:'l',s:3},lB2:{d:'M264 195V257',c:'l',s:3},
- lB3:{d:'M264 271V304H265',c:'l',s:4},lT:{d:'M279 304H320V292',c:'l',s:4},
- p0:{d:'M58 214H198V66H203',c:'p',s:5},p1:{d:'M221 58H268V45',c:'p',s:5},p2:{d:'M268 45V52H308V196H315',c:'p',s:5},
- p3:{d:'M315 202H300V264H274',c:'p',s:6},p4:{d:'M254 268H236V340H239',c:'p',s:6}};
+ l0:{p:[[58,184],[212,184],[212,73]],c:'l',s:1},lA:{p:[[203,66],[160,66],[160,165]],c:'l',s:2},lA2:{p:[[160,179],[160,269]],c:'l',s:2},
+ lB0:{p:[[221,66],[264,66],[264,101]],c:'l',s:3},lB1:{p:[[264,115],[264,181]],c:'l',s:3},lB2:{p:[[264,195],[264,257]],c:'l',s:3},
+ lB3:{p:[[264,271],[264,288],[272,288],[272,297]],c:'l',s:4},lT:{p:[[279,304],[320,304],[320,294]],c:'l',s:4},
+ p0:{p:[[58,214],[196,214],[196,60],[203,60]],c:'p',s:5},p1:{p:[[221,57],[268,57],[268,45]],c:'p',s:5},p2:{p:[[268,45],[268,50],[308,50],[308,196],[315,196]],c:'p',s:5},
+ p3:{p:[[315,202],[300,202],[300,264],[274,264]],c:'p',s:6},p4:{p:[[254,268],[236,268],[236,340],[239,340]],c:'p',s:6}};
+Object.values(SEG).forEach(g=>g.d='M'+g.p.map(q=>q.join(' ')).join('L'));
+function offs(P,d){const n=(a,b)=>{const dx=b[0]-a[0],dy=b[1]-a[1],l=Math.hypot(dx,dy)||1;return[-dy/l,dx/l]};
+  return P.map((q,i)=>{const n1=i>0?n(P[i-1],q):null,n2=i<P.length-1?n(q,P[i+1]):null;let v;
+    if(!n1)v=n2;else if(!n2)v=n1;else if(Math.abs(n1[0]-n2[0])<1e-6&&Math.abs(n1[1]-n2[1])<1e-6)v=n1;else v=[n1[0]+n2[0],n1[1]+n2[1]];
+    return[q[0]+v[0]*d,q[1]+v[1]*d]})}
+const WST={L:['#9b5422',''],S:['#e08a2e',''],T:['#9b5422','4 2'],N:['#2f7fd8',''],G:['#4f9a2a','']};
 const LAMP={A1:[160,172,['l0','lA']],A2:[160,276,['l0','lA','lA2']],B1:[264,108,['l0','lB0']],B2:[264,188,['l0','lB0','lB1']],B3:[272,304,['l0','lB0','lB1','lB2','lB3','lT']]};
 const PLUG=[{n:'ปลั๊กแผง A',d:'พัดลม',w:60,x:230,y:78,need:['p0']},{n:'ปลั๊กบน',d:'ชาร์จมือถือ',w:20,x:268,y:40,need:['p0','p1']},{n:'ปลั๊กขวา',d:'ทีวี',w:120,x:320,y:196,need:['p0','p1','p2']},{n:'ปลั๊กแผง B',d:'ไดร์เป่าผม',w:1200,x:264,y:280,need:['p0','p1','p2','p3']},{n:'ปลั๊กห้องเล็ก',d:'กาต้มน้ำ',w:1800,x:244,y:340,need:['p0','p1','p2','p3','p4']}];
 const ST=[
@@ -698,7 +706,7 @@ const ST=[
 ['วงจรปลั๊ก: ตู้ → แผง A → ปลั๊กบน → ปลั๊กขวา','สาย 2.5 สามเส้น (น้ำตาล ฟ้า เขียวเหลือง) จาก RCBO 16A เข้าปลั๊กแผง A แล้วพ่วงไปปลั๊กบน และปลั๊กขวา · ใช้รูที่สองของแต่ละขั้วพ่วงต่อ · สายดินต้องต่อไปถึงบาร์ G ที่ตู้'],
 ['ปลั๊กแผง B → ปลั๊กห้องเล็ก แล้วทดสอบ','พ่วงสายสามเส้นต่อไปปลั๊กแผง B และปลั๊กห้องเล็ก · ตรวจขั้วแน่น ปิดฝากล่องทุกใบ แล้วเปิดเบรกเกอร์ · ลองกดสวิตช์ทุกตัว ใช้ไขควงวัดไฟเช็กรู L ของปลั๊กทุกจุด และกดปุ่ม TEST ของ RCBO'] ];
 const DONE=ST.length-1;
-const R={s:0,mcb:false,rcbo:false,SA:false,SB1:false,SB2:false,SB3:0,SC:1,pl:[false,false,false,false,false],warn:''};
+const R={view:'o',s:0,mcb:false,rcbo:false,SA:false,SB1:false,SB2:false,SB3:0,SC:1,pl:[false,false,false,false,false],warn:''};
 const has=id=>SEG[id].s<=R.s;
 function state(){
   const lOn=R.mcb, pOn=R.rcbo;
@@ -707,14 +715,24 @@ function state(){
   const run=PLUG.map((p,i)=>pOn&&R.pl[i]&&p.need.every(has));
   const fl={l0:Object.values(lit).some(Boolean),lA:lit.A1||lit.A2,lA2:lit.A2,lB0:lit.B1||lit.B2||lit.B3,lB1:lit.B2||lit.B3,lB2:lit.B3,lB3:lit.B3,lT:lit.B3};
   ['p0','p1','p2','p3','p4'].forEach((id,k)=>fl[id]=run.slice(k).some(Boolean));
-  return {lit,run,fl,W:PLUG.reduce((t,p,i)=>t+(run[i]?p.w:0),0)};
+  const aB=lit.B1||lit.B2||lit.B3,tp=R.SB3,b3=lit.B3;
+  const W3={l0:[['L',fl.l0],['N',fl.l0],['G',0]],lA:[['S',fl.lA],['N',fl.lA],['G',0]],lA2:[['S',lit.A2],['N',lit.A2],['G',0]],
+   lB0:[['L',aB],['N',aB],['G',0]],lB1:[['L',aB],['S',lit.B1],['N',lit.B2||b3],['G',0]],lB2:[['L',aB],['S',lit.B1],['S',lit.B2],['N',b3],['G',0]],
+   lB3:[['T',b3&&tp===0],['T',b3&&tp===1],['N',b3],['G',0]],lT:[['T',b3&&tp===0],['T',b3&&tp===1],['S',b3]]};
+  ['p0','p1','p2','p3','p4'].forEach(id=>W3[id]=[['L',fl[id]],['N',fl[id]],['G',0]]);
+  return {lit,run,fl,W3,W:PLUG.reduce((t,p,i)=>t+(run[i]?p.w:0),0)};
 }
 function draw(){
-  const {lit,run,fl,W}=state();
+  const {lit,run,fl,W3,W}=state();
   let s='';
   s+=`<path d="M120 40H220" fill="none" stroke="var(--mute)" stroke-dasharray="4 3"/><rect x="220" y="40" width="100" height="300" fill="none" stroke="var(--ink)" stroke-width="1.5"/><path d="M220 272H280M296 272H320" stroke="var(--ink)" stroke-width="1.5"/>`;
   s+=`<text x="270" y="360" font-size="11" text-anchor="middle">ห้อง 2.5 × 7.5 ม.</text><text x="160" y="360" font-size="11" text-anchor="middle" style="fill:var(--mute)">ใต้ถุน</text><text x="288" y="268" font-size="10" text-anchor="middle" style="fill:var(--mute)">ประตู</text>`;
   Object.entries(SEG).forEach(([id,g])=>{if(g.s>R.s)return;const now=g.s===R.s&&R.s<DONE,col=g.c==='l'?LC:PC;
+    if(R.view==='w'){const cs=W3[id],k=cs.length;s+=`<g class="${now?'now':''}">`;
+      cs.forEach(([t,f],i)=>{const q=offs(g.p,(i-(k-1)/2)*3.2),d='M'+q.map(v=>v[0].toFixed(1)+' '+v[1].toFixed(1)).join('L'),[c,da]=WST[t];
+        s+=`<path d="${d}" fill="none" stroke="${c}" stroke-width="2" stroke-linejoin="round" ${da?`stroke-dasharray="${da}"`:''}/>`+(t==='G'?`<path d="${d}" fill="none" stroke="#e5c220" stroke-width="2" stroke-dasharray="3 5"/>`:'');
+        if(f)s+=`<path d="${d}" fill="none" stroke="#fff" stroke-width="1" stroke-dasharray="2 6" class="flow" style="stroke-width:1"/>`});
+      s+='</g>';return}
     s+=`<g class="${now?'now':''}"><path d="${g.d}" fill="none" stroke="${col}" stroke-width="${now?6:3.5}" stroke-linecap="round" stroke-linejoin="round" ${g.c==='p'?'stroke-dasharray="7 4"':''}/></g>`;
     if(fl[id])s+=`<path d="${g.d}" class="flow"/>`});
   s+=`<rect x="12" y="162" width="52" height="76" rx="6" style="fill:var(--panel)" stroke="var(--ink)"/>`;
@@ -727,7 +745,11 @@ function draw(){
   s+=`<rect x="254" y="257" width="20" height="14" rx="3" fill="#2e7d46"/><text x="248" y="252" font-size="11" text-anchor="end">แผง B</text>`;
   s+=`<rect x="315" y="284" width="10" height="10" rx="2" fill="#2e7d46"/><text x="330" y="293" font-size="11">S-C</text><rect class="tap" data-r="SC" x="308" y="278" width="40" height="24"/>`;
   PLUG.forEach((p,i)=>{s+=`<rect x="${p.x-5}" y="${p.y-5}" width="10" height="10" rx="2" fill="${run[i]?'var(--ok)':'var(--panel)'}" stroke="${PC}" stroke-width="2"/><rect class="tap" data-r="p${i}" x="${p.x-12}" y="${p.y-12}" width="24" height="24"/>`});
-  s+=`<line x1="40" y1="388" x2="64" y2="388" stroke="${LC}" stroke-width="3.5"/><text x="70" y="392" font-size="11">วงจรไฟ</text><line x1="160" y1="388" x2="184" y2="388" stroke="${PC}" stroke-width="3.5" stroke-dasharray="7 4"/><text x="190" y="392" font-size="11">วงจรปลั๊ก</text>`;
+  if(R.view==='w'){const lg=[['L','L (มีไฟ)',20,384],['S','L กลับจากสวิตช์',140,384],['T','สายวิ่ง',280,384],['N','N',20,404],['G','ดิน',140,404]];
+    lg.forEach(([t,n,x,y])=>{const [c,da]=WST[t];s+=`<line x1="${x}" y1="${y}" x2="${x+22}" y2="${y}" stroke="${c}" stroke-width="3" ${da?`stroke-dasharray="${da}"`:''}/>`+(t==='G'?`<line x1="${x}" y1="${y}" x2="${x+22}" y2="${y}" stroke="#e5c220" stroke-width="3" stroke-dasharray="3 5"/>`:'')+`<text x="${x+28}" y="${y+4}" font-size="11">${n}</text>`})}
+  else s+=`<line x1="40" y1="388" x2="64" y2="388" stroke="${LC}" stroke-width="3.5"/><text x="70" y="392" font-size="11">วงจรไฟ</text><line x1="160" y1="388" x2="184" y2="388" stroke="${PC}" stroke-width="3.5" stroke-dasharray="7 4"/><text x="190" y="392" font-size="11">วงจรปลั๊ก</text>`;
+  $('rmV').innerHTML=`<button data-v="o" aria-pressed="${R.view!=='w'}">ภาพรวม (1 เส้น = 1 ท่อ)</button><button data-v="w" aria-pressed="${R.view==='w'}">สายจริงทีละเส้น</button><button data-v="z" aria-pressed="${!!R.zoom}">${R.zoom?'ย่อภาพ':'ขยายภาพ (เลื่อนดูได้)'}</button>`;$('rmFig').classList.toggle('zoom',!!R.zoom);
+  $('rmVnote').textContent=R.view==='w'?'แต่ละเส้นคือสายไฟ 1 เส้นในท่อ · ตัวเลขจำนวนเส้นช่วงนั้นนับได้จากภาพ · แนะนำเดินสายดินไปโคมด้วย เพราะโคมใต้ถุนโดนฝน':'';
   $('svgM2').innerHTML=s;
   $('rmNo').textContent=`ขั้นที่ ${R.s+1} / ${ST.length}`;$('rmTitle').textContent=ST[R.s][0];$('rmBody').textContent=ST[R.s][1];
   $('rmPrev').disabled=R.s===0;$('rmNext').disabled=R.s===DONE;
@@ -751,6 +773,7 @@ function act(t){
   draw();
 }
 ['svgM2','rmSw','rmPl'].forEach(id=>$(id).addEventListener('click',e=>{const el=e.target.closest('[data-r]');if(el)act(el.dataset.r)}));
+$('rmV').addEventListener('click',e=>{const b=e.target.closest('[data-v]');if(b){if(b.dataset.v==='z')R.zoom=!R.zoom;else R.view=b.dataset.v;draw()}});
 $('rmPrev').onclick=()=>{R.s=Math.max(0,R.s-1);R.mcb=R.rcbo=false;R.warn='';draw()};
 $('rmNext').onclick=()=>{R.s=Math.min(DONE,R.s+1);R.warn='';draw()};
 draw();
